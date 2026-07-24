@@ -159,18 +159,14 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                   transition="background 0.1s"
                   _hover={{ bg: 'rgba(253,187,0,0.05)' }}
                 >
-                  {/* Borda esquerda de posição */}
-                  <Td p={0} w={0} m={0} border={0}>
+                  {/* Posição com borda esquerda */}
+                  <Td position="relative" px={4} py={3} textAlign="center" w="44px">
                     <Box
                       position="absolute"
                       left={0} top={0} bottom={0}
                       w="4px"
                       bg={leftBorderColor}
                     />
-                  </Td>
-
-                  {/* Posição */}
-                  <Td px={4} py={3} textAlign="center" w="44px">
                     <Text
                       fontFamily="heading"
                       fontWeight={900}
