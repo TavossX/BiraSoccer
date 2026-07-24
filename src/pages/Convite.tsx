@@ -2,7 +2,6 @@ import {
   Badge,
   Box,
   Button,
-  Divider,
   Flex,
   Heading,
   HStack,
@@ -14,12 +13,11 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CanecaChopp from '../assets/logos/CanecaChopp.png';
+import LogoBola from '../assets/logos/LogoBola.png';
 import { Chaveamento } from '../components/Chaveamento';
 import { TabelaClassificacao } from '../components/TabelaClassificacao';
 import { supabase } from '../lib/supabase';
 import { useTorneioStore } from '../store/torneioStore';
-import { ThemeToggle } from '../components/ThemeToggle';
 
 // ─── Ícones SVG ───────────────────────────────────────────────────────────────
 const RefreshIcon = () => (
@@ -88,9 +86,9 @@ export function Convite() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (status === 'carregando') {
     return (
-      <Flex minH="100vh" bg="brand.surfaceLight" _dark={{ bg: 'brand.surfaceDark' }} align="center" justify="center" direction="column" gap={4}>
-        <Spinner size="xl" color="brand.orange" thickness="3px" speed="0.8s" />
-        <Text opacity={0.6} fontSize="sm">Carregando torneio…</Text>
+      <Flex minH="100vh"  align="center" justify="center" direction="column" gap={4}>
+        <Spinner size="xl"  thickness="4px" speed="0.8s" />
+        <Text fontSize="9px" >CARREGANDO TORNEIO...</Text>
       </Flex>
     );
   }
@@ -98,22 +96,24 @@ export function Convite() {
   // ── Erro ───────────────────────────────────────────────────────────────────
   if (status === 'erro' || !torneio) {
     return (
-      <Flex minH="100vh" bg="brand.surfaceLight" _dark={{ bg: 'brand.surfaceDark' }} align="center" justify="center" px={4}>
+      <Flex minH="100vh"  align="center" justify="center" px={4}>
         <Box
-          maxW="400px" w="full" bg="blackAlpha.50" borderRadius="2px"
-          borderWidth={1} borderColor="brand.dark" _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.300' }} p={8} textAlign="center"
+          maxW="400px" w="full" 
+           
+          boxShadow="md"
+          p={8} textAlign="center"
         >
-          <Heading size="md" fontFamily="heading" mb={2}>Torneio não encontrado</Heading>
-          <Text fontSize="sm" opacity={0.6} mb={6} lineHeight="1.6">
-            Este link pode estar incorreto ou o torneio ainda não foi publicado pelo organizador.
+          <Heading fontFamily="heading" fontSize="20px"  mb={3}>TORNEIO NÃO ENCONTRADO</Heading>
+          <Text fontSize="9px"  mb={6} lineHeight="1.8">
+            Este link pode estar incorreto ou o torneio ainda não foi publicado.
           </Text>
           <VStack spacing={3}>
-            <Button w="full" onClick={() => carregar()} variant="solid" bg="brand.orange" color="brand.dark" borderRadius="2px">
-              Tentar novamente
+            <Button w="full" onClick={() => carregar()} variant="arcade" fontSize="11px">
+              ▶ TENTAR NOVAMENTE
             </Button>
-            <Button w="full" variant="solid" color="brand.dark" _dark={{ color: 'white' }} borderRadius="2px"
+            <Button w="full" variant="outline" fontSize="10px"
               onClick={() => navigate('/torneio/configurar')}>
-              Criar meu próprio torneio
+              CRIAR MEU TORNEIO
             </Button>
           </VStack>
         </Box>
@@ -124,11 +124,13 @@ export function Convite() {
   // ── Torneio carregado ─────────────────────────────────────────────────────
 
   return (
-    <Box minH="100vh" bg="brand.surfaceLight" _dark={{ bg: 'brand.surfaceDark' }}>
+    <Box minH="100vh" >
       {/* Header somente leitura */}
       <Box
-        bg="brand.surfaceLight"
-        borderBottomWidth={1} borderColor="brand.dark" _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
+        
+        borderBottom="3px solid"
+        
+        boxShadow="0 4px 0 #000"
         position="sticky" top={0} zIndex={100}
       >
         <Flex
@@ -136,48 +138,48 @@ export function Convite() {
           align="center" justify="space-between" gap={3}
         >
           <HStack spacing={3}>
-            <Image src={CanecaChopp} alt="Bar do Bira" h="32px" />
+            <Image src={LogoBola} alt="EAFC26 Cup" h="32px"  />
             <VStack spacing={0} align="flex-start">
-              <Heading size="sm" fontFamily="heading" lineHeight="1.1">{torneio.nome}</Heading>
+              <Heading fontFamily="heading" fontSize={{ base: '15px', md: '19px' }}  lineHeight="1.1">{torneio.nome}</Heading>
               <HStack spacing={2}>
                 <Badge
-                  colorScheme="orange" variant="outline"
-                  fontSize="2xs" borderRadius="2px"
+                   color="#000"
+                  border="1px solid #000"
+                  fontSize="7px" px={2}
                 >
-                  {torneio.formato === 'liga' ? 'Liga' : torneio.formato === 'liga_com_playoffs' ? 'Liga + Playoffs' : 'Mata-mata'}
+                  {torneio.formato === 'liga' ? 'LIGA' : torneio.formato === 'liga_com_playoffs' ? 'LIGA + PLAYOFFS' : 'MATA-MATA'}
                 </Badge>
                 {isReadOnly && (
-                  <Badge variant="outline" fontSize="2xs" borderRadius="2px">
-                    Somente leitura
+                  <Badge bg="transparent" border="1px solid"   fontSize="7px" px={2}>
+                    SOMENTE LEITURA
                   </Badge>
                 )}
               </HStack>
             </VStack>
           </HStack>
 
-          <HStack spacing={3}>
-            <ThemeToggle />
+          <HStack spacing={2}>
             <Button
-              size="sm" variant="solid"
+              size="sm" variant="outline"
               onClick={() => navigate('/')}
-              borderRadius="2px"
-              borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }}
+              fontSize="9px"
             >
-              Dashboard
+              ← DASHBOARD
             </Button>
             <Button
               id="btn-atualizar"
               leftIcon={<RefreshIcon /> as any}
-            size="sm"
-            variant="ghost"
-            color="whiteAlpha.600"
-            _hover={{ color: 'white', bg: 'whiteAlpha.100' }}
-            isLoading={atualizando}
-            loadingText="Atualizando…"
-            onClick={() => carregar(true)}
-          >
-            Atualizar
-          </Button>
+              size="sm"
+              variant="ghost"
+              
+              _hover={{ color: 'white', bg: 'brand.cardBg' }}
+              isLoading={atualizando}
+              loadingText="ATUALIZANDO..."
+              onClick={() => carregar(true)}
+              fontSize="9px"
+            >
+              ATUALIZAR
+            </Button>
           </HStack>
         </Flex>
       </Box>
@@ -187,18 +189,18 @@ export function Convite() {
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>
-            <Text fontSize="xs" opacity={0.6} fontWeight={600}>
-              Progresso do torneio
+            <Text fontSize="9px" >
+              PROGRESSO DO TORNEIO
             </Text>
-            <Text fontSize="xs" fontWeight={700}>
-              {totalFinalizados}/{totalPartidas} jogos ({progresso}%)
+            <Text fontSize="9px"  fontWeight={700}>
+              {totalFinalizados}/{totalPartidas} ({progresso}%)
             </Text>
           </HStack>
-          <Box w="full" h="6px" bg="blackAlpha.100" _dark={{ bg: 'whiteAlpha.100' }} borderRadius="2px" overflow="hidden">
+          <Box w="full" h="8px"  border="1px solid"  overflow="hidden">
             <Box
               h="full"
               w={`${progresso}%`}
-              bg="brand.orange"
+              bg="linear-gradient(90deg,#F94A29,#FDBB00)"
               transition="width 0.6s ease"
             />
           </Box>
@@ -206,22 +208,26 @@ export function Convite() {
 
         {/* Participantes */}
         <Box
-          mb={6} bg="blackAlpha.50" borderRadius="2px"
-          borderWidth={1} borderColor="brand.dark" _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.300' }} p={4}
+          mb={6} 
+           
+          boxShadow="md"
+          p={4}
         >
-          <Text fontSize="xs" opacity={0.6} fontWeight={700}
+          <Text fontSize="9px"  fontWeight={700}
             textTransform="uppercase" letterSpacing="wide" mb={3}>
-            {participantes.length} participantes
+            {participantes.length} PARTICIPANTES
           </Text>
           <Flex flexWrap="wrap" gap={2}>
             {participantes.map((p) => (
               <HStack
                 key={p.id}
-                bg="brand.surfaceLight" borderRadius="2px" px={3} py={1}
-                spacing={2} borderWidth={1} borderColor="brand.dark" _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
+                
+                border="1px solid" 
+                px={3} py={1}
+                spacing={2}
               >
-                <Text fontSize="xs" fontWeight={600}>{p.nomeAmigo}</Text>
-                <Badge variant="outline" fontSize="2xs" borderRadius="2px">
+                <Text fontFamily="heading" fontSize="12px" >{p.nomeAmigo}</Text>
+                <Badge bg="transparent" border="1px solid"   fontSize="7px" px={2}>
                   {p.timeSorteado}
                 </Badge>
               </HStack>
@@ -229,30 +235,30 @@ export function Convite() {
           </Flex>
         </Box>
 
-        <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} mb={6} />
+        <Box h="2px" bg="linear-gradient(90deg,#C80000,#F94A29,#FDBB00,#F94A29,#C80000)" mb={6} />
 
         {/* Conteúdo principal: tabela ou chaveamento */}
         {torneio.formato === 'liga' ? (
           <Box>
-            <Heading size="md" fontFamily="heading" mb={5}>Classificação</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>CLASSIFICAÇÃO</Heading>
             <TabelaClassificacao />
           </Box>
         ) : torneio.formato === 'liga_com_playoffs' ? (
           <Box>
-            <Heading size="md" fontFamily="heading" mb={5}>Classificação</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>CLASSIFICAÇÃO</Heading>
             <TabelaClassificacao />
-            
+
             {torneio.playoffsGerados && (
               <Box mt={10}>
-                <Heading size="md" fontFamily="heading" mb={4}>Playoffs</Heading>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>PLAYOFFS</Heading>
                 <Chaveamento isReadOnly={isReadOnly} />
               </Box>
             )}
           </Box>
         ) : (
           <Box>
-            <Heading size="md" fontFamily="heading" mb={2}>Chaveamento</Heading>
-            <Text fontSize="sm" opacity={0.6} mb={5}>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>CHAVEAMENTO</Heading>
+            <Text fontSize="9px"  mb={5}>
               Acompanhe os confrontos e veja quem avança de fase.
             </Text>
             <Chaveamento isReadOnly={isReadOnly} />
@@ -260,16 +266,15 @@ export function Convite() {
         )}
 
         {/* Rodapé */}
-        <Box mt={10} pt={6} borderTopWidth={1} borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} textAlign="center">
-          <Text fontSize="xs" opacity={0.6}>
-            Copa de Amigos — EA FC 26 · Torneio ID:{' '}
-            <Text as="span" fontFamily="mono" opacity={0.8}>{torneio.id}</Text>
+        <Box mt={10} pt={6} borderTop="2px solid"  textAlign="center">
+          <Text fontSize="8px" >
+            EAFC26 CUP — ID: {torneio.id}
           </Text>
           <Button
-            mt={3} size="sm" variant="solid" color="brand.orange"
+            mt={3} size="sm" variant="arcade" fontSize="10px"
             onClick={() => navigate('/torneio/configurar')}
           >
-            Criar meu próprio torneio →
+            ▶ CRIAR MEU TORNEIO
           </Button>
         </Box>
       </Box>

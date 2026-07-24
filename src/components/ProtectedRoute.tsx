@@ -24,8 +24,8 @@ export function ProtectedRoute() {
 
   if (loading) {
     return (
-      <Flex minH="100vh" align="center" justify="center" bg="brand.surfaceLight" _dark={{ bg: 'brand.surfaceDark' }}>
-        <Spinner color="brand.orange" size="xl" />
+      <Flex minH="100vh" align="center" justify="center"  _dark={{ bg: 'brand.surfaceDark' }}>
+        <Spinner  size="xl" />
       </Flex>
     );
   }

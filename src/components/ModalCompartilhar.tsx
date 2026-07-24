@@ -103,15 +103,15 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
       <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
       <ModalContent
-        bg="brand.surfaceLight"
+        
         borderRadius="4px"
         borderWidth={1}
-        borderColor="brand.dark" _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
+         _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
         overflow="hidden"
         mx={4}
       >
         {/* Tarja superior */}
-        <Box h="4px" bg="brand.orange" />
+        <Box h="4px"  />
 
         <ModalHeader pt={5} pb={2}>
           <HStack spacing={3}>
@@ -200,7 +200,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                   </InputGroup>
                 </Box>
 
-                <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+                <Divider  _dark={{ borderColor: 'whiteAlpha.300' }} />
 
                 {/* O que o amigo vê */}
                 <Box>
@@ -219,7 +219,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                     ].map((item) => (
                       <ListItem key={item}>
                         <HStack spacing={2} align="flex-start">
-                          <Box color="brand.orange" flexShrink={0} mt="1px">
+                          <Box  flexShrink={0} mt="1px">
                             <CheckIcon />
                           </Box>
                           <Text fontSize="xs" opacity={0.7}>{item}</Text>
@@ -229,7 +229,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                   </List>
                 </Box>
 
-                <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+                <Divider  _dark={{ borderColor: 'whiteAlpha.300' }} />
 
                 {/* Botões de compartilhamento */}
                 <VStack spacing={3}>
@@ -270,10 +270,10 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
 
                 {/* Nota de atualização */}
                 <HStack
-                  bg="brand.surfaceLight" borderRadius="2px" p={3} spacing={2}
-                  borderWidth={1} borderColor="brand.dark" _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.100' }}
+                   borderRadius="2px" p={3} spacing={2}
+                  borderWidth={1}  _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.100' }}
                 >
-                  <Box color="brand.orange" flexShrink={0}><GlobeIcon /></Box>
+                  <Box  flexShrink={0}><GlobeIcon /></Box>
                   <Text fontSize="2xs" opacity={0.6} lineHeight="1.5">
                     O link permanece ativo. Sempre que você lançar um placar e recompartilhar,
                     o torneio é re-publicado com os dados mais recentes.

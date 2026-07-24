@@ -17,9 +17,8 @@ import {
   VStack,
   useToast,
   Badge,
-  Divider,
   Image,
-  useColorMode
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -85,9 +84,6 @@ export function ConfigurarTorneio() {
   const [timeSelecionado, setTimeSelecionado] = useState<TimeFutebol | null>(null);
   const [duplas, setDuplas] = useState<{amigo: string; time: string; logoTime?: string}[]>([]);
   
-  const { colorMode } = useColorMode();
-  const isDark = colorMode === 'dark';
-
   const toast = useToast();
   const navigate = useNavigate();
   const criarTorneio = useTorneioStore((s) => s.criarTorneio);
@@ -139,54 +135,64 @@ export function ConfigurarTorneio() {
   const atualizarAmigo = (i: number, val: string) =>
     setAmigos((prev) => prev.map((a, idx) => (idx === i ? val : a)));
 
+  const bgColor = useColorModeValue('#FFF', '#2D3748');
+  const borderColor = useColorModeValue('#E2E8F0', '#4A5568');
+  const hoverBg = useColorModeValue('#EDF2F7', '#4A5568');
+  const textColor = useColorModeValue('#1A202C', '#F7FAFC');
+  const brandColor = '#f94a29';
+
   // Select Styles
   const customSelectStyles = {
     control: (base: any, state: any) => ({
       ...base,
-      borderRadius: '2px',
-      boxShadow: 'none',
-      borderColor: state.isFocused ? '#E48F22' : (isDark ? 'rgba(255,255,255,0.3)' : '#2B231D'),
-      backgroundColor: 'transparent',
-      '&:hover': {
-        borderColor: '#E48F22',
-      }
+      borderRadius: '8px',
+      boxShadow: state.isFocused ? `0 0 0 1px ${brandColor}` : 'none',
+      borderWidth: '1px',
+      borderColor: state.isFocused ? brandColor : borderColor,
+      backgroundColor: bgColor,
+      color: textColor,
+      '&:hover': { borderColor: state.isFocused ? brandColor : hoverBg },
     }),
     menu: (base: any) => ({
       ...base,
-      borderRadius: '2px',
-      boxShadow: 'none',
-      border: '1px solid',
-      borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#2B231D',
-      backgroundColor: isDark ? '#3A3129' : '#EBE6DF',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      border: `1px solid ${borderColor}`,
+      backgroundColor: bgColor,
       zIndex: 5,
     }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent',
-      color: 'inherit',
+      backgroundColor: state.isFocused ? hoverBg : 'transparent',
+      color: textColor,
       cursor: 'pointer',
-      '&:active': {
-        backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-      }
     }),
     multiValue: (base: any) => ({
       ...base,
-      backgroundColor: isDark ? '#F7F5F0' : '#2B231D',
-      borderRadius: '2px',
+      backgroundColor: brandColor,
+      borderRadius: '4px',
     }),
     multiValueLabel: (base: any) => ({
       ...base,
-      color: isDark ? '#2B231D' : '#F7F5F0',
-      fontSize: '0.75rem',
+      color: '#FFF',
     }),
     multiValueRemove: (base: any) => ({
       ...base,
-      color: isDark ? '#2B231D' : '#F7F5F0',
-      '&:hover': {
-        backgroundColor: 'transparent',
-        color: 'red',
-      }
-    })
+      color: '#FFF',
+      '&:hover': { backgroundColor: '#c73a1e', color: 'white' },
+    }),
+    input: (base: any) => ({
+      ...base,
+      color: textColor,
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: useColorModeValue('#A0AEC0', '#718096'),
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: textColor,
+    }),
   };
 
   const loadOptions = async (inputValue: string) => {
@@ -268,13 +274,15 @@ export function ConfigurarTorneio() {
       <Box maxW="760px" mx="auto">
         <HStack justify="space-between" mb={8} align="flex-start">
           <VStack spacing={2} align="flex-start">
-            <Button size="xs" variant="solid" mb={2} onClick={() => navigate('/')} px={0} _hover={{ bg: 'transparent', color: 'brand.orange' }} leftIcon={<ResetIcon /> as any}>
-              Voltar para o Dashboard
+            <Button size="xs" variant="ghost" mb={2} onClick={() => navigate('/')} px={0}
+               _hover={{ color: 'brand.orange' }}
+              leftIcon={<ResetIcon /> as any}>
+              ← Voltar para o Dashboard
             </Button>
-            <Heading size="xl" fontFamily="heading" fontWeight={800} letterSpacing="-0.5px">
-              Configurar Campeonato
+            <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
+              CONFIGURAR CAMPEONATO
             </Heading>
-            <Text fontSize="sm">Configure os dados e realize o Sorteio Interativo.</Text>
+            <Text fontSize="sm" color="gray.500">Configure os dados e realize o Sorteio Interativo.</Text>
           </VStack>
           <ThemeToggle />
         </HStack>
@@ -283,47 +291,42 @@ export function ConfigurarTorneio() {
           {[1, 2, 3].map((s) => (
             <HStack key={s} spacing={0} flex={1}>
               <Flex
-                w={8} h={8} borderRadius="2px" align="center" justify="center"
+                w={8} h={8} align="center" justify="center"
                 fontSize="sm" fontWeight={700} flexShrink={0}
-                bg={step >= s ? 'brand.orange' : 'transparent'}
-                borderWidth={1}
-                borderColor={step >= s ? 'brand.orange' : 'brand.dark'}
-                _dark={{ borderColor: step >= s ? 'brand.orange' : 'whiteAlpha.300' }}
-                color={step >= s ? 'brand.dark' : 'inherit'}
-                transition="all 0.3s"
+                bg={step >= s ? 'brand.mustard' : 'brand.cardBg'}
+                borderColor={step >= s ? 'brand.mustard' : 'brand.cardBgAlt'}
+                color={step >= s ? '#000' : 'brand.textMutedToken'}
+                boxShadow={step >= s ? '2px 2px 0 #000' : 'none'}
+                transition="all 0.2s"
               >
                 {s}
               </Flex>
               <Text
-                ml={2} fontSize="xs" fontWeight={600} display={{ base: 'none', sm: 'block' }}
-                color={step >= s ? 'brand.orange' : 'inherit'}
-                opacity={step >= s ? 1 : 0.4}
+                ml={2} fontSize="9px" fontWeight={600} display={{ base: 'none', sm: 'block' }}
+                color={step >= s ? 'brand.mustard' : 'brand.textMutedToken'}
+                opacity={step >= s ? 1 : 0.5}
                 transition="color 0.3s"
               >
-                {s === 1 ? 'Definicao' : s === 2 ? 'Draft' : 'Resumo'}
+                {s === 1 ? 'DEFINIÇÃO' : s === 2 ? 'DRAFT' : 'RESUMO'}
               </Text>
-              {s < 3 && <Box flex={1} h="1px" bg={step > s ? 'brand.orange' : 'brand.dark'} _dark={{ bg: step > s ? 'brand.orange' : 'whiteAlpha.300' }} mx={2} transition="all 0.3s" />}
+              {s < 3 && <Box flex={1} h="2px" bg={step > s ? 'brand.mustard' : 'brand.cardBgAlt'} mx={2} transition="all 0.3s" />}
             </HStack>
           ))}
         </HStack>
 
-        <Box
-          bg="brand.surfaceLight"
-          borderRadius="4px" borderWidth={1} borderColor="brand.dark" _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
-          p={{ base: 6, md: 8 }}
-        >
+        <Box p={{ base: 6, md: 8 }}>
           {step === 1 && (
             <VStack spacing={8} align="stretch">
               <VStack spacing={4} align="stretch">
-                <Heading size="md" fontFamily="heading">Informacoes Basicas</Heading>
+                <Heading fontSize={{ base: '18px', md: '22px' }}>INFORMAÇÕES BÁSICAS</Heading>
                 <FormControl isInvalid={!!errors.nomeTorneio}>
-                  <FormLabel fontSize="sm">Nome do torneio</FormLabel>
-                  <Input {...register('nomeTorneio')} placeholder="Copa de Inverno 2026" variant="outline" />
-                  <FormErrorMessage fontSize="xs">{errors.nomeTorneio?.message}</FormErrorMessage>
+                  <FormLabel>NOME DO TORNEIO</FormLabel>
+                  <Input {...register('nomeTorneio')} placeholder="Copa de Inverno 2026" />
+                  <FormErrorMessage fontSize="9px">{errors.nomeTorneio?.message}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel fontSize="sm">Formato</FormLabel>
+                  <FormLabel>FORMATO</FormLabel>
                   <RadioGroup value={formato} onChange={(v) => setFormato(v as FormatoTorneio)}>
                     <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={3}>
                       {[
@@ -332,16 +335,20 @@ export function ConfigurarTorneio() {
                         { val: 'liga_com_playoffs', titulo: 'Liga + Playoffs', desc: 'Pontos corridos + Top 4 se enfrentam.' },
                       ].map(({ val, titulo, desc }) => (
                         <Box
-                          key={val} as="label" cursor="pointer" borderRadius="4px" borderWidth={1}
-                          borderColor={formato === val ? 'brand.orange' : 'brand.dark'}
-                          bg={formato === val ? 'blackAlpha.50' : 'transparent'}
-                          _dark={{ borderColor: formato === val ? 'brand.orange' : 'whiteAlpha.300', bg: formato === val ? 'whiteAlpha.50' : 'transparent' }}
-                          p={4} transition="all 0.2s" _hover={{ borderColor: 'brand.orange' }}
+                          key={val} as="label" cursor="pointer"
+                          borderWidth="1px"
+                          borderRadius="md"
+                          borderColor={formato === val ? 'brand.500' : 'gray.200'} _dark={{ borderColor: formato === val ? 'brand.500' : 'gray.700' }}
+                          bg={useColorModeValue('white', 'gray.800')}
+                          boxShadow="sm"
+                          p={4}
+                          transition="all 0.15s"
+                          _hover={{ borderColor: 'brand.500' }}
                         >
                           <Radio value={val} display="none" />
                           <VStack align="flex-start" spacing={1}>
-                            <Text fontWeight={700} fontSize="sm">{titulo}</Text>
-                            <Text fontSize="xs" opacity={0.6}>{desc}</Text>
+                            <Text fontWeight={600} fontSize="md">{titulo}</Text>
+                            <Text fontSize="sm" color="gray.500">{desc}</Text>
                           </VStack>
                         </Box>
                       ))}
@@ -350,15 +357,18 @@ export function ConfigurarTorneio() {
                 </FormControl>
 
                 <Box
-                  borderWidth={1} borderRadius="4px"
-                  borderColor={idaEVolta ? 'brand.orange' : 'brand.dark'}
-                  _dark={{ borderColor: idaEVolta ? 'brand.orange' : 'whiteAlpha.300' }}
-                  p={4} transition="border-color 0.2s"
+                  borderWidth="1px"
+                  borderRadius="md"
+                  borderColor={idaEVolta ? 'brand.500' : 'gray.200'} _dark={{ borderColor: idaEVolta ? 'brand.500' : 'gray.700' }}
+                  p={4}
+                  transition="all 0.2s"
+                  bg={useColorModeValue('white', 'gray.800')}
+                  boxShadow="sm"
                 >
                   <Flex justify="space-between" align="center">
                     <VStack align="flex-start" spacing={0}>
-                      <Text fontWeight={700} fontSize="sm">Partidas de Ida e Volta</Text>
-                      <Text fontSize="xs" opacity={0.55} mt={1}>{idaEVoltaDesc}</Text>
+                      <Text fontWeight={600} fontSize="md">PARTIDAS DE IDA E VOLTA</Text>
+                      <Text fontSize="sm" color="gray.500" mt={1}>{idaEVoltaDesc}</Text>
                     </VStack>
                     <Switch
                       id="switch-ida-volta"
@@ -377,11 +387,11 @@ export function ConfigurarTorneio() {
                 </Box>
               </VStack>
 
-              <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+              <Box h="2px"  opacity={0.3} />
 
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between">
-                  <Heading size="sm" fontFamily="heading">Amigos</Heading>
+                  <Heading fontFamily="heading" fontSize="16px" >AMIGOS</Heading>
                   <Badge colorScheme="orange" variant="outline" borderRadius="2px" px={2}>
                     {amigosValidos.length} adicionados
                   </Badge>
@@ -411,11 +421,11 @@ export function ConfigurarTorneio() {
                 </HStack>
               </VStack>
 
-              <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+              <Box h="2px"  opacity={0.3} />
 
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between">
-                  <Heading size="sm" fontFamily="heading">Times Disponiveis</Heading>
+                  <Heading fontFamily="heading" fontSize="16px" >TIMES DISPONÍVEIS</Heading>
                   <Badge colorScheme={timesValidos.length >= amigosValidos.length ? 'green' : 'red'} variant="outline" borderRadius="2px" px={2}>
                     {timesValidos.length}/{amigosValidos.length} minimo
                   </Badge>
@@ -445,24 +455,26 @@ export function ConfigurarTorneio() {
                 <Button
                   id="btn-sorteio-interativo"
                   onClick={iniciarSorteio}
-                  variant="solid" bg="brand.orange" color="brand.dark" borderRadius="2px"
-                  size="lg" rightIcon={<ShuffleIcon /> as any}
-                  _hover={{ opacity: 0.9 }}
+                  variant="arcade"
+                  size="lg"
+                  rightIcon={<ShuffleIcon /> as any}
+                  fontSize="13px"
+                  h="52px"
                 >
-                  Sorteio Interativo
+                  ▶ SORTEIO INTERATIVO
                 </Button>
                 <Button
                   id="btn-sorteio-rapido"
                   onClick={sortearRapido}
-                  variant="outline" borderRadius="2px" size="lg"
-                  borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.400' }}
+                  variant="outline"
+                  size="lg"
                   leftIcon={<BoltIcon /> as any}
-                  _hover={{ borderColor: 'brand.orange', color: 'brand.orange' }}
+                  fontSize="11px"
                 >
-                  Sorteio Automatico Rapido
+                  SORTEIO AUTOMÁTICO RÁPIDO
                 </Button>
-                <Text fontSize="xs" opacity={0.5} textAlign="center">
-                  O Sorteio Rapido embaralha tudo automaticamente e gera o torneio de uma vez.
+                <Text fontSize="8px"  textAlign="center">
+                  O Sorteio Rápido embaralha tudo e gera o torneio de uma vez.
                 </Text>
               </VStack>
             </VStack>
@@ -471,26 +483,31 @@ export function ConfigurarTorneio() {
           {step === 2 && (
             <VStack spacing={8} align="stretch">
               <VStack spacing={1} textAlign="center">
-                <Heading size="lg" fontFamily="heading">O Draft</Heading>
-                <Text fontSize="sm" opacity={0.6}>Sorteie o participante e escolha o time dele.</Text>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >O DRAFT</Heading>
+                <Text fontSize="9px" >Sorteie o participante e escolha o time dele.</Text>
               </VStack>
               <HStack justify="center" spacing={4}>
                 <Badge variant="outline" borderRadius="2px" px={3}>{amigosPendentes.length} Pendentes</Badge>
                 <Badge variant="outline" colorScheme="orange" borderRadius="2px" px={3}>{duplas.length} Confirmados</Badge>
               </HStack>
-              <Box p={6} borderWidth={1} borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} borderRadius="4px" textAlign="center" minH="240px" display="flex" flexDirection="column" justifyContent="center">
+              <Box
+                p={6}
+                 
+                
+                textAlign="center" minH="240px" display="flex" flexDirection="column" justifyContent="center"
+              >
                 {!amigoSorteado ? (
                   <VStack spacing={4}>
                     <Text fontSize="sm" opacity={0.6}>Pronto para sortear o proximo jogador?</Text>
-                    <Button onClick={sortearParticipante} variant="solid" bg="brand.orange" color="brand.dark" size="lg" borderRadius="2px" leftIcon={<ShuffleIcon /> as any}>
-                      Sortear Participante
+                    <Button onClick={sortearParticipante} colorScheme="brand" size="lg" leftIcon={<ShuffleIcon /> as any}>
+                      SORTEAR PARTICIPANTE
                     </Button>
                   </VStack>
                 ) : (
                   <VStack spacing={6}>
                     <VStack spacing={0}>
                       <Text fontSize="xs" textTransform="uppercase" letterSpacing="widest" opacity={0.6} mb={2}>Participante Sorteado</Text>
-                      <Heading size="2xl" fontFamily="heading" color="brand.orange">{amigoSorteado}</Heading>
+                      <Heading fontFamily="heading" fontSize={{ base: '24px', md: '32px' }} >{amigoSorteado}</Heading>
                     </VStack>
                     <FormControl w="100%" maxW="300px" mx="auto">
                       <Select
@@ -507,8 +524,8 @@ export function ConfigurarTorneio() {
                         )}
                       />
                     </FormControl>
-                    <Button onClick={confirmarEVincular} variant="solid" size="md" w="100%" maxW="300px" borderRadius="2px" isDisabled={!timeSelecionado}>
-                      Confirmar e Vincular
+                    <Button onClick={confirmarEVincular} colorScheme="brand" size="md" w="100%" maxW="300px" isDisabled={!timeSelecionado}>
+                      CONFIRMAR E VINCULAR
                     </Button>
                   </VStack>
                 )}
@@ -519,30 +536,31 @@ export function ConfigurarTorneio() {
           {step === 3 && (
             <VStack spacing={6} align="stretch">
               <VStack spacing={1} textAlign="center">
-                <Heading size="lg" fontFamily="heading">Resumo do Torneio</Heading>
-                <Text fontSize="sm" opacity={0.6}>Todos os times foram vinculados. Pronto para comecar?</Text>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >RESUMO DO TORNEIO</Heading>
+                <Text fontSize="9px" >Todos os times foram vinculados. Pronto para começar?</Text>
               </VStack>
-              <Box borderWidth={1} borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} borderRadius="4px" overflow="hidden">
+              <Box
+                 
+                boxShadow="md"
+                overflow="hidden"
+              >
                 {duplas.map((d, i) => (
                   <Flex
                     key={i} p={3}
-                    borderBottomWidth={i < duplas.length - 1 ? 1 : 0}
-                    borderColor="brand.dark" justify="space-between" align="center"
-                    bg={i % 2 === 0 ? 'blackAlpha.50' : 'transparent'}
-                    _dark={{ borderColor: 'whiteAlpha.300', bg: i % 2 === 0 ? 'whiteAlpha.50' : 'transparent' }}
+                    borderBottom={i < duplas.length - 1 ? '1px solid' : 'none'}
+                     justify="space-between" align="center"
+                    bg={i % 2 === 0 ? 'rgba(253,187,0,0.05)' : 'transparent'}
                   >
-                    <Text fontWeight={700} fontSize="sm">{d.amigo}</Text>
+                    <Text fontFamily="heading" fontWeight={700} fontSize="13px" >{d.amigo}</Text>
                     <HStack>
                       {d.logoTime && <Image src={d.logoTime} boxSize="20px" objectFit="contain" />}
-                      <Badge variant="solid" bg="brand.dark" color="brand.light" _dark={{ bg: 'brand.light', color: 'brand.dark' }} borderRadius="2px">
-                        {d.time}
-                      </Badge>
+                      <Badge   border="1px solid"  fontSize="8px" px={2}>{d.time}</Badge>
                     </HStack>
                   </Flex>
                 ))}
               </Box>
-              <Button onClick={onGerarCampeonato} variant="solid" bg="brand.orange" color="brand.dark" borderRadius="2px" size="lg" mt={4}>
-                Gerar Campeonato
+              <Button onClick={onGerarCampeonato} colorScheme="brand" size="lg" mt={4} w="full">
+                GERAR CAMPEONATO
               </Button>
             </VStack>
           )}

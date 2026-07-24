@@ -5,9 +5,9 @@ import {
   Badge,
   Box,
   Button,
-  Divider,
   Flex,
   HStack,
+  Image,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -26,6 +26,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useTorneioStore } from '../store/torneioStore';
 import type { Partida } from '../types/torneio';
+import LogoBola from '../assets/logos/LogoBola.png';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface ModalPlacarProps {
@@ -39,13 +40,12 @@ interface ModalPlacarProps {
 export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps) {
   const { participantes, partidas, registrarPlacarLiga, registrarPlacarMataMata } = useTorneioStore();
 
-  const [golsA, setGolsA] = useState(0);
-  const [golsB, setGolsB] = useState(0);
+  const [golsA, setGolsA]       = useState(0);
+  const [golsB, setGolsB]       = useState(0);
   const [penaltisA, setPenaltisA] = useState(0);
   const [penaltisB, setPenaltisB] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
 
-  // Reset ao abrir
   useEffect(() => {
     if (isOpen) {
       setGolsA(0);
@@ -58,7 +58,6 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
   const pA = participantes.find((p) => p.id === partida.participanteAId);
   const pB = participantes.find((p) => p.id === partida.participanteBId);
 
-  // ── Lógica de agregado (mata-mata volta) ─────────────────────────────────
   const idaPartida = useMemo(() => {
     if (modo !== 'matamata' || partida.jogo !== 'volta' || !partida.confrontoId) return null;
     return partidas.find(
@@ -66,18 +65,13 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
     ) ?? null;
   }, [partidas, partida, modo]);
 
-  // Placar agregado PARCIAL (jogo de ida já finalizado)
   const agregadoAtual = useMemo(() => {
     if (!idaPartida?.finalizada) return null;
-    // No jogo de ida: participanteA desta partida joga como visitante
-    // idaPartida.participanteA = time que joga em CASA na ida (= visitante na volta)
-    const golsA_total = (idaPartida.placarB ?? 0) + golsA; // volta: pA joga em casa
+    const golsA_total = (idaPartida.placarB ?? 0) + golsA;
     const golsB_total = (idaPartida.placarA ?? 0) + golsB;
     return { golsA_total, golsB_total };
   }, [idaPartida, golsA, golsB]);
 
-  // Mostrar campo de pênaltis?
-  // Caso 1: jogo de volta com agregado empatado (comportamento original)
   const mostrarPenaltisVolta =
     modo === 'matamata' &&
     partida.jogo === 'volta' &&
@@ -85,22 +79,18 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
     agregadoAtual !== null &&
     agregadoAtual.golsA_total === agregadoAtual.golsB_total;
 
-  // Caso 2: jogo único (jogo: null) com placar regular empatado
   const mostrarPenaltisJogoUnico =
     modo === 'matamata' &&
     partida.jogo === null &&
     golsA === golsB;
 
   const mostrarPenaltis = mostrarPenaltisVolta || mostrarPenaltisJogoUnico;
-
-  // Botão desabilitado se pênaltis empatados
   const penaltisEmpatados = mostrarPenaltis && penaltisA === penaltisB;
   const podeConfirmar = !penaltisEmpatados;
 
-  // ── Confirmar ─────────────────────────────────────────────────────────────
   const handleConfirmar = async () => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 300)); // feedback visual
+    await new Promise((r) => setTimeout(r, 300));
 
     if (modo === 'liga') {
       registrarPlacarLiga(partida.id, golsA, golsB);
@@ -118,47 +108,63 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
     onClose();
   };
 
-  // ── Renderização ──────────────────────────────────────────────────────────
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
-      <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
+      <ModalOverlay bg="rgba(0,0,0,0.88)" />
       <ModalContent
-        bg="brand.surfaceLight"
-        borderRadius="4px"
-        borderWidth={1}
-        borderColor="brand.dark" _dark={{ bg: 'brand.surfaceDark', borderColor: 'whiteAlpha.300' }}
+        
+        
+        
+        boxShadow="8px 8px 0px #000"
+        borderRadius="md"
         overflow="hidden"
         mx={4}
       >
-        {/* Tarja superior */}
-        <Box h="4px" bg="brand.orange" />
+        {/* Tarja topo degradê */}
+        <Box
+          h="6px"
+          bg="linear-gradient(90deg, #C80000, #F94A29, #FDBB00)"
+        />
 
-        <ModalHeader pt={5} pb={2}>
+        <ModalHeader
+          pt={4} pb={3}
+          borderBottom="2px solid"
+          
+          
+        >
           <HStack spacing={3}>
+            <Image src={LogoBola} alt="logo" boxSize="28px" />
             <VStack align="flex-start" spacing={0}>
-              <Text fontSize="md" fontWeight={700} fontFamily="heading">
-                Lançar Placar
+              <Text fontFamily="heading" fontSize="18px" >
+                LANÇAR PLACAR
               </Text>
               <HStack spacing={2}>
                 <Badge
-                  variant="outline"
-                  colorScheme={modo === 'liga' ? 'orange' : 'orange'}
-                  fontSize="2xs"
-                  borderRadius="2px"
+                  
+                  color="#000"
+                  border="1px solid #000"
+                  fontSize="7px"
                   px={2}
                 >
-                  {modo === 'liga' ? 'Liga' : `Mata-mata — ${partida.jogo === 'ida' ? 'Jogo de Ida' : partida.jogo === 'volta' ? 'Jogo de Volta' : 'Jogo Único'}`}
+                  {modo === 'liga' ? 'LIGA' : `MATA-MATA — ${partida.jogo === 'ida' ? 'IDA' : partida.jogo === 'volta' ? 'VOLTA' : 'ÚNICO'}`}
                 </Badge>
                 {partida.rodada > 0 && modo === 'liga' && (
-                  <Badge variant="outline" fontSize="2xs" borderRadius="2px" px={2}>
-                    Rodada {partida.rodada}
+                  <Badge border="1px solid"   bg="transparent" fontSize="7px" px={2}>
+                    RD {partida.rodada}
                   </Badge>
                 )}
               </HStack>
             </VStack>
           </HStack>
         </ModalHeader>
-        <ModalCloseButton top={4} right={4} />
+        <ModalCloseButton
+          top={4} right={4}
+          
+          
+          
+          borderRadius="md"
+          _hover={{ bg: 'brand.red' }}
+        />
 
         <ModalBody pb={4}>
           <VStack spacing={5}>
@@ -166,168 +172,205 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
             <Flex w="full" align="center" gap={4}>
               {/* Player A */}
               <VStack flex={1} spacing={2}>
-                <VStack spacing={0}>
-                  <Text fontWeight={700} fontSize="sm" textAlign="center" noOfLines={1}>
+                <VStack spacing={0} textAlign="center">
+                  <Text fontFamily="heading" fontWeight={700} fontSize="15px" noOfLines={1} >
                     {pA?.nomeAmigo ?? '?'}
                   </Text>
-                  <Text fontSize="xs" opacity={0.6} textAlign="center" noOfLines={1}>
-                    {pA?.timeSorteado ?? '—'}
-                  </Text>
+                  <Text fontSize="8px"  noOfLines={1}>{pA?.timeSorteado ?? '—'}</Text>
                 </VStack>
                 <NumberInput
-                  min={0}
-                  max={99}
+                  min={0} max={99}
                   value={golsA}
                   onChange={(v) => setGolsA(Number(v))}
                   size="lg"
                 >
                   <NumberInputField
                     textAlign="center"
+                    fontSize="3xl"
+                    fontWeight={900}
+                    fontFamily="heading"
                     
-                    fontSize="2xl"
-                    fontWeight={800}
+                    
+                    
+                    
+                    _focus={{ borderColor: 'brand.orange', boxShadow: 'none' }}
                   />
                   <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
+                    <NumberIncrementStepper
+                      
+                      
+                      
+                      _hover={{ bg: 'brand.red' }}
+                    />
+                    <NumberDecrementStepper
+                      
+                      
+                      
+                      _hover={{ bg: 'brand.red' }}
+                    />
                   </NumberInputStepper>
                 </NumberInput>
               </VStack>
 
               {/* Separador */}
-              <Text fontSize="2xl" opacity={0.4} fontWeight={700} mt={6}>×</Text>
+              <Text fontFamily="heading" fontSize="3xl"  mt={6} opacity={0.8}>×</Text>
 
               {/* Player B */}
               <VStack flex={1} spacing={2}>
-                <VStack spacing={0}>
-                  <Text fontWeight={700} fontSize="sm" textAlign="center" noOfLines={1}>
+                <VStack spacing={0} textAlign="center">
+                  <Text fontFamily="heading" fontWeight={700} fontSize="15px" noOfLines={1} >
                     {pB?.nomeAmigo ?? '?'}
                   </Text>
-                  <Text fontSize="xs" opacity={0.6} textAlign="center" noOfLines={1}>
-                    {pB?.timeSorteado ?? '—'}
-                  </Text>
+                  <Text fontSize="8px"  noOfLines={1}>{pB?.timeSorteado ?? '—'}</Text>
                 </VStack>
                 <NumberInput
-                  min={0}
-                  max={99}
+                  min={0} max={99}
                   value={golsB}
                   onChange={(v) => setGolsB(Number(v))}
                   size="lg"
                 >
                   <NumberInputField
                     textAlign="center"
+                    fontSize="3xl"
+                    fontWeight={900}
+                    fontFamily="heading"
                     
-                    fontSize="2xl"
-                    fontWeight={800}
+                    
+                    
+                    
+                    _focus={{ borderColor: 'brand.orange', boxShadow: 'none' }}
                   />
                   <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
+                    <NumberIncrementStepper
+                      
+                      
+                      
+                      _hover={{ bg: 'brand.red' }}
+                    />
+                    <NumberDecrementStepper
+                      
+                      
+                      
+                      _hover={{ bg: 'brand.red' }}
+                    />
                   </NumberInputStepper>
                 </NumberInput>
               </VStack>
             </Flex>
 
-            {/* Agregado parcial (mata-mata volta) */}
+            {/* Agregado parcial */}
             {agregadoAtual && idaPartida && (
               <>
-                <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+                <Box w="full" h="2px"  />
                 <Box
                   w="full"
-                  bg="blackAlpha.100"
-                  borderRadius="2px"
-                  borderWidth={1}
-                  borderColor="brand.dark" _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.300' }}
+                  
+                  
+                  
                   p={3}
                 >
-                  <Text fontSize="xs" opacity={0.6} textAlign="center" mb={2} textTransform="uppercase" letterSpacing="wide">
-                    Placar Agregado (em tempo real)
+                  <Text fontSize="8px"  textAlign="center" mb={2} textTransform="uppercase" letterSpacing="wide">
+                    Placar Agregado (tempo real)
                   </Text>
-                  <HStack justify="center" spacing={4}>
-                    <VStack spacing={0}>
-                      <Text fontSize="xs" opacity={0.6} noOfLines={1}>{pA?.nomeAmigo}</Text>
+                  <HStack justify="center" spacing={6}>
+                    <VStack spacing={0} textAlign="center">
+                      <Text fontSize="8px"  noOfLines={1}>{pA?.nomeAmigo}</Text>
                       <Text
-                        fontSize="2xl" fontWeight={800}
-                        color={agregadoAtual.golsA_total > agregadoAtual.golsB_total ? 'brand.orange' : 'inherit'}
+                        fontFamily="heading"
+                        fontSize="3xl"
+                        fontWeight={900}
+                        color={agregadoAtual.golsA_total > agregadoAtual.golsB_total ? 'brand.mustard' : 'brand.textMain'}
                       >
                         {agregadoAtual.golsA_total}
                       </Text>
                     </VStack>
-                    <Text opacity={0.4} fontSize="xl">—</Text>
-                    <VStack spacing={0}>
-                      <Text fontSize="xs" opacity={0.6} noOfLines={1}>{pB?.nomeAmigo}</Text>
+                    <Text  fontFamily="heading" fontSize="xl">—</Text>
+                    <VStack spacing={0} textAlign="center">
+                      <Text fontSize="8px"  noOfLines={1}>{pB?.nomeAmigo}</Text>
                       <Text
-                        fontSize="2xl" fontWeight={800}
-                        color={agregadoAtual.golsB_total > agregadoAtual.golsA_total ? 'brand.orange' : 'inherit'}
+                        fontFamily="heading"
+                        fontSize="3xl"
+                        fontWeight={900}
+                        color={agregadoAtual.golsB_total > agregadoAtual.golsA_total ? 'brand.mustard' : 'brand.textMain'}
                       >
                         {agregadoAtual.golsB_total}
                       </Text>
                     </VStack>
                   </HStack>
                   {agregadoAtual.golsA_total === agregadoAtual.golsB_total && (
-                    <Text fontSize="xs" color="brand.orange" textAlign="center" mt={1} fontWeight={600}>
-                      Empate no agregado — pênaltis necessários.
+                    <Text fontSize="8px"  textAlign="center" mt={2} fontWeight={600}>
+                      ⚠ Empate no agregado — pênaltis necessários
                     </Text>
                   )}
                 </Box>
               </>
             )}
 
-            {/* ── Campo de pênaltis (condicional) ─────────────────── */}
+            {/* Campo de pênaltis */}
             {mostrarPenaltis && (
               <>
-                <Divider borderColor="brand.dark" _dark={{ borderColor: 'whiteAlpha.300' }} />
+                <Box w="full" h="2px"  />
                 <VStack w="full" spacing={3}>
-                  <Alert status="warning" borderRadius="2px" bg="brand.surfaceLight" _dark={{ bg: 'brand.surfaceDark' }} border="1px solid" borderColor="brand.orange" py={2}>
-                    <AlertIcon color="brand.orange" />
-                    <AlertDescription fontSize="xs">
-                      Disputa de pênaltis. Informe o placar dos pênaltis.
+                  <Alert
+                    status="warning"
+                    
+                    
+                    
+                    py={2}
+                  >
+                    <AlertIcon  />
+                    <AlertDescription fontSize="9px" >
+                      DISPUTA DE PÊNALTIS — informe o placar.
                     </AlertDescription>
                   </Alert>
 
                   <Flex w="full" align="center" gap={4}>
                     <VStack flex={1} spacing={1}>
-                      <Text fontSize="xs" opacity={0.6}>{pA?.nomeAmigo ?? '?'}</Text>
+                      <Text fontSize="8px" >{pA?.nomeAmigo ?? '?'}</Text>
                       <NumberInput min={0} max={30} value={penaltisA} onChange={(v) => setPenaltisA(Number(v))}>
                         <NumberInputField
                           textAlign="center"
                           
-                          borderColor="brand.orange"
-                          color="brand.orange"
-                          fontWeight={800}
-                          fontSize="xl"
+                          
+                          
+                          fontFamily="heading"
+                          fontWeight={900}
+                          fontSize="2xl"
+                          _focus={{ borderColor: 'brand.orange', boxShadow: 'none' }}
                         />
                         <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
+                          <NumberIncrementStepper    _hover={{ bg: 'brand.red' }} />
+                          <NumberDecrementStepper    _hover={{ bg: 'brand.red' }} />
                         </NumberInputStepper>
                       </NumberInput>
                     </VStack>
 
-                    <Text color="brand.orange" fontWeight={700} mt={5}>×</Text>
+                    <Text  fontFamily="heading" fontSize="xl" mt={5}>×</Text>
 
                     <VStack flex={1} spacing={1}>
-                      <Text fontSize="xs" opacity={0.6}>{pB?.nomeAmigo ?? '?'}</Text>
+                      <Text fontSize="8px" >{pB?.nomeAmigo ?? '?'}</Text>
                       <NumberInput min={0} max={30} value={penaltisB} onChange={(v) => setPenaltisB(Number(v))}>
                         <NumberInputField
                           textAlign="center"
                           
-                          borderColor="brand.orange"
-                          color="brand.orange"
-                          fontWeight={800}
-                          fontSize="xl"
+                          
+                          
+                          fontFamily="heading"
+                          fontWeight={900}
+                          fontSize="2xl"
+                          _focus={{ borderColor: 'brand.orange', boxShadow: 'none' }}
                         />
                         <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
+                          <NumberIncrementStepper    _hover={{ bg: 'brand.red' }} />
+                          <NumberDecrementStepper    _hover={{ bg: 'brand.red' }} />
                         </NumberInputStepper>
                       </NumberInput>
                     </VStack>
                   </Flex>
 
                   {penaltisEmpatados && (
-                    <Text fontSize="xs" color="red.400" textAlign="center">
-                      ⛔ Pênaltis também empatados — defina um vencedor antes de confirmar.
+                    <Text fontSize="8px"  textAlign="center">
+                      ⛔ Pênaltis empatados — defina um vencedor.
                     </Text>
                   )}
                 </VStack>
@@ -336,24 +379,28 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
           </VStack>
         </ModalBody>
 
-        <ModalFooter pt={2} pb={5} gap={3}>
+        <ModalFooter
+          pt={2} pb={5} gap={3}
+          borderTop="2px solid"
+          
+        >
           <Button
-            variant="solid"
             onClick={onClose}
             flex={1}
+            colorScheme="gray"
           >
-            Cancelar
+            CANCELAR
           </Button>
           <Button
             id="btn-confirmar-placar"
             flex={2}
             onClick={handleConfirmar}
             isLoading={loading}
-            loadingText="Confirmando..."
+            loadingText="CONFIRMANDO..."
             isDisabled={!podeConfirmar}
-            variant="solid"
+            colorScheme="brand"
           >
-            Confirmar Placar
+            CONFIRMAR PLACAR
           </Button>
         </ModalFooter>
       </ModalContent>

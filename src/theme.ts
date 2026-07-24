@@ -1,84 +1,97 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
 
 const config: ThemeConfig = {
-  initialColorMode: 'light',
-  useSystemColorMode: false,
+  initialColorMode: 'system',
+  useSystemColorMode: true,
 };
 
 const colors = {
   brand: {
-    orange: '#E48F22',
-    dark: '#2B231D',
-    light: '#F7F5F0',
-    gray: '#6B625B',
-    surfaceLight: '#EBE6DF',
-    surfaceDark: '#3A3129'
+    50: '#fff4e5',
+    100: '#ffe0b8',
+    200: '#ffcb8a',
+    300: '#ffb55c',
+    400: '#ff9f2e',
+    500: '#f94a29', // Laranja base da logo
+    600: '#c73a1e',
+    700: '#942a14',
+    800: '#621a09',
+    900: '#310a01',
+    mustard: '#FDBB00',
   },
 };
 
 const fonts = {
-  heading: `'Cinzel', serif`,
-  body: `'Inter', sans-serif`,
-};
-
-const components = {
-  Button: {
-    baseStyle: {
-      borderRadius: '5px',
-      fontWeight: '600',
-    },
-    variants: {
-      solid: () => ({
-        bg: 'brand.orange',
-        color: 'brand.dark',
-        _hover: {
-          bg: '#CC7C1A',
-          boxShadow: 'none',
-        },
-      }),
-      outline: (props: any) => ({
-        borderColor: props.colorMode === 'dark' ? 'brand.light' : 'brand.dark',
-        color: props.colorMode === 'dark' ? 'brand.light' : 'brand.dark',
-        _hover: {
-          bg: props.colorMode === 'dark' ? 'whiteAlpha.200' : 'blackAlpha.100',
-        },
-      }),
-    },
-  },
-  Card: {
-    baseStyle: (props: any) => ({
-      container: {
-        bg: props.colorMode === 'dark' ? 'brand.surfaceDark' : 'brand.surfaceLight',
-        borderRadius: '4px',
-        border: '1px solid',
-        borderColor: props.colorMode === 'dark' ? 'whiteAlpha.300' : 'brand.dark',
-        boxShadow: 'none', // Remove as sombras padrão
-      }
-    })
-  },
-  Input: {
-    variants: {
-      outline: (props: any) => ({
-        field: {
-          borderRadius: '2px',
-          borderColor: props.colorMode === 'dark' ? 'whiteAlpha.400' : 'blackAlpha.400',
-          _focus: {
-            borderColor: 'brand.orange',
-            boxShadow: 'none', // Sem brilho (glow) de foco
-          }
-        }
-      })
-    }
-  }
+  heading: `'Inter', sans-serif`,
+  body:    `'Inter', sans-serif`,
 };
 
 const styles = {
   global: (props: any) => ({
     body: {
-      bg: props.colorMode === 'dark' ? 'brand.dark' : 'brand.light',
-      color: props.colorMode === 'dark' ? 'brand.light' : 'brand.dark',
+      bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
+      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
     },
   }),
 };
 
-export const theme = extendTheme({ config, colors, fonts, components, styles });
+const components = {
+  Button: {
+    baseStyle: {
+      borderRadius: 'md',
+      fontWeight: '600',
+    },
+    defaultProps: {
+      colorScheme: 'brand',
+    },
+  },
+  Input: {
+    variants: {
+      outline: {
+        field: {
+          borderRadius: 'md',
+        },
+      },
+    },
+  },
+  NumberInput: {
+    variants: {
+      outline: {
+        field: {
+          borderRadius: 'md',
+        },
+        stepper: {
+          borderRadius: 'md',
+        },
+      },
+    },
+  },
+  Select: {
+    variants: {
+      outline: {
+        field: {
+          borderRadius: 'md',
+        },
+      },
+    },
+  },
+  Card: {
+    baseStyle: (props: any) => ({
+      container: {
+        borderRadius: 'lg',
+        boxShadow: 'sm',
+        bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+      }
+    })
+  },
+  Modal: {
+    baseStyle: (props: any) => ({
+      dialog: {
+        borderRadius: 'lg',
+        bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+      }
+    })
+  }
+};
+
+export const theme = extendTheme({ config, colors, fonts, styles, components });
