@@ -46,10 +46,11 @@ export function Convite() {
   const progresso        = totalPartidas > 0 ? Math.round((totalFinalizados / totalPartidas) * 100) : 0;
 
   // Carrega o torneio pelo ID da URL
-  const carregar = async (showToast = false) => {
+  const carregar = async (showToast = false, isAutoRefresh = false) => {
     if (!campeonatoId) { setStatus('erro'); return; }
+    
     if (showToast) setAtualizando(true);
-    else setStatus('carregando');
+    else if (!isAutoRefresh) setStatus('carregando');
 
     const result = await carregarTorneioPublico(campeonatoId);
 
@@ -71,16 +72,21 @@ export function Convite() {
         position: 'top',
         isClosable: true,
       });
-    } else {
+    } else if (!isAutoRefresh) {
       setStatus(result ? 'ok' : 'erro');
     }
   };
 
   useEffect(() => {
     carregar();
-    // Limpeza: reseta a store quando sair da página de convite
-    // para não contaminar uma sessão de organizador
-    return () => { /* não reseta aqui para não atrapalhar refresh */ };
+    
+    // Auto-refresh a cada 10 segundos
+    const interval = setInterval(() => {
+      carregar(false, true);
+    }, 10000);
+
+    // Limpeza: remove o timer ao sair
+    return () => clearInterval(interval);
   }, [campeonatoId]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
