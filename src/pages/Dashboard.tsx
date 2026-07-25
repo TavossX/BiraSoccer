@@ -122,7 +122,8 @@ export function Dashboard() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <Box
         as="header"
-        
+        bg="white"
+        _dark={{ bg: 'gray.900' }}
         borderBottom="3px solid"
         
         boxShadow="0 4px 0 #000"

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
 import type {
@@ -301,7 +301,8 @@ interface TorneioState {
 
 export const useTorneioStore = create<TorneioState>()(
   devtools(
-    (set, get) => ({
+    persist(
+      (set, get) => ({
       torneio: null,
       participantes: [],
       partidas: [],
@@ -335,6 +336,7 @@ export const useTorneioStore = create<TorneioState>()(
             : gerarPartidasLiga(participantes, torneioId, config.idaEVolta);
 
         set({ torneio, participantes, partidas });
+        get().publicarTorneio();
       },
 
       // Sorteio automatico rapido
@@ -371,6 +373,7 @@ export const useTorneioStore = create<TorneioState>()(
           torneio: { ...torneio, playoffsGerados: true },
           partidas: [...partidas, ...sf1, ...sf2],
         });
+        get().publicarTorneio();
       },
 
       // Registrar placar (Liga)
@@ -413,6 +416,7 @@ export const useTorneioStore = create<TorneioState>()(
 
         const novosParticipantes = participantes.map((p) => ({ ...p, ...stats.get(p.id) }));
         set({ partidas: novasPartidas, participantes: novosParticipantes });
+        get().publicarTorneio();
       },
 
       // Registrar placar (Mata-mata / Playoffs)
@@ -462,6 +466,7 @@ export const useTorneioStore = create<TorneioState>()(
           }
 
           set({ partidas: novasPartidas });
+          get().publicarTorneio();
           return;
         }
 
@@ -507,6 +512,7 @@ export const useTorneioStore = create<TorneioState>()(
         }
 
         set({ partidas: novasPartidas });
+        get().publicarTorneio();
       },
 
       // Publicar no Supabase
@@ -541,7 +547,9 @@ export const useTorneioStore = create<TorneioState>()(
 
       // Resetar
       resetarTorneio: () => set({ torneio: null, participantes: [], partidas: [] }),
-    }),
+      }),
+      { name: 'torneio-storage' }
+    ),
     { name: 'copa-de-amigos' }
   )
 );
