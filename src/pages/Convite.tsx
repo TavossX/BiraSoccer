@@ -129,7 +129,7 @@ export function Convite() {
       <Box
         
         borderBottom="3px solid"
-        
+        bg="#171923"
         boxShadow="0 4px 0 #000"
         position="sticky" top={0} zIndex={100}
       >
