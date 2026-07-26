@@ -18,22 +18,11 @@ import { Chaveamento } from '../components/Chaveamento';
 import { ModalCompartilhar } from '../components/ModalCompartilhar';
 import LogoBola from '../assets/logos/LogoBola.png';
 import { supabase } from '../lib/supabase';
+import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon } from 'react-icons/fi';
 
-const ResetIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
-const LogoutIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-);
-const ShareIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-  </svg>
-);
+
+
+
 
 export function TorneioMataMata() {
   const { torneio, partidas, participantes, resetarTorneio } = useTorneioStore();
@@ -71,6 +60,7 @@ export function TorneioMataMata() {
     : null;
 
   const totalFinalizados = partidas.filter((p) => p.finalizada).length;
+  const progresso = partidas.length > 0 ? (totalFinalizados / partidas.length) * 100 : 0;
 
   return (
     <Box minH="100vh" >
@@ -78,9 +68,8 @@ export function TorneioMataMata() {
       <Box
         bg="white"
         _dark={{ bg: 'gray.900' }}
-        borderBottom="3px solid"
         
-        boxShadow="0 4px 0 #000"
+        boxShadow="lg"
         position="sticky"
         top={0}
         zIndex={100}
@@ -95,7 +84,7 @@ export function TorneioMataMata() {
               <Heading fontFamily="heading" fontSize={{ base: '16px', md: '20px' }} >
                 {torneio.nome}
               </Heading>
-              <Text fontSize="8px"  opacity={0.8}>
+              <Text fontSize="12px"  opacity={0.8}>
                 MATA-MATA — {torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}
               </Text>
             </VStack>
@@ -105,10 +94,10 @@ export function TorneioMataMata() {
             <Badge
               
               color="#000"
-              border="2px solid #000"
+              border="1px solid #C3c3c3"
               boxShadow="md"
               px={3} py={1}
-              fontSize="9px"
+              fontSize="12px"
               display={{ base: 'none', sm: 'flex' }}
             >
               {totalFinalizados}/{partidas.length} JOGOS
@@ -151,6 +140,26 @@ export function TorneioMataMata() {
       </Box>
 
       <Box maxW="1400px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 8 }}>
+        {/* Barra de progresso */}
+        <Box mb={6}>
+          <HStack justify="space-between" mb={2}>
+            <Text fontSize="12px" >
+              Progresso do torneio
+            </Text>
+            <Text fontSize="12px"  fontWeight={700}>
+              {totalFinalizados}/{partidas.length} ({progresso.toFixed(0)}%)
+            </Text>
+          </HStack>
+          <Box w="full" h="8px"  border="1px solid #C3c3c3"  overflow="hidden">
+            <Box
+              h="full"
+              w={`${progresso}%`}
+              bg="linear-gradient(90deg,#F94A29,#FDBB00)"
+              transition="width 0.6s ease"
+            />
+          </Box>
+        </Box>
+
 
         {/* Banner de campeão */}
         {campeao && (
@@ -158,7 +167,7 @@ export function TorneioMataMata() {
             mb={8}
             
             
-            boxShadow="8px 8px 0 #000"
+            boxShadow="lg"
             overflow="hidden"
           >
             <Box h="6px" bg="linear-gradient(90deg,#C80000,#F94A29,#FDBB00,#F94A29,#C80000)" />
@@ -187,7 +196,7 @@ export function TorneioMataMata() {
                 
                 bg="transparent"
                 px={4} py={1}
-                fontSize="9px"
+                fontSize="12px"
                 letterSpacing="wide"
               >
                 CAMPEÃO DA COPA
@@ -210,11 +219,11 @@ export function TorneioMataMata() {
                     bg={isCampeao ? 'linear-gradient(135deg,#F94A29,#C80000)' : 'brand.cardBg'}
                     
                     borderColor={isCampeao ? 'brand.mustard' : 'brand.cardBgAlt'}
-                    boxShadow={isCampeao ? '4px 4px 0 #000' : '2px 2px 0 #000'}
+                    boxShadow={isCampeao ? 'lg' : 'md'}
                     px={4} py={2}
                     spacing={3}
                     transition="all 0.1s"
-                    _hover={{ borderColor: 'brand.mustard', transform: 'translate(-1px,-1px)', boxShadow: '3px 3px 0 #000' }}
+                    _hover={{ borderColor: 'brand.mustard', transform: 'translate(-1px,-1px)', boxShadow: 'md' }}
                   >
                     <VStack spacing={0} align="flex-start">
                       <Text
@@ -230,7 +239,7 @@ export function TorneioMataMata() {
                         border="1px solid"
                         borderColor={isCampeao ? 'brand.mustard' : 'brand.cardBgAlt'}
                         color={isCampeao ? 'brand.mustard' : 'brand.textMutedToken'}
-                        fontSize="7px"
+                        fontSize="10px"
                         px={2}
                       >
                         {p.timeSorteado}
@@ -251,7 +260,7 @@ export function TorneioMataMata() {
           <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>
             CHAVEAMENTO
           </Heading>
-          <Text fontSize="9px"  mb={5}>
+          <Text fontSize="12px"  mb={5}>
             Clique em uma partida para lançar o placar. O vencedor avança automaticamente.
           </Text>
           <Chaveamento />

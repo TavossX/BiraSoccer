@@ -62,7 +62,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
   if (classificacao.length === 0) {
     return (
       <Flex h="200px" align="center" justify="center">
-        <Text fontSize="9px" >Nenhum participante cadastrado.</Text>
+        <Text fontSize="12px" >Nenhum participante cadastrado.</Text>
       </Flex>
     );
   }
@@ -71,7 +71,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
     <Box>
       {/* Progresso */}
       <HStack mb={4} justify="space-between">
-        <Text fontSize="9px" >
+        <Text fontSize="12px" >
           Progresso:{' '}
           <Text as="span" fontWeight={700} >
             {totalJogos}/{totalPartidas}
@@ -80,11 +80,12 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
         </Text>
         <Badge
           bg={totalJogos === totalPartidas ? 'brand.cardBgAlt' : 'brand.orange'}
-          color={totalJogos === totalPartidas ? 'brand.textMutedToken' : 'white'}
-          border="2px solid #000"
+          color={totalJogos === totalPartidas ? 'brand.textMutedToken' : 'black'}
+          border="1px solid #C3c3c3"
+          borderRadius="5px"
           boxShadow="md"
           px={3} py={1}
-          fontSize="8px"
+          fontSize="12px"
         >
           {totalJogos === totalPartidas ? 'FINALIZADO' : 'EM ANDAMENTO'}
         </Badge>
@@ -101,7 +102,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
           <Thead>
             <Tr
               
-              borderBottom="2px solid"
+              borderBottom="1px solid #C3c3c3"
               
             >
               {['#', 'Participante', 'P', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'].map((col) => (
@@ -190,7 +191,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                       </Text>
                       <HStack spacing={1}>
                         {p.logoTime && <Image src={p.logoTime} boxSize="12px" objectFit="contain" />}
-                        <Text fontSize="8px" >{p.timeSorteado}</Text>
+                        <Text fontSize="12px" >{p.timeSorteado}</Text>
                       </HStack>
                     </VStack>
                   </Td>
@@ -246,22 +247,22 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
       <HStack spacing={4} mt={4} flexWrap="wrap">
         {highlightTop4 ? (
           <HStack spacing={2}>
-            <Box w="4px" h="16px"  border="1px solid #000" />
-            <Text fontSize="8px" >Top 4 — Classificados para Playoffs</Text>
+            <Box w="4px" h="16px" bg="#FDBB00" borderRadius="2px" />
+            <Text fontSize="12px" >Top 4 — Classificados para Playoffs</Text>
           </HStack>
         ) : (
           <>
             <HStack spacing={2}>
-              <Box w="4px" h="16px"  border="1px solid #000" />
-              <Text fontSize="8px" >Campeão / Promoção</Text>
+              <Box w="4px" h="16px" bg="#F94A29" borderRadius="2px" />
+              <Text fontSize="12px" >Campeão / Promoção</Text>
             </HStack>
             <HStack spacing={2}>
-              <Box w="4px" h="16px"  border="1px solid #000" />
-              <Text fontSize="8px" >Zona de Rebaixamento</Text>
+              <Box w="4px" h="16px" bg="#C80000" borderRadius="2px" />
+              <Text fontSize="12px" >Zona de Rebaixamento</Text>
             </HStack>
           </>
         )}
-        <Text fontSize="8px" >
+        <Text fontSize="12px" >
           Critérios: Pts → Saldo → GP → Confronto Direto
         </Text>
       </HStack>

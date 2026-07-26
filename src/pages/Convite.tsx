@@ -18,14 +18,10 @@ import { Chaveamento } from '../components/Chaveamento';
 import { TabelaClassificacao } from '../components/TabelaClassificacao';
 import { supabase } from '../lib/supabase';
 import { useTorneioStore } from '../store/torneioStore';
+import { FiRefreshCw as RefreshIcon } from 'react-icons/fi';
 
 // ─── Ícones SVG ───────────────────────────────────────────────────────────────
-const RefreshIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
+
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 export function Convite() {
@@ -94,7 +90,7 @@ export function Convite() {
     return (
       <Flex minH="100vh"  align="center" justify="center" direction="column" gap={4}>
         <Spinner size="xl"  thickness="4px" speed="0.8s" />
-        <Text fontSize="9px" >CARREGANDO TORNEIO...</Text>
+        <Text fontSize="12px" >CARREGANDO TORNEIO...</Text>
       </Flex>
     );
   }
@@ -109,8 +105,8 @@ export function Convite() {
           boxShadow="md"
           p={8} textAlign="center"
         >
-          <Heading fontFamily="heading" fontSize="20px"  mb={3}>TORNEIO NÃO ENCONTRADO</Heading>
-          <Text fontSize="9px"  mb={6} lineHeight="1.8">
+          <Heading fontFamily="heading" fontSize="20px"  mb={3}>Torneio não encontrado</Heading>
+          <Text fontSize="12px"  mb={6} lineHeight="1.8">
             Este link pode estar incorreto ou o torneio ainda não foi publicado.
           </Text>
           <VStack spacing={3}>
@@ -136,7 +132,7 @@ export function Convite() {
         
         borderBottom="3px solid"
         bg="#171923"
-        boxShadow="0 4px 0 #000"
+        boxShadow="md"
         position="sticky" top={0} zIndex={100}
       >
         <Flex
@@ -150,13 +146,13 @@ export function Convite() {
               <HStack spacing={2}>
                 <Badge
                    color="#000"
-                  border="1px solid #000"
-                  fontSize="7px" px={2}
+                  border="1px solid #C3c3c3"
+                  fontSize="10px" px={2}
                 >
                   {torneio.formato === 'liga' ? 'LIGA' : torneio.formato === 'liga_com_playoffs' ? 'LIGA + PLAYOFFS' : 'MATA-MATA'}
                 </Badge>
                 {isReadOnly && (
-                  <Badge bg="transparent" border="1px solid"   fontSize="7px" px={2}>
+                  <Badge bg="transparent" border="1px solid"   fontSize="10px" px={2}>
                     SOMENTE LEITURA
                   </Badge>
                 )}
@@ -168,7 +164,7 @@ export function Convite() {
             <Button
               size="sm" variant="outline"
               onClick={() => navigate('/')}
-              fontSize="9px"
+              fontSize="12px"
             >
               ← DASHBOARD
             </Button>
@@ -182,7 +178,7 @@ export function Convite() {
               isLoading={atualizando}
               loadingText="ATUALIZANDO..."
               onClick={() => carregar(true)}
-              fontSize="9px"
+              fontSize="12px"
             >
               ATUALIZAR
             </Button>
@@ -195,10 +191,10 @@ export function Convite() {
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>
-            <Text fontSize="9px" >
+            <Text fontSize="12px" >
               PROGRESSO DO TORNEIO
             </Text>
-            <Text fontSize="9px"  fontWeight={700}>
+            <Text fontSize="12px"  fontWeight={700}>
               {totalFinalizados}/{totalPartidas} ({progresso}%)
             </Text>
           </HStack>
@@ -219,7 +215,7 @@ export function Convite() {
           boxShadow="md"
           p={4}
         >
-          <Text fontSize="9px"  fontWeight={700}
+          <Text fontSize="12px"  fontWeight={700}
             textTransform="uppercase" letterSpacing="wide" mb={3}>
             {participantes.length} PARTICIPANTES
           </Text>
@@ -233,7 +229,7 @@ export function Convite() {
                 spacing={2}
               >
                 <Text fontFamily="heading" fontSize="12px" >{p.nomeAmigo}</Text>
-                <Badge bg="transparent" border="1px solid"   fontSize="7px" px={2}>
+                <Badge bg="transparent" border="1px solid"   fontSize="10px" px={2}>
                   {p.timeSorteado}
                 </Badge>
               </HStack>
@@ -246,25 +242,25 @@ export function Convite() {
         {/* Conteúdo principal: tabela ou chaveamento */}
         {torneio.formato === 'liga' ? (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>CLASSIFICAÇÃO</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>Classificação</Heading>
             <TabelaClassificacao />
           </Box>
         ) : torneio.formato === 'liga_com_playoffs' ? (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>CLASSIFICAÇÃO</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>Classificação</Heading>
             <TabelaClassificacao />
 
             {torneio.playoffsGerados && (
               <Box mt={10}>
-                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>PLAYOFFS</Heading>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>Playoffs</Heading>
                 <Chaveamento isReadOnly={isReadOnly} />
               </Box>
             )}
           </Box>
         ) : (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>CHAVEAMENTO</Heading>
-            <Text fontSize="9px"  mb={5}>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>Chaveamento</Heading>
+            <Text fontSize="12px"  mb={5}>
               Acompanhe os confrontos e veja quem avança de fase.
             </Text>
             <Chaveamento isReadOnly={isReadOnly} />
@@ -272,8 +268,8 @@ export function Convite() {
         )}
 
         {/* Rodapé */}
-        <Box mt={10} pt={6} borderTop="2px solid"  textAlign="center">
-          <Text fontSize="8px" >
+        <Box mt={10} pt={6} borderTop="1px solid #C3c3c3"  textAlign="center">
+          <Text fontSize="12px" >
             EAFC26 CUP — ID: {torneio.id}
           </Text>
           <Button

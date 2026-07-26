@@ -31,38 +31,16 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { searchTeams, TimeFutebol } from '../services/apiFutebol';
-
+import { IoShuffle } from 'react-icons/io5';
+import { FiPlus as PlusIcon, FiTrash2 as TrashIcon, FiShuffle as ShuffleIcon, FiRefreshCw as ResetIcon, FiZap as BoltIcon } from 'react-icons/fi';
 // Tipos para os passos
 
 // Icones SVG
-const PlusIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
-const TrashIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-  </svg>
-);
-const ShuffleIcon = () => (
-  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M4 4h6l2 2h8M4 20h6l2-2h8M15 9l3-3-3-3M15 15l3 3-3 3" />
-  </svg>
-);
-const ResetIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
-const BoltIcon = () => (
-  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-  </svg>
-);
+
+
+
+
+
 
 // Schema
 const schema = z.object({
@@ -280,9 +258,9 @@ export function ConfigurarTorneio() {
               ← Voltar para o Dashboard
             </Button>
             <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
-              CONFIGURAR CAMPEONATO
+              Configurar campeonato
             </Heading>
-            <Text fontSize="sm" color="gray.500">Configure os dados e realize o Sorteio Interativo.</Text>
+            <Text fontSize="sm" color="body.color">Configure os dados e realize o Sorteio Interativo.</Text>
           </VStack>
           <ThemeToggle />
         </HStack>
@@ -293,17 +271,17 @@ export function ConfigurarTorneio() {
               <Flex
                 w={8} h={8} align="center" justify="center"
                 fontSize="sm" fontWeight={700} flexShrink={0}
+                borderRadius="5px"
                 bg={step >= s ? 'brand.mustard' : 'brand.cardBg'}
                 borderColor={step >= s ? 'brand.mustard' : 'brand.cardBgAlt'}
                 color={step >= s ? '#000' : 'brand.textMutedToken'}
-                boxShadow={step >= s ? '2px 2px 0 #000' : 'none'}
                 transition="all 0.2s"
               >
                 {s}
               </Flex>
               <Text
-                ml={2} fontSize="9px" fontWeight={600} display={{ base: 'none', sm: 'block' }}
-                color={step >= s ? 'brand.mustard' : 'brand.textMutedToken'}
+                ml={2} fontSize="12px" fontWeight={600} display={{ base: 'none', sm: 'block' }}
+                color="body.color"
                 opacity={step >= s ? 1 : 0.5}
                 transition="color 0.3s"
               >
@@ -318,15 +296,15 @@ export function ConfigurarTorneio() {
           {step === 1 && (
             <VStack spacing={8} align="stretch">
               <VStack spacing={4} align="stretch">
-                <Heading fontSize={{ base: '18px', md: '22px' }}>INFORMAÇÕES BÁSICAS</Heading>
+                <Heading fontSize={{ base: '18px', md: '22px' }}>Informações básicas</Heading>
                 <FormControl isInvalid={!!errors.nomeTorneio}>
-                  <FormLabel>NOME DO TORNEIO</FormLabel>
+                  <FormLabel>Nome do torneio</FormLabel>
                   <Input {...register('nomeTorneio')} placeholder="Copa de Inverno 2026" />
-                  <FormErrorMessage fontSize="9px">{errors.nomeTorneio?.message}</FormErrorMessage>
+                  <FormErrorMessage fontSize="12px">{errors.nomeTorneio?.message}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>FORMATO</FormLabel>
+                  <FormLabel>Formato</FormLabel>
                   <RadioGroup value={formato} onChange={(v) => setFormato(v as FormatoTorneio)}>
                     <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={3}>
                       {[
@@ -367,7 +345,7 @@ export function ConfigurarTorneio() {
                 >
                   <Flex justify="space-between" align="center">
                     <VStack align="flex-start" spacing={0}>
-                      <Text fontWeight={600} fontSize="md">PARTIDAS DE IDA E VOLTA</Text>
+                      <Text fontWeight={600} fontSize="md">Partidas de ida e volta</Text>
                       <Text fontSize="sm" color="gray.500" mt={1}>{idaEVoltaDesc}</Text>
                     </VStack>
                     <Switch
@@ -391,7 +369,7 @@ export function ConfigurarTorneio() {
 
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between">
-                  <Heading fontFamily="heading" fontSize="16px" >AMIGOS</Heading>
+                  <Heading fontFamily="heading" fontSize="16px" >Amigos</Heading>
                   <Badge colorScheme="orange" variant="outline" borderRadius="2px" px={2}>
                     {amigosValidos.length} adicionados
                   </Badge>
@@ -425,7 +403,7 @@ export function ConfigurarTorneio() {
 
               <VStack spacing={4} align="stretch">
                 <HStack justify="space-between">
-                  <Heading fontFamily="heading" fontSize="16px" >TIMES DISPONÍVEIS</Heading>
+                  <Heading fontFamily="heading" fontSize="16px" >Times disponíveis</Heading>
                   <Badge colorScheme={timesValidos.length >= amigosValidos.length ? 'green' : 'red'} variant="outline" borderRadius="2px" px={2}>
                     {timesValidos.length}/{amigosValidos.length} minimo
                   </Badge>
@@ -455,26 +433,28 @@ export function ConfigurarTorneio() {
                 <Button
                   id="btn-sorteio-interativo"
                   onClick={iniciarSorteio}
-                  variant="arcade"
+                  variant="solid"
+                  colorScheme="orange"
                   size="lg"
-                  rightIcon={<ShuffleIcon /> as any}
-                  fontSize="13px"
+                  leftIcon={<IoShuffle size={20}  /> as any}
+                  fontSize="16px"
                   h="52px"
                 >
-                  ▶ SORTEIO INTERATIVO
+                Sorteio interativo
                 </Button>
                 <Button
                   id="btn-sorteio-rapido"
                   onClick={sortearRapido}
+                  colorScheme="gray"
                   variant="outline"
                   size="lg"
                   leftIcon={<BoltIcon /> as any}
-                  fontSize="11px"
+                  fontSize="16px"
                 >
-                  SORTEIO AUTOMÁTICO RÁPIDO
+                  Sorteio automático
                 </Button>
-                <Text fontSize="8px"  textAlign="center">
-                  O Sorteio Rápido embaralha tudo e gera o torneio de uma vez.
+                <Text fontSize="10px"  textAlign="center">
+                  O Sorteio Rápido gera tanto as partidas quantos os times automaticamente.  
                 </Text>
               </VStack>
             </VStack>
@@ -483,24 +463,24 @@ export function ConfigurarTorneio() {
           {step === 2 && (
             <VStack spacing={8} align="stretch">
               <VStack spacing={1} textAlign="center">
-                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >O DRAFT</Heading>
-                <Text fontSize="9px" >Sorteie o participante e escolha o time dele.</Text>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >Draft de Times</Heading>
+                <Text fontSize="12px" >Chegou a hora da verdade! Revele o próximo jogador e vincule o escudo que ele vai defender na copa.</Text>
               </VStack>
               <HStack justify="center" spacing={4}>
-                <Badge variant="outline" borderRadius="2px" px={3}>{amigosPendentes.length} Pendentes</Badge>
-                <Badge variant="outline" colorScheme="orange" borderRadius="2px" px={3}>{duplas.length} Confirmados</Badge>
+                <Badge variant="outline" borderRadius="5px" px={5} py={1} textTransform="capitalize">{amigosPendentes.length} Pendentes</Badge>
+                <Badge variant="outline" colorScheme="orange" borderRadius="5px" px={5} py={1} textTransform="capitalize">{duplas.length} Confirmados</Badge>
               </HStack>
               <Box
                 p={6}
                  
                 
-                textAlign="center" minH="240px" display="flex" flexDirection="column" justifyContent="center"
+                textAlign="center" minH="180px" display="flex" flexDirection="column" justifyContent="center"
               >
                 {!amigoSorteado ? (
                   <VStack spacing={4}>
-                    <Text fontSize="sm" opacity={0.6}>Pronto para sortear o proximo jogador?</Text>
-                    <Button onClick={sortearParticipante} colorScheme="brand" size="lg" leftIcon={<ShuffleIcon /> as any}>
-                      SORTEAR PARTICIPANTE
+                    <Text fontSize="sm" opacity={0.6}>Quem será o próximo a entrar em campo?</Text>
+                    <Button onClick={sortearParticipante} colorScheme="brand" w="320px" h="52px" fontSize="16px">
+                      REVELAR PARTICIPANTE
                     </Button>
                   </VStack>
                 ) : (
@@ -536,8 +516,8 @@ export function ConfigurarTorneio() {
           {step === 3 && (
             <VStack spacing={6} align="stretch">
               <VStack spacing={1} textAlign="center">
-                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >RESUMO DO TORNEIO</Heading>
-                <Text fontSize="9px" >Todos os times foram vinculados. Pronto para começar?</Text>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >Resumo do torneio</Heading>
+                <Text fontSize="12px" >Todos os times foram vinculados. Bora começar?</Text>
               </VStack>
               <Box
                  
@@ -554,7 +534,7 @@ export function ConfigurarTorneio() {
                     <Text fontFamily="heading" fontWeight={700} fontSize="13px" >{d.amigo}</Text>
                     <HStack>
                       {d.logoTime && <Image src={d.logoTime} boxSize="20px" objectFit="contain" />}
-                      <Badge   border="1px solid"  fontSize="8px" px={2}>{d.time}</Badge>
+                      <Badge   border="1px solid"  fontSize="12px" px={2}>{d.time}</Badge>
                     </HStack>
                   </Flex>
                 ))}

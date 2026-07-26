@@ -24,6 +24,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { supabase } from '../lib/supabase';
 import LogoCompleta from '../assets/logos/LogoCompleta.png';
+import { FiUser as PersonIcon, FiMail as EmailIcon, FiLock as LockIcon } from 'react-icons/fi';
 
 /* ── Validação ─────────────────────────────────────────────── */
 const registerSchema = z
@@ -41,24 +42,9 @@ const registerSchema = z
 type RegisterData = z.infer<typeof registerSchema>;
 
 /* ── Ícones SVG ─────────────────────────────────────────────── */
-const PersonIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-);
-const EmailIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  </svg>
-);
-const LockIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-  </svg>
-);
+
+
+
 const EyeIcon = ({ open }: { open: boolean }) =>
   open ? (
     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
@@ -160,7 +146,7 @@ export function Register() {
           <VStack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
             {/* Nome */}
             <FormControl isInvalid={!!errors.nome}>
-              <FormLabel>NOME</FormLabel>
+              <FormLabel>Nome</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none" h="full" pl={2}>
                   <PersonIcon />
@@ -171,7 +157,7 @@ export function Register() {
                   placeholder="Seu nome completo"
                 />
               </InputGroup>
-              <FormErrorMessage fontSize="9px" >{errors.nome?.message}</FormErrorMessage>
+              <FormErrorMessage fontSize="12px" >{errors.nome?.message}</FormErrorMessage>
             </FormControl>
 
             {/* E-mail */}
@@ -188,12 +174,12 @@ export function Register() {
                   placeholder="seu@email.com"
                 />
               </InputGroup>
-              <FormErrorMessage fontSize="9px" >{errors.email?.message}</FormErrorMessage>
+              <FormErrorMessage fontSize="12px" >{errors.email?.message}</FormErrorMessage>
             </FormControl>
 
             {/* Senha */}
             <FormControl isInvalid={!!errors.password}>
-              <FormLabel>SENHA</FormLabel>
+              <FormLabel>Senha</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none" h="full" pl={2}>
                   <LockIcon />
@@ -211,12 +197,12 @@ export function Register() {
                   </Button>
                 </InputRightElement>
               </InputGroup>
-              <FormErrorMessage fontSize="9px" >{errors.password?.message}</FormErrorMessage>
+              <FormErrorMessage fontSize="12px" >{errors.password?.message}</FormErrorMessage>
             </FormControl>
 
             {/* Confirmar senha */}
             <FormControl isInvalid={!!errors.confirmPassword}>
-              <FormLabel>CONFIRMAR SENHA</FormLabel>
+              <FormLabel>Confirmar senha</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none" h="full" pl={2}>
                   <LockIcon />
@@ -234,7 +220,7 @@ export function Register() {
                   </Button>
                 </InputRightElement>
               </InputGroup>
-              <FormErrorMessage fontSize="9px" >{errors.confirmPassword?.message}</FormErrorMessage>
+              <FormErrorMessage fontSize="12px" >{errors.confirmPassword?.message}</FormErrorMessage>
             </FormControl>
 
             <Button

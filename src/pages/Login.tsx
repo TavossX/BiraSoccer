@@ -24,6 +24,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import LogoCompleta from '../assets/logos/LogoCompleta.png';
 import { supabase } from '../lib/supabase';
+import { FiMail as EmailIcon, FiLock as LockIcon } from 'react-icons/fi';
 
 /* ── Validação ─────────────────────────────────────────────── */
 const loginSchema = z.object({
@@ -33,18 +34,8 @@ const loginSchema = z.object({
 type LoginData = z.infer<typeof loginSchema>;
 
 /* ── Ícones SVG inline ─────────────────────────────────────── */
-const EmailIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  </svg>
-);
-const LockIcon = () => (
-  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-  </svg>
-);
+
+
 const EyeIcon = ({ open }: { open: boolean }) =>
   open ? (
     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FDBB00">
@@ -150,12 +141,12 @@ export function Login() {
                 placeholder="seu@email.com"
               />
             </InputGroup>
-            <FormErrorMessage fontSize="9px" >{errors.email?.message}</FormErrorMessage>
+            <FormErrorMessage fontSize="12px" >{errors.email?.message}</FormErrorMessage>
           </FormControl>
 
           {/* Senha */}
           <FormControl isInvalid={!!errors.password}>
-            <FormLabel>SENHA</FormLabel>
+            <FormLabel>Senha</FormLabel>
             <InputGroup>
               <InputLeftElement pointerEvents="none" h="full" pl={2}>
                 <LockIcon />
@@ -179,13 +170,13 @@ export function Login() {
                 </Button>
               </InputRightElement>
             </InputGroup>
-            <FormErrorMessage fontSize="9px" >{errors.password?.message}</FormErrorMessage>
+            <FormErrorMessage fontSize="12px" >{errors.password?.message}</FormErrorMessage>
           </FormControl>
 
           <Flex w="full" justify="flex-end">
             <Link
               href="#"
-              fontSize="8px"
+              fontSize="12px"
               
               _hover={{ color: 'brand.orange' }}
             >

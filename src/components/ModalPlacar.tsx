@@ -115,7 +115,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
         
         
         
-        boxShadow="8px 8px 0px #000"
+        boxShadow="lg"
         borderRadius="md"
         overflow="hidden"
         mx={4}
@@ -128,7 +128,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
 
         <ModalHeader
           pt={4} pb={3}
-          borderBottom="2px solid"
+          borderBottom="1px solid #C3c3c3"
           
           
         >
@@ -142,14 +142,14 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                 <Badge
                   
                   color="#000"
-                  border="1px solid #000"
-                  fontSize="7px"
+                  border="1px solid #C3c3c3"
+                  fontSize="10px"
                   px={2}
                 >
                   {modo === 'liga' ? 'LIGA' : `MATA-MATA — ${partida.jogo === 'ida' ? 'IDA' : partida.jogo === 'volta' ? 'VOLTA' : 'ÚNICO'}`}
                 </Badge>
                 {partida.rodada > 0 && modo === 'liga' && (
-                  <Badge border="1px solid"   bg="transparent" fontSize="7px" px={2}>
+                  <Badge border="1px solid"   bg="transparent" fontSize="10px" px={2}>
                     RD {partida.rodada}
                   </Badge>
                 )}
@@ -176,7 +176,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                   <Text fontFamily="heading" fontWeight={700} fontSize="15px" noOfLines={1} >
                     {pA?.nomeAmigo ?? '?'}
                   </Text>
-                  <Text fontSize="8px"  noOfLines={1}>{pA?.timeSorteado ?? '—'}</Text>
+                  <Text fontSize="12px"  noOfLines={1}>{pA?.timeSorteado ?? '—'}</Text>
                 </VStack>
                 <NumberInput
                   min={0} max={99}
@@ -221,7 +221,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                   <Text fontFamily="heading" fontWeight={700} fontSize="15px" noOfLines={1} >
                     {pB?.nomeAmigo ?? '?'}
                   </Text>
-                  <Text fontSize="8px"  noOfLines={1}>{pB?.timeSorteado ?? '—'}</Text>
+                  <Text fontSize="12px"  noOfLines={1}>{pB?.timeSorteado ?? '—'}</Text>
                 </VStack>
                 <NumberInput
                   min={0} max={99}
@@ -269,12 +269,12 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                   
                   p={3}
                 >
-                  <Text fontSize="8px"  textAlign="center" mb={2} textTransform="uppercase" letterSpacing="wide">
+                  <Text fontSize="12px"  textAlign="center" mb={2} textTransform="uppercase" letterSpacing="wide">
                     Placar Agregado (tempo real)
                   </Text>
                   <HStack justify="center" spacing={6}>
                     <VStack spacing={0} textAlign="center">
-                      <Text fontSize="8px"  noOfLines={1}>{pA?.nomeAmigo}</Text>
+                      <Text fontSize="12px"  noOfLines={1}>{pA?.nomeAmigo}</Text>
                       <Text
                         fontFamily="heading"
                         fontSize="3xl"
@@ -286,7 +286,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                     </VStack>
                     <Text  fontFamily="heading" fontSize="xl">—</Text>
                     <VStack spacing={0} textAlign="center">
-                      <Text fontSize="8px"  noOfLines={1}>{pB?.nomeAmigo}</Text>
+                      <Text fontSize="12px"  noOfLines={1}>{pB?.nomeAmigo}</Text>
                       <Text
                         fontFamily="heading"
                         fontSize="3xl"
@@ -298,7 +298,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                     </VStack>
                   </HStack>
                   {agregadoAtual.golsA_total === agregadoAtual.golsB_total && (
-                    <Text fontSize="8px"  textAlign="center" mt={2} fontWeight={600}>
+                    <Text fontSize="12px"  textAlign="center" mt={2} fontWeight={600}>
                       ⚠ Empate no agregado — pênaltis necessários
                     </Text>
                   )}
@@ -319,14 +319,14 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                     py={2}
                   >
                     <AlertIcon  />
-                    <AlertDescription fontSize="9px" >
+                    <AlertDescription fontSize="12px" >
                       DISPUTA DE PÊNALTIS — informe o placar.
                     </AlertDescription>
                   </Alert>
 
                   <Flex w="full" align="center" gap={4}>
                     <VStack flex={1} spacing={1}>
-                      <Text fontSize="8px" >{pA?.nomeAmigo ?? '?'}</Text>
+                      <Text fontSize="12px" >{pA?.nomeAmigo ?? '?'}</Text>
                       <NumberInput min={0} max={30} value={penaltisA} onChange={(v) => setPenaltisA(Number(v))}>
                         <NumberInputField
                           textAlign="center"
@@ -348,7 +348,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                     <Text  fontFamily="heading" fontSize="xl" mt={5}>×</Text>
 
                     <VStack flex={1} spacing={1}>
-                      <Text fontSize="8px" >{pB?.nomeAmigo ?? '?'}</Text>
+                      <Text fontSize="12px" >{pB?.nomeAmigo ?? '?'}</Text>
                       <NumberInput min={0} max={30} value={penaltisB} onChange={(v) => setPenaltisB(Number(v))}>
                         <NumberInputField
                           textAlign="center"
@@ -369,7 +369,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
                   </Flex>
 
                   {penaltisEmpatados && (
-                    <Text fontSize="8px"  textAlign="center">
+                    <Text fontSize="12px"  textAlign="center">
                       ⛔ Pênaltis empatados — defina um vencedor.
                     </Text>
                   )}
@@ -381,7 +381,7 @@ export function ModalPlacar({ isOpen, onClose, partida, modo }: ModalPlacarProps
 
         <ModalFooter
           pt={2} pb={5} gap={3}
-          borderTop="2px solid"
+          borderTop="1px solid #C3c3c3"
           
         >
           <Button

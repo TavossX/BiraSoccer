@@ -30,7 +30,7 @@ const styles = {
   global: (props: any) => ({
     body: {
       bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
-      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.600',
     },
   }),
 };

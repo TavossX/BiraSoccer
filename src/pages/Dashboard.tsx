@@ -26,32 +26,10 @@ import { useNavigate } from 'react-router-dom';
 import LogoCompleta from '../assets/logos/LogoCompleta.png';
 import { supabase } from '../lib/supabase';
 import { useTorneioStore } from '../store/torneioStore';
-
-/* ── Ícones SVG ─────────────────────────────────────────────── */
-const ChevronDownIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-const LogoutIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-);
-const LinkIcon = () => (
-  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-  </svg>
-);
-const TrashIcon = () => (
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-  </svg>
-);
-
+import { FaRegTrashAlt } from "react-icons/fa";
+import { IoIosLink } from "react-icons/io";
+import { IoMdAdd } from "react-icons/io";
+import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon } from 'react-icons/fi';
 /* ── Página ─────────────────────────────────────────────────── */
 export function Dashboard() {
   const toast = useToast();
@@ -124,9 +102,7 @@ export function Dashboard() {
         as="header"
         bg="white"
         _dark={{ bg: 'gray.900' }}
-        borderBottom="3px solid"
-        
-        boxShadow="0 4px 0 #000"
+        boxShadow="lg"
         position="sticky"
         top={0}
         zIndex={100}
@@ -156,33 +132,19 @@ export function Dashboard() {
               size="sm"
               onClick={() => navigate('/torneio/configurar')}
               colorScheme="brand"
+              leftIcon={<IoMdAdd  /> as any}
             >
-              NOVO TORNEIO
+              Criar Torneio
             </Button>
-
-            <Menu>
-              <MenuButton
-                as={Button}
-                id="btn-user-menu"
-                colorScheme="gray"
-                size="sm"
-                rightIcon={<ChevronDownIcon /> as any}
-                px={3}
-              >
-                <HStack spacing={2}>
-                  <Text>MENU</Text>
-                </HStack>
-              </MenuButton>
-              <MenuList>
-                <MenuItem
-                  id="btn-logout"
-                  icon={<LogoutIcon /> as any}
-                  onClick={handleLogout}
-                >
-                  Sair da conta
-                </MenuItem>
-              </MenuList>
-            </Menu>
+            <Button
+              id="btn-logout"
+              size="sm"
+              onClick={handleLogout}
+              colorScheme="red"
+              variant="outline"
+            >
+              Logout
+            </Button>
           </HStack>
         </Flex>
       </Box>
@@ -192,46 +154,34 @@ export function Dashboard() {
 
         {/* Saudação */}
         <Box
-          
-          
-          
           boxShadow="md"
           px={6} py={4}
           mb={8}
+          border="1px solid"
+          borderRadius="5px"
         >
-          <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
+          <HStack justify="space-between" align="center" flexWrap="wrap" gap={2} >
             <VStack align="flex-start" spacing={0}>
-              <Heading fontFamily="heading" fontSize={{ base: '22px', md: '30px' }} >
-                BEM-VINDO DE VOLTA
+              <Heading fontFamily="heading" fontSize={{ base: '22px', md: '30px' }}  >
+                Bem-vindo de volta
               </Heading>
-              <Text fontSize="9px"  mt={1}>
+              <Text fontSize="12px"  mt={1}>
                 Gerencie seus campeonatos, jogadores e placares.
               </Text>
             </VStack>
-            <Badge
-              
-              color="#000"
-              fontSize="9px"
-              px={3} py={1}
-              border="2px solid #000"
-              boxShadow="md"
-            >
-              ● ONLINE
-            </Badge>
           </HStack>
         </Box>
 
         {/* Stat card */}
         <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4} mb={8}>
           <Box
-            
-            
-            
+            border="1px solid"
+            borderRadius="5px"
             boxShadow="md"
             p={5}
           >
             <Stat>
-              <StatLabel fontSize="8px" fontWeight={700} textTransform="uppercase" letterSpacing="wide" >
+              <StatLabel fontSize="12px" fontWeight={700} textTransform="uppercase" letterSpacing="wide" >
                 Meus Campeonatos
               </StatLabel>
               <StatNumber
@@ -262,9 +212,9 @@ export function Dashboard() {
             
             mb={1}
           >
-            MEUS TORNEIOS
+            Meus Torneios
           </Heading>
-          <Text fontSize="9px" >
+          <Text fontSize="12px" >
             Gerencie os campeonatos que você criou.
           </Text>
         </Box>
@@ -274,14 +224,11 @@ export function Dashboard() {
           <Flex justify="center" py={10}>
             <VStack spacing={3}>
               <Spinner  size="xl" thickness="4px" />
-              <Text fontSize="9px" >CARREGANDO...</Text>
+              <Text fontSize="12px" >CARREGANDO...</Text>
             </VStack>
           </Flex>
         ) : torneios.length === 0 ? (
           <Box
-            
-            
-            
             boxShadow="md"
             p={10}
             textAlign="center"
@@ -315,7 +262,7 @@ export function Dashboard() {
                   h="6px"
                   bg={t.formato === 'liga' ? 'linear-gradient(90deg,#F94A29,#FDBB00)' : 'linear-gradient(90deg,#C80000,#F94A29)'}
                 />
-                <Box p={5} flex={1} display="flex" flexDirection="column">
+                <Box p={5} flex={1} display="flex" flexDirection="column" border="1px solid" borderColor="body.color" borderBottomRadius="10px">
                   <HStack justify="space-between" mb={3} align="flex-start">
                     <Heading
                       fontFamily="heading"
@@ -336,41 +283,42 @@ export function Dashboard() {
                       {t.formato === 'liga' ? 'LIGA' : 'MATA-MATA'}
                     </Badge>
                   </HStack>
-                  <Text fontSize="8px"  mb={5}>
+                  <Text fontSize="12px"  mb={5}>
                     Atualizado em {new Date(t.atualizado_em).toLocaleDateString()}
                   </Text>
 
                   <Box
                     mt="auto"
                     pt={4}
-                    borderTop="2px solid"
+                    borderTop="1px solid #C3c3c3"
                     
                   >
                     <HStack spacing={2}>
                       <Button
                         flex={1}
-                        size="sm"
+                        size="md"
                         colorScheme="brand"
                         onClick={() => handleAcessar(t)}
                       >
-                        ACESSAR
+                        Acessar Torneio
                       </Button>
                       <Tooltip label="Copiar Link" placement="top">
                         <IconButton
                           aria-label="Copiar link"
-                          icon={<LinkIcon /> as any}
-                          size="sm"
+                          icon={<IoIosLink size={"20px"} color="green" /> as any}
+                          size="md"
                           variant="outline"
+                          borderColor="green"
                           onClick={() => handleGenerateLink(t.id)}
                         />
                       </Tooltip>
                       <Tooltip label="Excluir" placement="top">
                         <IconButton
                           aria-label="Excluir torneio"
-                          icon={<TrashIcon /> as any}
-                          size="sm"
-                          variant="ghost"
-                          
+                          icon={<FaRegTrashAlt size={"15px"} color="red" /> as any}
+                          size="md"
+                          variant="outline"
+                          borderColor="red"
                           _hover={{ bg: 'brand.red', color: 'white' }}
                           onClick={() => handleExcluir(t.id)}
                         />
