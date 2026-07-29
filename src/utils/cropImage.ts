@@ -58,6 +58,6 @@ export default async function getCroppedImg(
     MAX_SIZE
   );
 
-  // Retorna como JPEG com qualidade 0.8 para payload leve
-  return canvas.toDataURL('image/jpeg', 0.8);
+  // Retorna como PNG para preservar transparência (canal alpha)
+  return canvas.toDataURL('image/png');
 }
