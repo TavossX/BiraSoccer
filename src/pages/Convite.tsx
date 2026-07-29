@@ -1,4 +1,9 @@
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Badge,
   Box,
   Button,
@@ -6,6 +11,7 @@ import {
   Heading,
   HStack,
   Image,
+  SimpleGrid,
   Spinner,
   Text,
   useToast,
@@ -266,6 +272,181 @@ export function Convite() {
             <Chaveamento isReadOnly={isReadOnly} />
           </Box>
         )}
+
+        {/* ── Rodadas (lista de partidas) ─────────────────────────────── */}
+        {(torneio.formato === 'liga' || torneio.formato === 'liga_com_playoffs') && (() => {
+          const partidasLiga = partidas.filter((p) => p.fase === null);
+          const rodasUnicas  = Array.from(new Set(partidasLiga.map((p) => p.rodada))).sort((a, b) => a - b);
+
+          if (partidasLiga.length === 0) return null;
+
+          return (
+            <Box mt={8}>
+              <Box h="2px" bg="linear-gradient(90deg,#C80000,#F94A29,#FDBB00,#F94A29,#C80000)" mb={6} />
+              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>
+                Rodadas
+              </Heading>
+
+              <Accordion allowMultiple defaultIndex={[0]}>
+                {rodasUnicas.map((rodada) => {
+                  const jogosRodada      = partidasLiga.filter((p) => p.rodada === rodada);
+                  const finalizadosRodada = jogosRodada.filter((p) => p.finalizada).length;
+                  const rodadaCompleta   = finalizadosRodada === jogosRodada.length;
+                  const isVolta          = torneio.idaEVolta && rodada > rodasUnicas.length / 2;
+
+                  return (
+                    <AccordionItem
+                      key={rodada}
+                      mb={3}
+                      overflow="hidden"
+                      boxShadow="md"
+                    >
+                      <AccordionButton
+                        _hover={{ bg: 'brand.red' }}
+                        _expanded={{ bg: 'brand.red', borderBottom: '1px solid #C3c3c3', borderColor: 'brand.mustard' }}
+                        py={3} px={4}
+                      >
+                        <HStack flex={1} spacing={3}>
+                          <Text fontFamily="heading" fontSize={{ base: '14px', md: '16px' }} >
+                            RODADA {rodada}
+                          </Text>
+                          <Badge
+                            bg="transparent"
+                            border="1px solid"
+                            fontSize="10px"
+                            color="gray.700"
+                            borderRadius="5px"
+                            px={2}
+                          >
+                            {torneio.idaEVolta ? (isVolta ? 'VOLTA' : 'IDA') : `RD${rodada}`}
+                          </Badge>
+                          <Badge
+                            bg={rodadaCompleta ? 'brand.cardBgAlt' : 'brand.orange'}
+                            color={rodadaCompleta ? 'brand.textMutedToken' : 'white'}
+                            border="1px solid #C3c3c3"
+                            fontSize="10px"
+                            px={2}
+                          >
+                            {finalizadosRodada}/{jogosRodada.length}
+                          </Badge>
+                        </HStack>
+                        <AccordionIcon />
+                      </AccordionButton>
+
+                      <AccordionPanel p={4}>
+                        <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={3}>
+                          {jogosRodada.map((jogo) => {
+                            const pA = participantes.find((p) => p.id === jogo.participanteAId);
+                            const pB = participantes.find((p) => p.id === jogo.participanteBId);
+                            const aVenceu = jogo.vencedorId === jogo.participanteAId;
+                            const bVenceu = jogo.vencedorId === jogo.participanteBId;
+
+                            return (
+                              <Box
+                                key={jogo.id}
+                                borderColor={jogo.finalizada ? 'brand.cardBgAlt' : 'brand.mustard'}
+                                boxShadow="md"
+                                border="1px solid #C3c3c3"
+                                borderRadius="md"
+                                overflow="hidden"
+                              >
+                                {/* Player A */}
+                                <Flex px={3} py={2} justify="space-between" align="center"
+                                  bg={aVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
+                                  borderBottom="1px solid"
+                                >
+                                  <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
+                                    <Text
+                                      fontFamily="heading"
+                                      fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
+                                      fontSize={{ base: '13px', md: '14px' }}
+                                      color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                      noOfLines={1}
+                                    >
+                                      {pA?.nomeAmigo ?? '?'}
+                                    </Text>
+                                    <HStack spacing={1}>
+                                      {pA?.logoTime && <Image src={pA.logoTime} boxSize="10px" objectFit="contain" opacity={bVenceu ? 0.35 : 1} />}
+                                      <Text fontSize="xs" color={aVenceu ? 'gray.600' : (bVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                        {pA?.timeSorteado ?? '—'}
+                                      </Text>
+                                    </HStack>
+                                  </VStack>
+                                  <Text
+                                    fontFamily="heading"
+                                    fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
+                                    fontSize={{ base: '20px', md: '22px' }}
+                                    color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                  >
+                                    {jogo.placarA ?? '—'}
+                                  </Text>
+                                </Flex>
+
+                                {/* Player B */}
+                                <Flex px={3} py={2} justify="space-between" align="center"
+                                  bg={bVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
+                                >
+                                  <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
+                                    <Text
+                                      fontFamily="heading"
+                                      fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
+                                      fontSize={{ base: '13px', md: '14px' }}
+                                      color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                      noOfLines={1}
+                                    >
+                                      {pB?.nomeAmigo ?? '?'}
+                                    </Text>
+                                    <HStack spacing={1}>
+                                      {pB?.logoTime && <Image src={pB.logoTime} boxSize="10px" objectFit="contain" opacity={aVenceu ? 0.35 : 1} />}
+                                      <Text fontSize="xs" color={bVenceu ? 'gray.600' : (aVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                        {pB?.timeSorteado ?? '—'}
+                                      </Text>
+                                    </HStack>
+                                  </VStack>
+                                  <Text
+                                    fontFamily="heading"
+                                    fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
+                                    fontSize={{ base: '20px', md: '22px' }}
+                                    color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                  >
+                                    {jogo.placarB ?? '—'}
+                                  </Text>
+                                </Flex>
+
+                                {/* Status da partida */}
+                                {jogo.finalizada ? (
+                                  <Flex
+                                    borderTop="1px solid #C3c3c3"
+                                    px={3} py={1}
+                                    justify="center"
+                                  >
+                                    <Text fontSize="11px" color="gray.400" fontWeight={600} textTransform="uppercase">
+                                      FINALIZADA
+                                    </Text>
+                                  </Flex>
+                                ) : (
+                                  <Flex
+                                    borderTop="1px solid #C3c3c3"
+                                    px={3} py={1}
+                                    justify="center"
+                                  >
+                                    <Text fontSize="11px" color="brand.orange" fontWeight={600} textTransform="uppercase">
+                                      PENDENTE
+                                    </Text>
+                                  </Flex>
+                                )}
+                              </Box>
+                            );
+                          })}
+                        </SimpleGrid>
+                      </AccordionPanel>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </Box>
+          );
+        })()}
 
         {/* Rodapé */}
         <Box mt={10} pt={6} borderTop="1px solid #C3c3c3"  textAlign="center">
