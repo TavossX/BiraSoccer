@@ -29,7 +29,8 @@ import { useTorneioStore } from '../store/torneioStore';
 import { FaRegTrashAlt } from "react-icons/fa";
 import { IoIosLink } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
-import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon } from 'react-icons/fi';
+import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon, FiShield } from 'react-icons/fi';
+import { listarMeusTimes } from '../services/timesCustomizadosService';
 /* ── Página ─────────────────────────────────────────────────── */
 export function Dashboard() {
   const toast = useToast();
@@ -37,6 +38,7 @@ export function Dashboard() {
 
   const [torneios, setTorneios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalMeusTimes, setTotalMeusTimes] = useState(0);
   const { carregarTorneioPublico } = useTorneioStore();
 
   const fetchTorneios = async () => {
@@ -49,6 +51,10 @@ export function Dashboard() {
         .eq('user_id', user.id)
         .order('atualizado_em', { ascending: false });
       if (!error && data) setTorneios(data);
+
+      // Contar times customizados
+      const meusTimesData = await listarMeusTimes(user.id);
+      setTotalMeusTimes(meusTimesData.length);
     }
     setLoading(false);
   };
@@ -128,6 +134,16 @@ export function Dashboard() {
           {/* Ações */}
           <HStack spacing={2} flexShrink={0}>
             <Button
+              id="btn-meus-times"
+              size="sm"
+              onClick={() => navigate('/meus-times')}
+              variant="outline"
+              colorScheme="orange"
+              leftIcon={<FiShield /> as any}
+            >
+              Meus Times
+            </Button>
+            <Button
               id="btn-novo-torneio"
               size="sm"
               onClick={() => navigate('/torneio/configurar')}
@@ -192,6 +208,31 @@ export function Dashboard() {
                 lineHeight="1.2"
               >
                 {torneios.length}
+              </StatNumber>
+            </Stat>
+          </Box>
+          <Box
+            border="1px solid"
+            borderRadius="5px"
+            boxShadow="md"
+            p={5}
+            cursor="pointer"
+            transition="all 0.2s"
+            _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+            onClick={() => navigate('/meus-times')}
+          >
+            <Stat>
+              <StatLabel fontSize="12px" fontWeight={700} textTransform="uppercase" letterSpacing="wide" >
+                Meus Times
+              </StatLabel>
+              <StatNumber
+                fontFamily="heading"
+                fontSize="3xl"
+                fontWeight={700}
+                
+                lineHeight="1.2"
+              >
+                {totalMeusTimes}
               </StatNumber>
             </Stat>
           </Box>

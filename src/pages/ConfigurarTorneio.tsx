@@ -19,6 +19,7 @@ import {
   Badge,
   Image,
   useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,7 +33,11 @@ import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { searchTeams, TimeFutebol } from '../services/apiFutebol';
 import { IoShuffle } from 'react-icons/io5';
-import { FiPlus as PlusIcon, FiTrash2 as TrashIcon, FiShuffle as ShuffleIcon, FiRefreshCw as ResetIcon, FiZap as BoltIcon } from 'react-icons/fi';
+import { FiPlus as PlusIcon, FiTrash2 as TrashIcon, FiShuffle as ShuffleIcon, FiRefreshCw as ResetIcon, FiZap as BoltIcon, FiShield } from 'react-icons/fi';
+import { listarMeusTimes } from '../services/timesCustomizadosService';
+import type { TimeCustomizado } from '../services/timesCustomizadosService';
+import { ModalCriarTime } from '../components/ModalCriarTime';
+import { supabase } from '../lib/supabase';
 // Tipos para os passos
 
 // Icones SVG
@@ -66,6 +71,23 @@ export function ConfigurarTorneio() {
   const navigate = useNavigate();
   const criarTorneio = useTorneioStore((s) => s.criarTorneio);
   const sortearTudo  = useTorneioStore((s) => s.sortearTudo);
+
+  // ── Times Customizados ──
+  const { isOpen: isModalTimeOpen, onOpen: onOpenModalTime, onClose: onCloseModalTime } = useDisclosure();
+  const [meusTimesCustom, setMeusTimesCustom] = useState<TimeCustomizado[]>([]);
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    const fetchMeusTimes = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        const data = await listarMeusTimes(user.id);
+        setMeusTimesCustom(data);
+      }
+    };
+    fetchMeusTimes();
+  }, []);
 
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -408,14 +430,86 @@ export function ConfigurarTorneio() {
                     {timesValidos.length}/{amigosValidos.length} minimo
                   </Badge>
                 </HStack>
+
+                {/* ── Meus Times Customizados ── */}
+                <Box
+                  borderWidth="1px"
+                  borderRadius="md"
+                  borderColor={borderColor}
+                  p={4}
+                  bg={bgColor}
+                  boxShadow="sm"
+                >
+                  <HStack justify="space-between" mb={3}>
+                    <HStack spacing={2}>
+                      <Box as={FiShield} size="16px" color="brand.500" />
+                      <Text fontWeight={600} fontSize="sm">Meus Times Personalizados</Text>
+                    </HStack>
+                    <Button
+                      size="xs"
+                      colorScheme="orange"
+                      variant="outline"
+                      leftIcon={<PlusIcon /> as any}
+                      onClick={onOpenModalTime}
+                    >
+                      Criar Time
+                    </Button>
+                  </HStack>
+
+                  {meusTimesCustom.length === 0 ? (
+                    <Text fontSize="xs" color="gray.500" textAlign="center" py={2}>
+                      Nenhum time customizado ainda. Crie o seu primeiro!
+                    </Text>
+                  ) : (
+                    <FormControl>
+                      <Select
+                        isMulti
+                        placeholder="Selecionar meus times..."
+                        value={times
+                          .filter((t: any) => t._custom)
+                          .map((t: any) => ({ value: t, label: t.nome }))}
+                        onChange={(selected: any) => {
+                          const customIds = selected.map((s: any) => s.value.id);
+                          const apiTimes = times.filter((t: any) => !t._custom);
+                          const newCustomTimes = selected.map((s: any) => s.value);
+                          setTimes([...apiTimes, ...newCustomTimes]);
+                        }}
+                        options={meusTimesCustom.map(tc => ({
+                          value: {
+                            id: tc.id,
+                            nome: tc.nome,
+                            logo: tc.escudo_base64,
+                            _custom: true,
+                          } as any,
+                          label: tc.nome,
+                        }))}
+                        formatOptionLabel={(data: any) => (
+                          <HStack>
+                            <Image src={data.value.logo} boxSize="20px" objectFit="contain" borderRadius="sm" />
+                            <Text>{data.label}</Text>
+                          </HStack>
+                        )}
+                        styles={customSelectStyles}
+                        noOptionsMessage={() => 'Nenhum time disponível'}
+                      />
+                    </FormControl>
+                  )}
+                </Box>
+
+                {/* ── Busca API (mantido original) ── */}
                 <FormControl>
+                  <Text fontSize="xs" color="gray.500" mb={2} fontWeight={500}>Ou pesquise na base global:</Text>
                   <AsyncSelect
                     isMulti
                     cacheOptions
                     defaultOptions
                     loadOptions={loadOptions}
-                    value={times.map(t => ({ value: t, label: t.nome }))}
-                    onChange={(selected: any) => setTimes(selected.map((s: any) => s.value))}
+                    value={times.filter((t: any) => !t._custom).map(t => ({ value: t, label: t.nome }))}
+                    onChange={(selected: any) => {
+                      const customTimes = times.filter((t: any) => t._custom);
+                      const newApiTimes = selected.map((s: any) => s.value);
+                      setTimes([...customTimes, ...newApiTimes]);
+                    }}
                     placeholder="Pesquisar time (ex: Real Madrid)..."
                     noOptionsMessage={() => "Digite para buscar na API"}
                     formatOptionLabel={(data: any) => (
@@ -546,6 +640,24 @@ export function ConfigurarTorneio() {
           )}
         </Box>
       </Box>
+
+      {/* Modal Criar Time Personalizado */}
+      <ModalCriarTime
+        isOpen={isModalTimeOpen}
+        onClose={onCloseModalTime}
+        userId={userId}
+        onTimeSalvo={(novoTime) => {
+          setMeusTimesCustom(prev => [novoTime, ...prev]);
+          // Adiciona automaticamente à seleção
+          const timeConvertido: TimeFutebol & { _custom?: boolean } = {
+            id: novoTime.id as any,
+            nome: novoTime.nome,
+            logo: novoTime.escudo_base64,
+            _custom: true,
+          } as any;
+          setTimes(prev => [...prev, timeConvertido]);
+        }}
+      />
     </Box>
   );
 }
