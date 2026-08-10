@@ -320,7 +320,13 @@ export function ConfigurarTorneio() {
       duration: 3000,
       position: 'top',
     });
-    navigate(formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga');
+    const novoTorneio = useTorneioStore.getState().torneio;
+    const path = formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga';
+    if (novoTorneio?.id) {
+      navigate(`${path}/${novoTorneio.id}`);
+    } else {
+      navigate(path);
+    }
   });
 
   // Draft (Etapa 2)
@@ -359,7 +365,13 @@ export function ConfigurarTorneio() {
   const onGerarCampeonato = () => {
     criarTorneio({ nome: getValues('nomeTorneio'), formato, idaEVolta, duplas });
     toast({ title: 'Torneio gerado com sucesso!', status: 'success', duration: 3000, position: 'top' });
-    navigate(formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga');
+    const novoTorneio = useTorneioStore.getState().torneio;
+    const path = formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga';
+    if (novoTorneio?.id) {
+      navigate(`${path}/${novoTorneio.id}`);
+    } else {
+      navigate(path);
+    }
   };
 
   const idaEVoltaDesc =

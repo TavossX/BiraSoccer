@@ -34,7 +34,9 @@ function App() {
           <Route path="/perfil/:id" element={<PerfilJogador />} />
           <Route path="/torneio/configurar" element={<ConfigurarTorneio />} />
           <Route path="/torneio/liga" element={<TorneioLiga />} />
+          <Route path="/torneio/liga/:id" element={<TorneioLiga />} />
           <Route path="/torneio/matamata" element={<TorneioMataMata />} />
+          <Route path="/torneio/matamata/:id" element={<TorneioMataMata />} />
         </Route>
       </Routes>
     </BrowserRouter>

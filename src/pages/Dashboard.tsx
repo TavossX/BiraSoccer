@@ -96,8 +96,11 @@ export function Dashboard() {
   const handleAcessar = async (torneio: any) => {
     const ok = await carregarTorneioPublico(torneio.id);
     if (ok) {
-      if (torneio.formato === 'liga') navigate('/torneio/liga');
-      else navigate('/torneio/matamata');
+      if (torneio.formato === 'liga' || torneio.formato === 'liga_com_playoffs') {
+        navigate(`/torneio/liga/${torneio.id}`);
+      } else {
+        navigate(`/torneio/matamata/${torneio.id}`);
+      }
     } else {
       toast({ title: 'Erro ao carregar torneio', status: 'error' });
     }

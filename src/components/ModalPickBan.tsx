@@ -296,7 +296,13 @@ export function ModalPickBan({
     });
 
     onClose();
-    navigate(formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga');
+    const novoTorneio = useTorneioStore.getState().torneio;
+    const path = formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga';
+    if (novoTorneio?.id) {
+      navigate(`${path}/${novoTorneio.id}`);
+    } else {
+      navigate(path);
+    }
   };
 
   // ── Format Option Label (com logo) ────────────────────────────────────────

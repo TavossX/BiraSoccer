@@ -15,9 +15,10 @@ import {
   AccordionPanel,
   AccordionIcon,
   Image,
+  Spinner,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTorneioStore } from '../store/torneioStore';
 import LogoBola from '../assets/logos/LogoBola.png';
 import LogoCompleta from '../assets/logos/LogoCompleta.png';
@@ -30,16 +31,63 @@ import { Chaveamento } from '../components/Chaveamento';
 import type { Partida } from '../types/torneio';
 import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon } from 'react-icons/fi';
 
-
-
-
-
 export function TorneioLiga() {
-  const { torneio, partidas, participantes, resetarTorneio, gerarPlayoffs } = useTorneioStore();
+  const { id } = useParams<{ id?: string }>();
+  const { torneio, partidas, participantes, resetarTorneio, gerarPlayoffs, carregarTorneioPublico } = useTorneioStore();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [partidaSelecionada, setPartidaSelecionada] = useState<Partida | null>(null);
+  const [loading, setLoading] = useState(!!id);
   const compartilharDisclosure = useDisclosure();
+
+  useEffect(() => {
+    const carregar = async () => {
+      if (id) {
+        if (!torneio || torneio.id !== id) {
+          setLoading(true);
+          await carregarTorneioPublico(id);
+          setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    carregar();
+  }, [id, carregarTorneioPublico]);
+
+  // Se o torneio carregado for do formato Mata-mata, redireciona para o componente correto
+  useEffect(() => {
+    if (torneio && torneio.formato === 'matamata') {
+      navigate(`/torneio/matamata/${torneio.id}`, { replace: true });
+    }
+  }, [torneio, navigate]);
+
+  if (loading) {
+    return (
+      <Flex minH="100vh" align="center" justify="center">
+        <Spinner size="xl" color="brand.500" thickness="4px" />
+      </Flex>
+    );
+  }
+
+  if (!torneio) {
+    return (
+      <Flex minH="100vh" align="center" justify="center">
+        <VStack spacing={6}>
+          <img src={LogoCompleta} alt="logo" width={"450px"} />
+          <Text fontSize="20px">Crie sua primeira liga, adicione a galera e comece o draft.</Text>
+          <Button onClick={() => navigate('/torneio/configurar')} variant="solid" size="lg" w="300px" rightIcon={<IoMdAdd />}>
+            CRIAR TORNEIO
+          </Button>
+        </VStack>
+      </Flex>
+    );
+  }
+
+
+
 
   if (!torneio) {
     return (

@@ -11,36 +11,70 @@ import {
   Wrap,
   WrapItem,
   useDisclosure,
+  Spinner,
 } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTorneioStore } from '../store/torneioStore';
 import { Chaveamento } from '../components/Chaveamento';
 import { ModalCompartilhar } from '../components/ModalCompartilhar';
 import LogoBola from '../assets/logos/LogoBola.png';
 import { supabase } from '../lib/supabase';
 import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon } from 'react-icons/fi';
-
-
-
-
-
 export function TorneioMataMata() {
-  const { torneio, partidas, participantes, resetarTorneio } = useTorneioStore();
+  const { id } = useParams<{ id?: string }>();
+  const { torneio, partidas, participantes, resetarTorneio, carregarTorneioPublico } = useTorneioStore();
   const navigate = useNavigate();
   const compartilharDisclosure = useDisclosure();
+  const [loading, setLoading] = useState(!!id);
+
+  useEffect(() => {
+    const carregar = async () => {
+      if (id) {
+        if (!torneio || torneio.id !== id) {
+          setLoading(true);
+          await carregarTorneioPublico(id);
+          setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    carregar();
+  }, [id, carregarTorneioPublico]);
+
+  // Se o torneio carregado for do formato Liga, redireciona para o componente correto
+  useEffect(() => {
+    if (torneio && (torneio.formato === 'liga' || torneio.formato === 'liga_com_playoffs')) {
+      navigate(`/torneio/liga/${torneio.id}`, { replace: true });
+    }
+  }, [torneio, navigate]);
+
+  if (loading) {
+    return (
+      <Flex minH="100vh" align="center" justify="center">
+        <Spinner size="xl" color="brand.500" thickness="4px" />
+      </Flex>
+    );
+  }
 
   if (!torneio) {
     return (
-      <Flex minH="100vh"  align="center" justify="center">
+      <Flex minH="100vh" align="center" justify="center">
         <VStack spacing={4}>
-          <Text fontSize="10px" >Nenhum torneio configurado.</Text>
-          <Button onClick={() => navigate('/torneio/configurar')} variant="arcade">
-            ▶ CRIAR TORNEIO
+          <Text fontSize="14px">Nenhum torneio configurado.</Text>
+          <Button onClick={() => navigate('/torneio/configurar')} colorScheme="brand">
+            CRIAR TORNEIO
           </Button>
         </VStack>
       </Flex>
     );
   }
+
+
+
 
   const handleReset = () => {
     if (window.confirm('Resetar todos os dados deste torneio?')) resetarTorneio();
