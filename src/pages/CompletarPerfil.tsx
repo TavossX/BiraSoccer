@@ -34,6 +34,7 @@ import { supabase } from '../lib/supabase';
 import { atualizarPerfil, obterPerfil } from '../services/perfisService';
 import { FiUpload, FiCheck, FiCrop, FiUser } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
+import LogoCompleta from '../assets/logos/LogoCompleta.png';
 
 export function CompletarPerfil() {
   const toast = useToast();
