@@ -1,20 +1,20 @@
-import React, { useMemo, useState } from 'react';
 import {
   Badge,
   Box,
   Flex,
   HStack,
+  Image,
   Text,
   VStack,
-  useDisclosure,
-  Image,
-  Button
+  useDisclosure
 } from '@chakra-ui/react';
-import { SingleEliminationBracket, Match, SVGViewer } from '@g-loot/react-tournament-brackets';
-import { useTorneioStore } from '../store/torneioStore';
-import type { FaseMataMata, Partida, Participante } from '../types/torneio';
-import { ModalPlacar } from './ModalPlacar';
+import { SVGViewer, SingleEliminationBracket } from '@g-loot/react-tournament-brackets';
+import { useMemo, useState } from 'react';
 import { FiAward } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { useTorneioStore } from '../store/torneioStore';
+import type { FaseMataMata, Participante, Partida } from '../types/torneio';
+import { ModalPlacar } from './ModalPlacar';
 
 const FASES_LABEL: Record<FaseMataMata, string> = {
   oitavas:        'Oitavas',
@@ -200,6 +200,7 @@ function CustomMatchComponent({ match }: any) {
 
 // -- TELA DE PODIO --
 function TelaPodio({ partidas, participantes }: { partidas: Partida[], participantes: Participante[] }) {
+  const navigate = useNavigate();
   const finalMatch = partidas.filter(p => p.fase === 'final').sort((a,b)=>a.rodada - b.rodada).pop();
   const thirdMatch = partidas.filter(p => p.fase === 'terceiro_lugar').sort((a,b)=>a.rodada - b.rodada).pop();
 
@@ -216,7 +217,7 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
 
   const PodiumCard = ({ p, position, height, bg, iconColor, title }: any) => (
     <VStack 
-      w={{ base: "110px", md: "150px" }} 
+      w={{ base: "130px", md: "170px" }} 
       bg="white" 
       border="1px solid" 
       borderColor="gray.200" 
@@ -225,7 +226,7 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
       p={3}
       zIndex={4 - position}
       position="relative"
-      spacing={3}
+      spacing={2}
       justify="flex-end"
       h={height}
     >
@@ -234,7 +235,24 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
            <FiAward color={iconColor} size={20} />
         </Flex>
       </Box>
-      <VStack spacing={1} mt={4}>
+
+      {/* Logo grande do time */}
+      {p?.logoTime && (
+        <Image
+          src={p.logoTime}
+          boxSize={{ base: "80px", md: "110px" }}
+          objectFit="contain"
+          mt={4}
+          filter="drop-shadow(0 2px 6px rgba(0,0,0,0.15))"
+        />
+      )}
+
+      <VStack
+        spacing={1}
+        cursor={p?.usuarioId ? "pointer" : "default"}
+        onClick={() => p?.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
+        _hover={p?.usuarioId ? { opacity: 0.8 } : undefined}
+      >
         <Text fontSize="sm" fontWeight="extrabold" textAlign="center" noOfLines={1} color={position === 1 ? "#F94A29" : "gray.700"}>
           {p?.nomeAmigo ?? '???'}
         </Text>
@@ -254,14 +272,14 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
   return (
     <Box pt={10} pb={20}>
       <VStack spacing={2} mb={10}>
-         <Text fontSize="2xl" fontWeight="extrabold" color="#F94A29">🏆 TORNEIO ENCERRADO</Text>
+         <Text fontSize="2xl" fontWeight="extrabold" color="#F94A29">TORNEIO ENCERRADO</Text>
          <Text color="gray.500">Confira a classificação final</Text>
       </VStack>
 
-      <Flex align="flex-end" justify="center" gap={{ base: 2, md: 6 }} minH="250px" mb={12}>
-        <PodiumCard p={vencedor3} position={3} height="160px" bg="#CD7F32" iconColor="white" title="3º LUGAR" />
-        <PodiumCard p={vencedor1} position={1} height="220px" bg="#FDBB00" iconColor="white" title="CAMPEÃO" />
-        <PodiumCard p={perdedor1} position={2} height="190px" bg="#C0C0C0" iconColor="white" title="VICE" />
+      <Flex align="flex-end" justify="center" gap={{ base: 2, md: 6 }} minH="320px" mb={12}>
+        <PodiumCard p={vencedor3} position={3} height="250px" bg="#CD7F32" iconColor="white" title="3º LUGAR" />
+        <PodiumCard p={vencedor1} position={1} height="270px" bg="#FDBB00" iconColor="white" title="CAMPEÃO" />
+        <PodiumCard p={perdedor1} position={2} height="265px" bg="#C0C0C0" iconColor="white" title="VICE" />
       </Flex>
 
       {others.length > 0 && (
