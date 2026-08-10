@@ -13,8 +13,10 @@ import {
   Tooltip,
   VStack,
   Image,
+  Avatar,
 } from '@chakra-ui/react';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTorneioStore } from '../store/torneioStore';
 import type { Participante } from '../types/torneio';
 
@@ -49,6 +51,7 @@ function ordenarParticipantes(
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?: boolean }) {
+  const navigate = useNavigate();
   const { participantes, partidas } = useTorneioStore();
 
   const classificacao = useMemo(
@@ -180,20 +183,34 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
 
                   {/* Nome e Time */}
                   <Td py={3} px={3}>
-                    <VStack align="flex-start" spacing={0}>
-                      <Text
-                        fontFamily="heading"
-                        fontWeight={700}
-                        fontSize={{ base: '13px', md: '15px' }}
-                        
+                    <HStack spacing={2}>
+                      <Avatar
+                        size="xs"
+                        name={p.nomeAmigo}
+                        src={p.fotoUsuario || undefined}
+                        cursor={p.usuarioId ? 'pointer' : 'default'}
+                        onClick={() => p.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
+                      />
+                      <VStack
+                        align="flex-start"
+                        spacing={0}
+                        cursor={p.usuarioId ? 'pointer' : 'default'}
+                        onClick={() => p.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
+                        _hover={p.usuarioId ? { opacity: 0.8 } : undefined}
                       >
-                        {p.nomeAmigo}
-                      </Text>
-                      <HStack spacing={1}>
-                        {p.logoTime && <Image src={p.logoTime} boxSize="12px" objectFit="contain" />}
-                        <Text fontSize="12px" >{p.timeSorteado}</Text>
-                      </HStack>
-                    </VStack>
+                        <Text
+                          fontFamily="heading"
+                          fontWeight={700}
+                          fontSize={{ base: '13px', md: '15px' }}
+                        >
+                          {p.nomeAmigo}
+                        </Text>
+                        <HStack spacing={1}>
+                          {p.logoTime && <Image src={p.logoTime} boxSize="12px" objectFit="contain" />}
+                          <Text fontSize="12px">{p.timeSorteado}</Text>
+                        </HStack>
+                      </VStack>
+                    </HStack>
                   </Td>
 
                   {/* Pontos (destaque) */}

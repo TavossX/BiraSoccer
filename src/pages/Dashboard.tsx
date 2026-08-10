@@ -19,7 +19,8 @@ import {
   Text,
   Tooltip,
   useToast,
-  VStack
+  VStack,
+  Avatar,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +30,7 @@ import { useTorneioStore } from '../store/torneioStore';
 import { FaRegTrashAlt } from "react-icons/fa";
 import { IoIosLink } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
-import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon, FiShield } from 'react-icons/fi';
+import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon, FiShield, FiUsers } from 'react-icons/fi';
 import { listarMeusTimes } from '../services/timesCustomizadosService';
 /* ── Página ─────────────────────────────────────────────────── */
 export function Dashboard() {
@@ -41,10 +42,23 @@ export function Dashboard() {
   const [totalMeusTimes, setTotalMeusTimes] = useState(0);
   const { carregarTorneioPublico } = useTorneioStore();
 
+  const [userId, setUserId] = useState<string>('');
+  const [perfilUsuario, setPerfilUsuario] = useState<any>(null);
+
   const fetchTorneios = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      setUserId(user.id);
+
+      const { data: perf } = await supabase
+        .from('perfis')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      setPerfilUsuario(perf);
+
       const { data, error } = await supabase
         .from('torneios_publicos')
         .select('id, nome, formato, status, atualizado_em')
@@ -134,6 +148,16 @@ export function Dashboard() {
           {/* Ações */}
           <HStack spacing={2} flexShrink={0}>
             <Button
+              id="btn-meus-grupos"
+              size="sm"
+              onClick={() => navigate('/grupos')}
+              variant="outline"
+              colorScheme="orange"
+              leftIcon={<FiUsers />}
+            >
+              Meus Grupos
+            </Button>
+            <Button
               id="btn-meus-times"
               size="sm"
               onClick={() => navigate('/meus-times')}
@@ -152,6 +176,19 @@ export function Dashboard() {
             >
               Criar Torneio
             </Button>
+            {userId && (
+              <Tooltip label="Meu Perfil" placement="top">
+                <Avatar
+                  size="sm"
+                  name={perfilUsuario?.nome || 'Perfil'}
+                  src={perfilUsuario?.foto_base64 || undefined}
+                  cursor="pointer"
+                  onClick={() => navigate(`/perfil/${userId}`)}
+                  border="2px solid"
+                  borderColor="brand.500"
+                />
+              </Tooltip>
+            )}
             <Button
               id="btn-logout"
               size="sm"

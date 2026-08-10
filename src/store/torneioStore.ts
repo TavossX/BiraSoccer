@@ -321,7 +321,10 @@ export const useTorneioStore = create<TorneioState>()(
         };
 
         const participantes: Participante[] = config.duplas.map((dupla) => ({
-          id: uuidv4(), torneioId: torneioId,
+          id: uuidv4(),
+          torneioId: torneioId,
+          usuarioId: dupla.usuarioId || null,
+          fotoUsuario: dupla.fotoUsuario || null,
           nomeAmigo: dupla.amigo,
           timeSorteado: dupla.time,
           logoTime: dupla.logoTime,
