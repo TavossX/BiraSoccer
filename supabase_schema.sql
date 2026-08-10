@@ -141,16 +141,7 @@ CREATE POLICY "Criador pode deletar seu grupo"
 DROP POLICY IF EXISTS "Membros e gestores podem visualizar os membros do grupo" ON public.grupo_membros;
 CREATE POLICY "Membros e gestores podem visualizar os membros do grupo"
     ON public.grupo_membros FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.grupo_membros gm
-            WHERE gm.grupo_id = public.grupo_membros.grupo_id AND gm.usuario_id = auth.uid()
-        )
-        OR EXISTS (
-            SELECT 1 FROM public.grupos g
-            WHERE g.id = public.grupo_membros.grupo_id AND g.criador_id = auth.uid()
-        )
-    );
+    USING (auth.role() = 'authenticated');
 
 DROP POLICY IF EXISTS "Usuários autenticados podem se inserir ou gestores inserirem membros" ON public.grupo_membros;
 CREATE POLICY "Usuários autenticados podem se inserir ou gestores inserirem membros"
