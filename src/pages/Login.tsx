@@ -82,7 +82,13 @@ export function Login() {
       isClosable: true,
       position: 'top',
     });
-    navigate('/dashboard');
+
+    const pendingToken = localStorage.getItem('pending_invite_token');
+    if (pendingToken) {
+      navigate(`/invite/${pendingToken}`);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
