@@ -18,6 +18,8 @@ export interface Torneio {
 export interface Participante {
   id: string;
   torneioId: string;
+  usuarioId?: string | null;     // ID real do auth.users/perfis (opcional, null para convidados locais)
+  fotoUsuario?: string | null;   // Foto de perfil do usuário
   nomeAmigo: string;
   timeSorteado: string;
   logoTime?: string;
@@ -54,5 +56,12 @@ export interface ConfiguracaoTorneio {
   nome: string;
   formato: FormatoTorneio;
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
-  duplas: { amigo: string; time: string; logoTime?: string }[];
+  duplas: {
+    amigo: string;
+    time: string;
+    logoTime?: string;
+    usuarioId?: string | null;
+    fotoUsuario?: string | null;
+  }[];
 }
+
