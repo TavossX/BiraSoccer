@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { RedefinirSenha } from './pages/RedefinirSenha';
 import { Dashboard } from './pages/Dashboard';
 import { MeusTimes } from './pages/MeusTimes';
 import { Convite } from './pages/Convite';
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         <Route path="/convite/:campeonatoId" element={<Convite />} />
         <Route path="/invite/:token" element={<ConviteGrupo />} />
         
@@ -44,3 +46,4 @@ function App() {
 }
 
 export default App;
+

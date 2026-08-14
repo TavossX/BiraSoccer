@@ -12,7 +12,15 @@ import {
   InputLeftElement,
   InputRightElement,
   Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Text,
+  useDisclosure,
   useToast,
   VStack,
   useColorModeValue
@@ -32,6 +40,11 @@ const loginSchema = z.object({
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
 });
 type LoginData = z.infer<typeof loginSchema>;
+
+const resetSchema = z.object({
+  resetEmail: z.string().email('Informe um e-mail válido'),
+});
+type ResetData = z.infer<typeof resetSchema>;
 
 /* ── Ícones SVG inline ─────────────────────────────────────── */
 
@@ -55,12 +68,20 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginData>({ resolver: zodResolver(loginSchema) });
+
+  const {
+    register: registerReset,
+    handleSubmit: handleSubmitReset,
+    reset: resetFormReset,
+    formState: { errors: errorsReset, isSubmitting: isSubmittingReset },
+  } = useForm<ResetData>({ resolver: zodResolver(resetSchema) });
 
   const onSubmit = async ({ email, password }: LoginData) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -89,6 +110,36 @@ export function Login() {
     } else {
       navigate('/dashboard');
     }
+  };
+
+  const handleResetPassword = async ({ resetEmail }: ResetData) => {
+    const redirectUrl = `${window.location.origin}/redefinir-senha`;
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      toast({
+        title: '⛔ Erro ao solicitar redefinição.',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+      return;
+    }
+
+    toast({
+      title: '📧 E-mail enviado!',
+      description: 'Verifique sua caixa de entrada para redefinir sua senha.',
+      status: 'success',
+      duration: 6000,
+      isClosable: true,
+      position: 'top',
+    });
+    resetFormReset();
+    onClose();
   };
 
   return (
@@ -180,14 +231,16 @@ export function Login() {
           </FormControl>
 
           <Flex w="full" justify="flex-end">
-            <Link
-              href="#"
+            <Button
+              variant="link"
               fontSize="12px"
-              
-              _hover={{ color: 'brand.orange' }}
+              color="brand.500"
+              fontWeight="normal"
+              onClick={onOpen}
+              _hover={{ color: 'brand.600', textDecoration: 'underline' }}
             >
               Esqueceu a senha?
-            </Link>
+            </Button>
           </Flex>
 
           <Button
@@ -211,6 +264,53 @@ export function Login() {
           </Text>
         </Flex>
       </Box>
+
+      {/* Modal Esqueci a Senha */}
+      <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent rounded="xl" bg={useColorModeValue('white', 'gray.800')}>
+          <ModalHeader>Redefinir Senha</ModalHeader>
+          <ModalCloseButton />
+          <Box as="form" onSubmit={handleSubmitReset(handleResetPassword)}>
+            <ModalBody>
+              <Text fontSize="sm" mb={4} color={useColorModeValue('gray.600', 'gray.300')}>
+                Digite seu e-mail cadastrado abaixo. Enviaremos um link para você redefinir sua senha.
+              </Text>
+              <FormControl isInvalid={!!errorsReset.resetEmail}>
+                <FormLabel fontSize="sm">E-MAIL</FormLabel>
+                <InputGroup>
+                  <InputLeftElement pointerEvents="none" h="full" pl={2}>
+                    <EmailIcon />
+                  </InputLeftElement>
+                  <Input
+                    {...registerReset('resetEmail')}
+                    id="reset-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                  />
+                </InputGroup>
+                <FormErrorMessage fontSize="12px">
+                  {errorsReset.resetEmail?.message}
+                </FormErrorMessage>
+              </FormControl>
+            </ModalBody>
+
+            <ModalFooter gap={2}>
+              <Button variant="ghost" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                colorScheme="brand"
+                isLoading={isSubmittingReset}
+              >
+                Enviar e-mail
+              </Button>
+            </ModalFooter>
+          </Box>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 }
+

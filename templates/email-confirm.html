@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirme seu e-mail - EAFC26 CUP</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      table-layout: fixed;
+      background-color: #0f172a;
+      padding: 40px 10px;
+    }
+    .main-card {
+      max-width: 520px;
+      margin: 0 auto;
+      background-color: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 32px 24px;
+      text-align: center;
+      border-bottom: 2px solid #f94a29;
+    }
+    .header img {
+      max-width: 220px;
+      height: auto;
+      display: inline-block;
+    }
+    .content {
+      padding: 36px 32px;
+      text-align: center;
+    }
+    h2 {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      letter-spacing: -0.5px;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0 0 28px 0;
+    }
+    .btn-container {
+      margin: 32px 0;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #f94a29 0%, #c73a1e 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px 0 rgba(249, 74, 41, 0.39);
+      letter-spacing: 0.5px;
+    }
+    .link-alt {
+      word-break: break-all;
+      color: #FDBB00;
+      font-size: 13px;
+      text-decoration: underline;
+    }
+    .footer {
+      padding: 24px;
+      text-align: center;
+      background-color: #0f172a;
+      border-top: 1px solid #334155;
+    }
+    .footer p {
+      color: #64748b;
+      font-size: 12px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-card">
+      
+      <!-- Header com a Imagem da Logo da Nuvem/Vercel -->
+      <div class="header">
+        <!-- Substitua SEU-PROJETO.vercel.app pela URL real da sua aplicação no Vercel ou link da nuvem -->
+        <img src="https://SEU-PROJETO.vercel.app/logo.png" alt="EAFC26 CUP" />
+      </div>
+
+      <!-- Conteúdo Principal -->
+      <div class="content">
+        <h2>Confirme seu endereço de e-mail</h2>
+        <p>Clique no link abaixo para confirmar seu endereço de e-mail e concluir o seu cadastro no EAFC26 CUP.</p>
+        
+        <div class="btn-container">
+          <p><a href="{{ .ConfirmationURL }}" class="btn" target="_blank">Confirmar endereço de e-mail</a></p>
+        </div>
+
+        <p style="font-size: 12px; color: #64748b; margin-top: 24px; margin-bottom: 8px;">
+          Se o botão acima não funcionar, copie e cole o link abaixo no seu navegador:
+        </p>
+        <a href="{{ .ConfirmationURL }}" class="link-alt">{{ .ConfirmationURL }}</a>
+      </div>
+
+      <!-- Rodapé -->
+      <div class="footer">
+        <p>© 2026 EAFC26 CUP. Todos os direitos reservados.</p>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
