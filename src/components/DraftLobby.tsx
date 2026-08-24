@@ -76,9 +76,12 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
   const activeTurnBg = useColorModeValue('orange.50', 'rgba(249, 74, 41, 0.12)');
   const activeTurnBorder = useColorModeValue('brand.500', 'brand.400');
 
-  const selectBg = useColorModeValue('white', 'gray.900');
-  const selectBorderColor = useColorModeValue('gray.300', 'gray.600');
+  const selectBg = useColorModeValue('#FFFFFF', '#1A202C');
+  const selectMenuBg = useColorModeValue('#FFFFFF', '#1A202C');
+  const selectOptionHoverBg = useColorModeValue('#F7FAFC', '#2D3748');
+  const selectBorderColor = useColorModeValue('#CBD5E0', '#4A5568');
   const selectTextColor = useColorModeValue('#1A202C', '#F7FAFC');
+  const selectPlaceholderColor = useColorModeValue('#A0AEC0', '#718096');
 
   const idDoTorneio = propTorneioId || torneio?.id;
 
@@ -494,19 +497,32 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
       }),
       menu: (base: any) => ({
         ...base,
-        backgroundColor: selectBg,
-        borderRadius: '8px',
-        zIndex: 9999,
+        backgroundColor: selectMenuBg,
+        borderRadius: '10px',
+        zIndex: 99999,
         border: `1px solid ${selectBorderColor}`,
+        boxShadow: '0 12px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3)',
+        overflow: 'hidden',
+      }),
+      menuList: (base: any) => ({
+        ...base,
+        backgroundColor: selectMenuBg,
+        padding: '6px',
+      }),
+      menuPortal: (base: any) => ({
+        ...base,
+        zIndex: 99999,
       }),
       option: (base: any, state: any) => ({
         ...base,
-        backgroundColor: state.isFocused
-          ? 'rgba(249, 74, 41, 0.12)'
-          : state.isSelected
+        backgroundColor: state.isSelected
           ? '#F94A29'
-          : selectBg,
+          : state.isFocused
+          ? selectOptionHoverBg
+          : selectMenuBg,
         color: state.isSelected ? '#FFFFFF' : selectTextColor,
+        borderRadius: '6px',
+        margin: '2px 0',
         cursor: 'pointer',
       }),
       singleValue: (base: any) => ({
@@ -520,11 +536,11 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
       }),
       placeholder: (base: any) => ({
         ...base,
-        color: '#A0AEC0',
+        color: selectPlaceholderColor,
         fontSize: '14px',
       }),
     }),
-    [selectBg, selectBorderColor, selectTextColor]
+    [selectBg, selectMenuBg, selectOptionHoverBg, selectBorderColor, selectTextColor, selectPlaceholderColor]
   );
 
   return (
@@ -700,6 +716,8 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
                   </Text>
                   <AsyncSelect
                     placeholder="Digite o time de ban..."
+                    cacheOptions
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                     loadOptions={loadBanOptions}
                     value={
                       selectedBan
@@ -749,6 +767,8 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
                   </Text>
                   <AsyncSelect
                     placeholder="Digite o time de pick..."
+                    cacheOptions
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                     loadOptions={loadPickOptions}
                     value={
                       selectedPick
