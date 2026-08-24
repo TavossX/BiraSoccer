@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -7,10 +8,6 @@ import {
   HStack,
   IconButton,
   Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   SimpleGrid,
   Spinner,
   Stat,
@@ -20,34 +17,71 @@ import {
   Tooltip,
   useToast,
   VStack,
-  Avatar,
+  useColorModeValue,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Icon,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LogoCompleta from '../assets/logos/LogoCompleta.png';
 import { supabase } from '../lib/supabase';
 import { useTorneioStore } from '../store/torneioStore';
-import { FaRegTrashAlt } from "react-icons/fa";
-import { IoIosLink } from "react-icons/io";
-import { IoMdAdd } from "react-icons/io";
-import { FiChevronDown as ChevronDownIcon, FiLogOut as LogoutIcon, FiLink as LinkIcon, FiTrash2 as TrashIcon, FiShield, FiUsers } from 'react-icons/fi';
 import { listarMeusTimes } from '../services/timesCustomizadosService';
-/* ── Página ─────────────────────────────────────────────────── */
+import LogoCompleta from '../assets/logos/LogoCompleta.png';
+import type { Perfil } from '../types/social';
+import {
+  FiUsers,
+  FiShield,
+  FiPlus,
+  FiLogOut,
+  FiLink,
+  FiTrash2,
+  FiPlay,
+  FiAward,
+  FiClock,
+  FiUserCheck,
+  FiCheckCircle,
+} from 'react-icons/fi';
+
+interface TorneioItem {
+  id: string;
+  nome: string;
+  formato: string;
+  status: string;
+  user_id: string;
+  co_admins?: string[];
+  grupo_id?: string | null;
+  dados: any;
+  atualizado_em: string;
+}
+
 export function Dashboard() {
-  const toast = useToast();
-  const navigate = useNavigate();
-
-  const [torneios, setTorneios] = useState<any[]>([]);
+  const [meusTorneios, setMeusTorneios] = useState<TorneioItem[]>([]);
+  const [torneiosParticipo, setTorneiosParticipo] = useState<TorneioItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [perfilUsuario, setPerfilUsuario] = useState<Perfil | null>(null);
   const [totalMeusTimes, setTotalMeusTimes] = useState(0);
-  const { carregarTorneioPublico } = useTorneioStore();
 
-  const [userId, setUserId] = useState<string>('');
-  const [perfilUsuario, setPerfilUsuario] = useState<any>(null);
+  const navigate = useNavigate();
+  const toast = useToast();
+  const carregarTorneioPublico = useTorneioStore((s) => s.carregarTorneioPublico);
+
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const headerBg = useColorModeValue('white', 'gray.900');
 
   const fetchTorneios = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (user) {
       setUserId(user.id);
 
@@ -61,10 +95,24 @@ export function Dashboard() {
 
       const { data, error } = await supabase
         .from('torneios_publicos')
-        .select('id, nome, formato, status, atualizado_em')
-        .eq('user_id', user.id)
+        .select('id, nome, formato, status, user_id, co_admins, grupo_id, dados, atualizado_em')
         .order('atualizado_em', { ascending: false });
-      if (!error && data) setTorneios(data);
+
+      if (!error && data) {
+        // Meus Torneios: Criados por mim OU onde sou Co-Admin
+        const criadosOuAdmin = data.filter(
+          (t) => t.user_id === user.id || (t.co_admins && t.co_admins.includes(user.id))
+        );
+        setMeusTorneios(criadosOuAdmin);
+
+        // Torneios que Participo: Onde meu usuarioId está nos participantes e eu não sou o criador
+        const participando = data.filter((t) => {
+          const participantes = t.dados?.participantes || [];
+          const isParticipant = participantes.some((p: any) => p.usuarioId === user.id);
+          return isParticipant && t.user_id !== user.id;
+        });
+        setTorneiosParticipo(participando);
+      }
 
       // Contar times customizados
       const meusTimesData = await listarMeusTimes(user.id);
@@ -73,7 +121,9 @@ export function Dashboard() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchTorneios(); }, []);
+  useEffect(() => {
+    fetchTorneios();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -84,7 +134,7 @@ export function Dashboard() {
     const url = `${window.location.origin}/convite/${id}`;
     navigator.clipboard.writeText(url);
     toast({
-      title: '🔗 Link copiado!',
+      title: 'Link copiado!',
       description: url,
       status: 'success',
       duration: 4000,
@@ -93,7 +143,7 @@ export function Dashboard() {
     });
   };
 
-  const handleAcessar = async (torneio: any) => {
+  const handleAcessar = async (torneio: TorneioItem) => {
     const ok = await carregarTorneioPublico(torneio.id);
     if (ok) {
       if (torneio.formato === 'liga' || torneio.formato === 'liga_com_playoffs') {
@@ -113,23 +163,199 @@ export function Dashboard() {
     if (error) {
       toast({ title: 'Erro ao excluir', status: 'error' });
     } else {
-      toast({ title: 'Torneio excluído', status: 'success' });
-      setTorneios(torneios.filter((t) => t.id !== id));
+      toast({ title: 'Torneio excluído com sucesso', status: 'success' });
+      setMeusTorneios((prev) => prev.filter((t) => t.id !== id));
+      setTorneiosParticipo((prev) => prev.filter((t) => t.id !== id));
     }
   };
 
-  return (
-    <Box minH="100vh" >
-      {/* ── Header ──────────────────────────────────────────────── */}
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'aguardando_draft':
+        return (
+          <Badge colorScheme="blue" variant="subtle" fontSize="10px">
+            <HStack spacing={1}>
+              <Icon as={FiClock} />
+              <Text>AGUARDANDO DRAFT</Text>
+            </HStack>
+          </Badge>
+        );
+      case 'finalizado':
+        return (
+          <Badge colorScheme="green" variant="solid" fontSize="10px">
+            <HStack spacing={1}>
+              <Icon as={FiCheckCircle} />
+              <Text>FINALIZADO</Text>
+            </HStack>
+          </Badge>
+        );
+      case 'em_andamento':
+      default:
+        return (
+          <Badge colorScheme="orange" variant="subtle" fontSize="10px">
+            <HStack spacing={1}>
+              <Icon as={FiPlay} />
+              <Text>EM ANDAMENTO</Text>
+            </HStack>
+          </Badge>
+        );
+    }
+  };
+
+  const renderTorneioCard = (t: TorneioItem, isParticipanteTab = false) => {
+    const isCriador = Boolean(userId && t.user_id === userId);
+    const isCoAdmin = Boolean(userId && t.co_admins?.includes(userId) && !isCriador);
+
+    // Encontrar meu time neste torneio (se eu sou participante)
+    const meuParticipante = userId
+      ? t.dados?.participantes?.find((p: any) => p.usuarioId === userId)
+      : null;
+
+    return (
       <Box
-        as="header"
-        bg="white"
-        _dark={{ bg: 'gray.900' }}
-        boxShadow="lg"
-        position="sticky"
-        top={0}
-        zIndex={100}
+        key={t.id}
+        bg={cardBg}
+        borderRadius="xl"
+        boxShadow="sm"
+        display="flex"
+        flexDirection="column"
+        transition="all 0.2s"
+        overflow="hidden"
+        border="1px solid"
+        borderColor={cardBorder}
+        _hover={{ transform: 'translateY(-2px)', boxShadow: 'md', borderColor: 'brand.500' }}
       >
+        {/* Barra topo colorida */}
+        <Box
+          h="5px"
+          bg={
+            t.formato === 'liga'
+              ? 'linear-gradient(90deg,#F94A29,#FDBB00)'
+              : 'linear-gradient(90deg,#C80000,#F94A29)'
+          }
+        />
+
+        <Box p={5} flex={1} display="flex" flexDirection="column">
+          {/* Header do Card */}
+          <HStack justify="space-between" mb={2} align="flex-start">
+            <Heading
+              fontFamily="heading"
+              fontSize={{ base: '16px', md: '18px' }}
+              color={textPrimary}
+              noOfLines={2}
+              flex={1}
+              mr={2}
+            >
+              {t.nome}
+            </Heading>
+            <Badge
+              colorScheme={t.formato === 'liga' ? 'orange' : 'purple'}
+              px={2}
+              py={0.5}
+              borderRadius="md"
+              fontSize="11px"
+              fontWeight="bold"
+              flexShrink={0}
+            >
+              {t.formato === 'liga'
+                ? 'LIGA'
+                : t.formato === 'liga_com_playoffs'
+                ? 'LIGA + PLAYOFFS'
+                : 'MATA-MATA'}
+            </Badge>
+          </HStack>
+
+          {/* Badges de Status e Papel */}
+          <HStack spacing={2} mb={3} flexWrap="wrap">
+            {renderStatusBadge(t.status)}
+            {isCriador && (
+              <Badge colorScheme="orange" variant="solid" fontSize="10px">
+                CRIADOR
+              </Badge>
+            )}
+            {isCoAdmin && (
+              <Badge colorScheme="teal" variant="solid" fontSize="10px">
+                CO-ADMIN
+              </Badge>
+            )}
+          </HStack>
+
+          {/* Time do Jogador Participante */}
+          {meuParticipante && (
+            <Box
+              p={2.5}
+              borderRadius="lg"
+              bg={useColorModeValue('gray.50', 'gray.750')}
+              border="1px solid"
+              borderColor={cardBorder}
+              mb={3}
+            >
+              <Text fontSize="10px" color={textSecondary} textTransform="uppercase" fontWeight={700} mb={1}>
+                Meu Time
+              </Text>
+              <HStack spacing={2}>
+                {meuParticipante.logoTime ? (
+                  <Image src={meuParticipante.logoTime} alt={meuParticipante.timeSorteado} boxSize="18px" objectFit="contain" />
+                ) : (
+                  <Icon as={FiShield} color="brand.500" />
+                )}
+                <Text fontSize="13px" fontWeight={800} color={textPrimary} noOfLines={1}>
+                  {meuParticipante.timeSorteado || 'Não definido (Draft)'}
+                </Text>
+              </HStack>
+            </Box>
+          )}
+
+          <Text fontSize="11px" color={textSecondary} mt="auto" mb={4}>
+            Atualizado em {new Date(t.atualizado_em).toLocaleDateString()}
+          </Text>
+
+          {/* Ações */}
+          <Box pt={3} borderTop="1px solid" borderColor={cardBorder}>
+            <HStack spacing={2}>
+              <Button
+                flex={1}
+                size="sm"
+                colorScheme="orange"
+                onClick={() => handleAcessar(t)}
+                leftIcon={<FiPlay />}
+                fontWeight={700}
+              >
+                Acessar
+              </Button>
+              <Tooltip label="Copiar Link" placement="top">
+                <IconButton
+                  aria-label="Copiar link"
+                  icon={<FiLink />}
+                  size="sm"
+                  variant="outline"
+                  colorScheme="green"
+                  onClick={() => handleGenerateLink(t.id)}
+                />
+              </Tooltip>
+              {isCriador && (
+                <Tooltip label="Excluir Torneio" placement="top">
+                  <IconButton
+                    aria-label="Excluir torneio"
+                    icon={<FiTrash2 />}
+                    size="sm"
+                    variant="outline"
+                    colorScheme="red"
+                    onClick={() => handleExcluir(t.id)}
+                  />
+                </Tooltip>
+              )}
+            </HStack>
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
+  return (
+    <Box minH="100vh">
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <Box as="header" bg={headerBg} boxShadow="sm" position="sticky" top={0} zIndex={100}>
         <Flex
           maxW="1200px"
           mx="auto"
@@ -141,11 +367,7 @@ export function Dashboard() {
         >
           {/* Logo */}
           <HStack spacing={3}>
-            <Image
-              src={LogoCompleta}
-              alt="EAFC26 Cup"
-              h={{ base: '36px', md: '48px' }}
-            />
+            <Image src={LogoCompleta} alt="BiraSoccer" h={{ base: '36px', md: '46px' }} />
           </HStack>
 
           {/* Ações */}
@@ -166,7 +388,7 @@ export function Dashboard() {
               onClick={() => navigate('/meus-times')}
               variant="outline"
               colorScheme="orange"
-              leftIcon={<FiShield /> as any}
+              leftIcon={<FiShield />}
             >
               Meus Times
             </Button>
@@ -174,8 +396,9 @@ export function Dashboard() {
               id="btn-novo-torneio"
               size="sm"
               onClick={() => navigate('/torneio/configurar')}
-              colorScheme="brand"
-              leftIcon={<IoMdAdd  /> as any}
+              colorScheme="orange"
+              leftIcon={<FiPlus />}
+              fontWeight={800}
             >
               Criar Torneio
             </Button>
@@ -192,225 +415,162 @@ export function Dashboard() {
                 />
               </Tooltip>
             )}
-            <Button
-              id="btn-logout"
+            <IconButton
+              aria-label="Logout"
+              icon={<FiLogOut />}
               size="sm"
               onClick={handleLogout}
               colorScheme="red"
-              variant="outline"
-            >
-              Logout
-            </Button>
+              variant="ghost"
+            />
           </HStack>
         </Flex>
       </Box>
 
-      {/* ── Conteúdo ─────────────────────────────────────────────── */}
+      {/* ── Conteúdo Principal ───────────────────────────────────── */}
       <Box maxW="1200px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 10 }}>
-
         {/* Saudação */}
         <Box
-          boxShadow="md"
-          px={6} py={4}
+          bg={cardBg}
+          boxShadow="sm"
+          px={6}
+          py={5}
           mb={8}
           border="1px solid"
-          borderRadius="5px"
+          borderColor={cardBorder}
+          borderRadius="xl"
         >
-          <HStack justify="space-between" align="center" flexWrap="wrap" gap={2} >
-            <VStack align="flex-start" spacing={0}>
-              <Heading fontFamily="heading" fontSize={{ base: '22px', md: '30px' }}  >
-                Bem-vindo de volta
+          <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
+            <VStack align="flex-start" spacing={1}>
+              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary}>
+                Olá, {perfilUsuario?.nome || 'Jogador'}
               </Heading>
-              <Text fontSize="12px"  mt={1}>
-                Gerencie seus campeonatos, jogadores e placares.
+              <Text fontSize="13px" color={textSecondary}>
+                Acompanhe seus campeonatos, grupos e estatísticas de jogo.
               </Text>
             </VStack>
           </HStack>
         </Box>
 
-        {/* Stat card */}
-        <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4} mb={8}>
-          <Box
-            border="1px solid"
-            borderRadius="5px"
-            boxShadow="md"
-            p={5}
-          >
+        {/* Stat Cards */}
+        <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4} mb={8}>
+          <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" boxShadow="sm" p={5}>
             <Stat>
-              <StatLabel fontSize="12px" fontWeight={700} textTransform="uppercase" letterSpacing="wide" >
-                Meus Campeonatos
+              <StatLabel fontSize="12px" fontWeight={700} color={textSecondary} textTransform="uppercase" letterSpacing="wide">
+                Meus Torneios (Host / Co-Admin)
               </StatLabel>
-              <StatNumber
-                fontFamily="heading"
-                fontSize="3xl"
-                fontWeight={700}
-                
-                lineHeight="1.2"
-              >
-                {torneios.length}
+              <StatNumber fontFamily="heading" fontSize="3xl" fontWeight={900} color={textPrimary} lineHeight="1.2">
+                {meusTorneios.length}
               </StatNumber>
             </Stat>
           </Box>
+
+          <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" boxShadow="sm" p={5}>
+            <Stat>
+              <StatLabel fontSize="12px" fontWeight={700} color={textSecondary} textTransform="uppercase" letterSpacing="wide">
+                Torneios que Participo
+              </StatLabel>
+              <StatNumber fontFamily="heading" fontSize="3xl" fontWeight={900} color="brand.500" lineHeight="1.2">
+                {torneiosParticipo.length}
+              </StatNumber>
+            </Stat>
+          </Box>
+
           <Box
+            bg={cardBg}
             border="1px solid"
-            borderRadius="5px"
-            boxShadow="md"
+            borderColor={cardBorder}
+            borderRadius="xl"
+            boxShadow="sm"
             p={5}
             cursor="pointer"
             transition="all 0.2s"
-            _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+            _hover={{ transform: 'translateY(-2px)', boxShadow: 'md', borderColor: 'brand.500' }}
             onClick={() => navigate('/meus-times')}
           >
             <Stat>
-              <StatLabel fontSize="12px" fontWeight={700} textTransform="uppercase" letterSpacing="wide" >
-                Meus Times
+              <StatLabel fontSize="12px" fontWeight={700} color={textSecondary} textTransform="uppercase" letterSpacing="wide">
+                Meus Times Customizados
               </StatLabel>
-              <StatNumber
-                fontFamily="heading"
-                fontSize="3xl"
-                fontWeight={700}
-                
-                lineHeight="1.2"
-              >
+              <StatNumber fontFamily="heading" fontSize="3xl" fontWeight={900} color={textPrimary} lineHeight="1.2">
                 {totalMeusTimes}
               </StatNumber>
             </Stat>
           </Box>
         </SimpleGrid>
 
-        {/* Divisória estilo 16-bit */}
-        <Box
-          h="4px"
-          bg="linear-gradient(90deg, #C80000, #F94A29, #FDBB00, #F94A29, #C80000)"
-          mb={8}
-        />
+        {/* Divisória degradê */}
+        <Box h="3px" bg="linear-gradient(90deg, #C80000, #F94A29, #FDBB00, #F94A29, #C80000)" mb={8} borderRadius="full" />
 
-        {/* Heading de seção */}
-        <Box mb={5}>
-          <Heading
-            fontFamily="heading"
-            fontSize={{ base: '20px', md: '26px' }}
-            
-            mb={1}
-          >
-            Meus Torneios
-          </Heading>
-          <Text fontSize="12px" >
-            Gerencie os campeonatos que você criou.
-          </Text>
-        </Box>
+        {/* ── Abas de Torneios (Hub do Jogador) ───────────────────── */}
+        <Tabs variant="soft-rounded" colorScheme="orange">
+          <TabList mb={6} gap={2} flexWrap="wrap">
+            <Tab fontSize="14px" fontWeight={700}>
+              <HStack spacing={2}>
+                <FiAward />
+                <Text>Meus Torneios ({meusTorneios.length})</Text>
+              </HStack>
+            </Tab>
+            <Tab fontSize="14px" fontWeight={700}>
+              <HStack spacing={2}>
+                <FiUserCheck />
+                <Text>Torneios que Participo ({torneiosParticipo.length})</Text>
+              </HStack>
+            </Tab>
+          </TabList>
 
-        {/* Grid de torneios */}
-        {loading ? (
-          <Flex justify="center" py={10}>
-            <VStack spacing={3}>
-              <Spinner  size="xl" thickness="4px" />
-              <Text fontSize="12px" >CARREGANDO...</Text>
-            </VStack>
-          </Flex>
-        ) : torneios.length === 0 ? (
-          <Box
-            boxShadow="md"
-            p={10}
-            textAlign="center"
-          >
-            <Text fontSize="10px"  mb={4}>
-              Você ainda não possui nenhum torneio.
-            </Text>
-            <Button
-              onClick={() => navigate('/torneio/configurar')}
-              colorScheme="brand"
-            >
-              CRIAR PRIMEIRO TORNEIO
-            </Button>
-          </Box>
-        ) : (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-            {torneios.map((t) => (
-              <Box
-                key={t.id}
-                
-                
-                
-                boxShadow="md"
-                display="flex"
-                flexDirection="column"
-                transition="all 0.2s"
-                _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
-              >
-                {/* Barra topo colorida */}
-                <Box
-                  h="6px"
-                  bg={t.formato === 'liga' ? 'linear-gradient(90deg,#F94A29,#FDBB00)' : 'linear-gradient(90deg,#C80000,#F94A29)'}
-                />
-                <Box p={5} flex={1} display="flex" flexDirection="column" border="1px solid" borderColor="body.color" borderBottomRadius="10px">
-                  <HStack justify="space-between" mb={3} align="flex-start">
-                    <Heading
-                      fontFamily="heading"
-                      fontSize={{ base: '16px', md: '18px' }}
-                      
-                      noOfLines={2}
-                      flex={1}
-                      mr={2}
-                    >
-                      {t.nome}
-                    </Heading>
-                    <Badge
-                      colorScheme={t.formato === 'liga' ? 'brand' : 'red'}
-                      px={2} py={1}
-                      borderRadius="md"
-                      flexShrink={0}
-                    >
-                      {t.formato === 'liga' ? 'LIGA' : 'MATA-MATA'}
-                    </Badge>
-                  </HStack>
-                  <Text fontSize="12px"  mb={5}>
-                    Atualizado em {new Date(t.atualizado_em).toLocaleDateString()}
+          <TabPanels>
+            {/* ── Painel 1: Meus Torneios ─────────────────────────── */}
+            <TabPanel px={0} py={2}>
+              {loading ? (
+                <Flex justify="center" py={10}>
+                  <VStack spacing={3}>
+                    <Spinner size="xl" thickness="4px" color="brand.500" />
+                    <Text fontSize="12px" color={textSecondary}>Carregando torneios...</Text>
+                  </VStack>
+                </Flex>
+              ) : meusTorneios.length === 0 ? (
+                <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" boxShadow="sm" p={10} textAlign="center">
+                  <Text fontSize="14px" color={textSecondary} mb={4}>
+                    Você ainda não criou nenhum campeonato.
                   </Text>
-
-                  <Box
-                    mt="auto"
-                    pt={4}
-                    borderTop="1px solid #C3c3c3"
-                    
-                  >
-                    <HStack spacing={2}>
-                      <Button
-                        flex={1}
-                        size="md"
-                        colorScheme="brand"
-                        onClick={() => handleAcessar(t)}
-                      >
-                        Acessar Torneio
-                      </Button>
-                      <Tooltip label="Copiar Link" placement="top">
-                        <IconButton
-                          aria-label="Copiar link"
-                          icon={<IoIosLink size={"20px"} color="green" /> as any}
-                          size="md"
-                          variant="outline"
-                          borderColor="green"
-                          onClick={() => handleGenerateLink(t.id)}
-                        />
-                      </Tooltip>
-                      <Tooltip label="Excluir" placement="top">
-                        <IconButton
-                          aria-label="Excluir torneio"
-                          icon={<FaRegTrashAlt size={"15px"} color="red" /> as any}
-                          size="md"
-                          variant="outline"
-                          borderColor="red"
-                          _hover={{ bg: 'brand.red', color: 'white' }}
-                          onClick={() => handleExcluir(t.id)}
-                        />
-                      </Tooltip>
-                    </HStack>
-                  </Box>
+                  <Button onClick={() => navigate('/torneio/configurar')} colorScheme="orange" leftIcon={<FiPlus />}>
+                    Criar Primeiro Torneio
+                  </Button>
                 </Box>
-              </Box>
-            ))}
-          </SimpleGrid>
-        )}
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {meusTorneios.map((t) => renderTorneioCard(t, false))}
+                </SimpleGrid>
+              )}
+            </TabPanel>
+
+            {/* ── Painel 2: Torneios que Participo ─────────────────── */}
+            <TabPanel px={0} py={2}>
+              {loading ? (
+                <Flex justify="center" py={10}>
+                  <VStack spacing={3}>
+                    <Spinner size="xl" thickness="4px" color="brand.500" />
+                    <Text fontSize="12px" color={textSecondary}>Carregando torneios...</Text>
+                  </VStack>
+                </Flex>
+              ) : torneiosParticipo.length === 0 ? (
+                <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" boxShadow="sm" p={10} textAlign="center">
+                  <Text fontSize="14px" color={textSecondary} mb={2}>
+                    Você ainda não está participando de nenhum torneio de amigos.
+                  </Text>
+                  <Text fontSize="12px" color={textSecondary}>
+                    Quando um amigo adicionar sua conta em um campeonato, ele aparecerá automaticamente aqui.
+                  </Text>
+                </Box>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {torneiosParticipo.map((t) => renderTorneioCard(t, true))}
+                </SimpleGrid>
+              )}
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </Box>
     </Box>
   );

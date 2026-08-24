@@ -16,6 +16,7 @@ import {
   AccordionIcon,
   Image,
   Spinner,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -27,9 +28,11 @@ import { supabase } from '../lib/supabase';
 import { TabelaClassificacao } from '../components/TabelaClassificacao';
 import { ModalPlacar } from '../components/ModalPlacar';
 import { ModalCompartilhar } from '../components/ModalCompartilhar';
+import { ModalConfiguracoesTorneio } from '../components/ModalConfiguracoesTorneio';
 import { Chaveamento } from '../components/Chaveamento';
+import { DraftLobby } from '../components/DraftLobby';
 import type { Partida } from '../types/torneio';
-import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon } from 'react-icons/fi';
+import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon, FiSettings } from 'react-icons/fi';
 
 export function TorneioLiga() {
   const { id } = useParams<{ id?: string }>();
@@ -39,6 +42,20 @@ export function TorneioLiga() {
   const [partidaSelecionada, setPartidaSelecionada] = useState<Partida | null>(null);
   const [loading, setLoading] = useState(!!id);
   const compartilharDisclosure = useDisclosure();
+  const configModalDisclosure = useDisclosure();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const headerBg = useColorModeValue('white', 'gray.900');
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   useEffect(() => {
     const carregar = async () => {
@@ -77,7 +94,7 @@ export function TorneioLiga() {
       <Flex minH="100vh" align="center" justify="center">
         <VStack spacing={6}>
           <img src={LogoCompleta} alt="logo" width={"450px"} />
-          <Text fontSize="20px">Crie sua primeira liga, adicione a galera e comece o draft.</Text>
+          <Text fontSize="20px" color={textSecondary}>Crie sua primeira liga, adicione a galera e comece o draft.</Text>
           <Button onClick={() => navigate('/torneio/configurar')} variant="solid" size="lg" w="300px" rightIcon={<IoMdAdd />}>
             CRIAR TORNEIO
           </Button>
@@ -86,22 +103,13 @@ export function TorneioLiga() {
     );
   }
 
-
-
-
-  if (!torneio) {
-    return (
-      <Flex minH="100vh"  align="center" justify="center">
-        <VStack spacing={6}>
-          <img src={LogoCompleta} alt="logo" width={"450px"}  />
-          <Text fontSize="20px" >Crie sua primeira liga, adicione a galera e comece o draft.</Text>
-          <Button onClick={() => navigate('/torneio/configurar')} variant="solid" size="lg" w="300px" rightIcon={<IoMdAdd/>} >
-          CRIAR TORNEIO
-          </Button>
-        </VStack>
-      </Flex>
-    );
+  if (torneio.status === 'aguardando_draft') {
+    return <DraftLobby torneioId={id || torneio.id} />;
   }
+
+  const isCriador = Boolean(currentUserId && torneio.userId && currentUserId === torneio.userId);
+  const isCoAdmin = Boolean(currentUserId && torneio.coAdmins?.includes(currentUserId));
+  const hasAdminRights = isCriador || isCoAdmin;
 
   const abrirModal = (partida: Partida) => {
     setPartidaSelecionada(partida);
@@ -126,11 +134,10 @@ export function TorneioLiga() {
   const ligaCompleta = isHibrido && partidasLiga.length > 0 && partidasLiga.every((p) => p.finalizada);
 
   return (
-    <Box minH="100vh" >
+    <Box minH="100vh">
       {/* ── Header ──────────────────────────────────────────────── */}
       <Box
-        bg="white"
-        _dark={{ bg: 'gray.900' }}
+        bg={headerBg}
         boxShadow="lg"
         position="sticky"
         top={0}
@@ -141,12 +148,12 @@ export function TorneioLiga() {
           align="center" justify="space-between" gap={3}
         >
           <HStack spacing={3}>
-            <Image src={LogoBola} alt="logo" h="32px"  />
+            <Image src={LogoBola} alt="logo" h="32px" />
             <VStack spacing={0} align="flex-start">
-              <Heading fontFamily="heading" fontSize={{ base: '16px', md: '20px' }} >
+              <Heading fontFamily="heading" fontSize={{ base: '16px', md: '20px' }} color={textPrimary}>
                 {torneio.nome}
               </Heading>
-              <Text fontSize="10px"  opacity={0.8}>
+              <Text fontSize="12px" color={textSecondary} fontWeight={500}>
                 {torneio.formato === 'liga_com_playoffs'
                   ? `LIGA + PLAYOFFS — ${torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}`
                   : `PONTOS CORRIDOS — ${torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}`
@@ -157,17 +164,28 @@ export function TorneioLiga() {
 
           <HStack spacing={2} flexWrap="wrap" justify="flex-end">
             <Badge
-              
-              color="#000"
-              border="1px solid #C3c3c3"
-              boxShadow="md"
+              colorScheme="orange"
+              variant="subtle"
               px={3} py={1}
               fontSize="12px"
-              textTransform='capitalize'
+              fontWeight="bold"
               display={{ base: 'none', sm: 'flex' }}
             >
               {totalFinalizadas}/{partidas.length} Jogos
             </Badge>
+
+            {hasAdminRights && (
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="orange"
+                leftIcon={<FiSettings />}
+                onClick={configModalDisclosure.onOpen}
+              >
+                Configurações
+              </Button>
+            )}
+
             <Button
               id="btn-compartilhar-liga"
               size="sm"
@@ -176,22 +194,26 @@ export function TorneioLiga() {
               onClick={compartilharDisclosure.onOpen}
               display={{ base: 'none', sm: 'flex' }}
             >
-              Compartilhar
+              COMPARTILHAR
             </Button>
-            <Button
-              leftIcon={<ResetIcon /> as any}
-              size="sm"
-              colorScheme="red"
-              onClick={handleReset}
-            >
-              Resetar
-            </Button>
+            {hasAdminRights && (
+              <Button
+                leftIcon={<ResetIcon /> as any}
+                size="sm"
+                colorScheme="red"
+                variant="outline"
+                onClick={handleReset}
+              >
+                RESETAR
+              </Button>
+            )}
             <Button
               size="sm"
               colorScheme="gray"
+              variant="outline"
               onClick={() => navigate('/')}
             >
-              Dashboard
+              ← DASHBOARD
             </Button>
             <Button
               size="sm"
@@ -209,14 +231,14 @@ export function TorneioLiga() {
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>
-            <Text fontSize="12px" >
+            <Text fontSize="12px" fontWeight={600} color={textSecondary}>
               Progresso do torneio
             </Text>
-            <Text fontSize="12px"  fontWeight={700}>
+            <Text fontSize="12px" fontWeight={700} color={textPrimary}>
               {totalFinalizadas}/{partidas.length} ({progresso.toFixed(0)}%)
             </Text>
           </HStack>
-          <Box w="full" h="8px"  border="1px solid #C3c3c3"  overflow="hidden">
+          <Box w="full" h="8px" bg={useColorModeValue('gray.200', 'gray.700')} borderRadius="full" overflow="hidden">
             <Box
               h="full"
               w={`${progresso}%`}
@@ -230,7 +252,7 @@ export function TorneioLiga() {
 
           {/* Tabela de classificação */}
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} >
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={4}>
               Classificação
             </Heading>
             <TabelaClassificacao highlightTop4={isHibrido} />
@@ -239,13 +261,14 @@ export function TorneioLiga() {
           {/* Banner Iniciar Playoffs */}
           {isHibrido && ligaCompleta && !torneio.playoffsGerados && (
             <Box
-              
-              
+              bg={cardBg}
               boxShadow="md"
-              border="1px solid #C3c3c3"
-              borderBottomRadius="10px"
+              border="1px solid"
+              borderColor={cardBorder}
+              borderRadius="lg"
               p={6}
               textAlign="center"
+              overflow="hidden"
             >
               {/* Faixa topo */}
               <Box
@@ -256,19 +279,19 @@ export function TorneioLiga() {
                 mb={5}
               />
               <VStack spacing={4}>
-                <Badge  color="body.color"  boxShadow="md" px={3} py={1} fontSize="12px">
+                <Badge colorScheme="green" px={3} py={1} fontSize="12px" borderRadius="md">
                   FASE DE LIGA ENCERRADA
                 </Badge>
-                <Heading fontFamily="heading" fontSize={{ base: '22px', md: '28px' }} >
+                <Heading fontFamily="heading" fontSize={{ base: '22px', md: '28px' }} color={textPrimary}>
                   PLAYOFFS — TOP 4
                 </Heading>
-                <Text fontSize="12px" >
+                <Text fontSize="14px" color={textSecondary}>
                   1º × 4º &nbsp;•&nbsp; 2º × 3º
                 </Text>
                 <Button
                   id="btn-iniciar-playoffs"
                   mt={2}
-                  variant="solid"
+                  colorScheme="brand"
                   size="lg"
                   onClick={gerarPlayoffs}
                   fontSize="14px"
@@ -284,7 +307,7 @@ export function TorneioLiga() {
           {/* Chaveamento de playoffs */}
           {isHibrido && torneio.playoffsGerados && (
             <Box>
-              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>
+              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={4}>
                 PLAYOFFS
               </Heading>
               <Chaveamento />
@@ -296,7 +319,7 @@ export function TorneioLiga() {
 
           {/* Rodadas */}
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={4}>
               RODADAS
             </Heading>
 
@@ -310,48 +333,46 @@ export function TorneioLiga() {
                 return (
                   <AccordionItem
                     key={rodada}
-                    
-                    
+                    bg={cardBg}
+                    border="1px solid"
+                    borderColor={cardBorder}
+                    borderRadius="lg"
                     mb={3}
                     overflow="hidden"
-                    boxShadow="md"
+                    boxShadow="sm"
                   >
                     <AccordionButton
-                      
-                      _hover={{ bg: 'brand.red' }}
-                      _expanded={{ bg: 'brand.red', borderBottom: '1px solid #C3c3c3', borderColor: 'brand.mustard' }}
+                      _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
+                      _expanded={{ bg: useColorModeValue('gray.50', 'gray.750'), borderBottomWidth: '1px', borderColor: cardBorder }}
                       py={3} px={4}
                     >
                       <HStack flex={1} spacing={3}>
-                        <Text fontFamily="heading" fontSize={{ base: '14px', md: '16px' }} >
+                        <Text fontFamily="heading" fontSize={{ base: '14px', md: '16px' }} fontWeight="extrabold" color={textPrimary}>
                           RODADA {rodada}
                         </Text>
                         <Badge
-                          bg="transparent"
-                          
-                          border="1px solid"
-                          
+                          colorScheme="blue"
+                          variant="subtle"
                           fontSize="10px"
-                          color="gray.700"
-                          borderRadius="5px"
+                          borderRadius="md"
                           px={2}
                         >
                           {torneio.idaEVolta ? (isVolta ? 'VOLTA' : 'IDA') : `RD${rodada}`}
                         </Badge>
                         <Badge
-                          bg={rodadaCompleta ? 'brand.cardBgAlt' : 'brand.orange'}
-                          color={rodadaCompleta ? 'brand.textMutedToken' : 'white'}
-                          border="1px solid #C3c3c3"
+                          colorScheme={rodadaCompleta ? "green" : "orange"}
+                          variant="solid"
                           fontSize="10px"
+                          borderRadius="md"
                           px={2}
                         >
                           {finalizadosRodada}/{jogosRodada.length}
                         </Badge>
                       </HStack>
-                      <AccordionIcon  />
+                      <AccordionIcon />
                     </AccordionButton>
 
-                    <AccordionPanel  p={4}>
+                    <AccordionPanel p={4}>
                       <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={3}>
                         {jogosRodada.map((jogo) => {
                           const pA = participantes.find((p) => p.id === jogo.participanteAId);
@@ -363,39 +384,40 @@ export function TorneioLiga() {
                           return (
                             <Box
                               key={jogo.id}
-                              
-                              borderColor={jogo.finalizada ? 'brand.cardBgAlt' : 'brand.mustard'}
-                              
-                              boxShadow="md"
-                              border="1px solid #C3c3c3"
+                              bg={cardBg}
+                              border="1px solid"
+                              borderColor={jogo.finalizada ? cardBorder : useColorModeValue('brand.400', 'brand.500')}
+                              boxShadow="sm"
                               borderRadius="md"
                               cursor={canClick ? 'pointer' : 'default'}
                               onClick={() => canClick && abrirModal(jogo)}
                               transition="all 0.08s ease"
                               _hover={canClick ? {
                                 transform: 'translate(-0.5px,-0.5px)',
-                                boxShadow: 'lg',
+                                boxShadow: 'md',
+                                borderColor: 'brand.500',
                               } : {}}
                               overflow="hidden"
                             >
                               {/* Player A */}
                               <Flex px={3} py={2} justify="space-between" align="center"
-                                bg={aVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
-                                borderBottom="1px solid" 
+                                bg={aVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
+                                borderBottom="1px solid"
+                                borderColor={cardBorder}
                               >
                                 <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
                                   <Text
                                     fontFamily="heading"
                                     fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
                                     fontSize={{ base: '13px', md: '14px' }}
-                                    color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                    color={aVenceu ? '#F94A29' : textPrimary}
                                     noOfLines={1}
                                   >
                                     {pA?.nomeAmigo ?? '?'}
                                   </Text>
                                   <HStack spacing={1}>
-                                    {pA?.logoTime && <Image src={pA.logoTime} boxSize="10px" objectFit="contain" opacity={bVenceu ? 0.35 : 1} />}
-                                    <Text fontSize="xs" color={aVenceu ? 'gray.600' : (bVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                    {pA?.logoTime && <Image src={pA.logoTime} boxSize="12px" objectFit="contain" opacity={bVenceu ? 0.4 : 1} />}
+                                    <Text fontSize="xs" fontWeight={500} color={aVenceu ? 'brand.600' : textSecondary} noOfLines={1}>
                                       {pA?.timeSorteado ?? '—'}
                                     </Text>
                                   </HStack>
@@ -404,7 +426,7 @@ export function TorneioLiga() {
                                   fontFamily="heading"
                                   fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
                                   fontSize={{ base: '20px', md: '22px' }}
-                                  color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                  color={aVenceu ? '#F94A29' : textPrimary}
                                 >
                                   {jogo.placarA ?? '—'}
                                 </Text>
@@ -412,21 +434,21 @@ export function TorneioLiga() {
 
                               {/* Player B */}
                               <Flex px={3} py={2} justify="space-between" align="center"
-                                bg={bVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
+                                bg={bVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
                               >
                                 <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
                                   <Text
                                     fontFamily="heading"
                                     fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
                                     fontSize={{ base: '13px', md: '14px' }}
-                                    color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                    color={bVenceu ? '#F94A29' : textPrimary}
                                     noOfLines={1}
                                   >
                                     {pB?.nomeAmigo ?? '?'}
                                   </Text>
                                   <HStack spacing={1}>
-                                    {pB?.logoTime && <Image src={pB.logoTime} boxSize="10px" objectFit="contain" opacity={aVenceu ? 0.35 : 1} />}
-                                    <Text fontSize="xs" color={bVenceu ? 'gray.600' : (aVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                    {pB?.logoTime && <Image src={pB.logoTime} boxSize="12px" objectFit="contain" opacity={aVenceu ? 0.4 : 1} />}
+                                    <Text fontSize="xs" fontWeight={500} color={bVenceu ? 'brand.600' : textSecondary} noOfLines={1}>
                                       {pB?.timeSorteado ?? '—'}
                                     </Text>
                                   </HStack>
@@ -435,7 +457,7 @@ export function TorneioLiga() {
                                   fontFamily="heading"
                                   fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
                                   fontSize={{ base: '20px', md: '22px' }}
-                                  color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                  color={bVenceu ? '#F94A29' : textPrimary}
                                 >
                                   {jogo.placarB ?? '—'}
                                 </Text>
@@ -444,14 +466,14 @@ export function TorneioLiga() {
                               {/* CTA lançar placar */}
                               {!jogo.finalizada && (
                                 <Flex
-                                  
-                                  borderTop="1px solid #C3c3c3"
-                                  
-                                  px={3} py={1}
+                                  bg={useColorModeValue('gray.50', 'gray.750')}
+                                  borderTop="1px solid"
+                                  borderColor={cardBorder}
+                                  px={3} py={1.5}
                                   justify="center"
                                 >
-                                  <Text fontSize="12px"  fontWeight={600} textTransform="uppercase">
-                                    LANÇAR PLACAR
+                                  <Text fontSize="11px" fontWeight={700} color="brand.500" textTransform="uppercase" letterSpacing="wider">
+                                    Lançar Placar
                                   </Text>
                                 </Flex>
                               )}
@@ -482,6 +504,15 @@ export function TorneioLiga() {
       <ModalCompartilhar
         isOpen={compartilharDisclosure.isOpen}
         onClose={compartilharDisclosure.onClose}
+      />
+
+      {/* Modal Configurações do Torneio */}
+      <ModalConfiguracoesTorneio
+        isOpen={configModalDisclosure.isOpen}
+        onClose={configModalDisclosure.onClose}
+        torneio={torneio}
+        participantes={participantes}
+        currentUserId={currentUserId}
       />
     </Box>
   );

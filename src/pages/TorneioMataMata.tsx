@@ -12,21 +12,39 @@ import {
   WrapItem,
   useDisclosure,
   Spinner,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTorneioStore } from '../store/torneioStore';
 import { Chaveamento } from '../components/Chaveamento';
+import { DraftLobby } from '../components/DraftLobby';
 import { ModalCompartilhar } from '../components/ModalCompartilhar';
+import { ModalConfiguracoesTorneio } from '../components/ModalConfiguracoesTorneio';
 import LogoBola from '../assets/logos/LogoBola.png';
 import { supabase } from '../lib/supabase';
-import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon } from 'react-icons/fi';
+import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon, FiSettings, FiAward } from 'react-icons/fi';
+
 export function TorneioMataMata() {
   const { id } = useParams<{ id?: string }>();
   const { torneio, partidas, participantes, resetarTorneio, carregarTorneioPublico } = useTorneioStore();
   const navigate = useNavigate();
   const compartilharDisclosure = useDisclosure();
+  const configModalDisclosure = useDisclosure();
   const [loading, setLoading] = useState(!!id);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const headerBg = useColorModeValue('white', 'gray.900');
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   useEffect(() => {
     const carregar = async () => {
@@ -43,38 +61,35 @@ export function TorneioMataMata() {
       }
     };
     carregar();
-  }, [id, carregarTorneioPublico]);
-
-  // Se o torneio carregado for do formato Liga, redireciona para o componente correto
-  useEffect(() => {
-    if (torneio && (torneio.formato === 'liga' || torneio.formato === 'liga_com_playoffs')) {
-      navigate(`/torneio/liga/${torneio.id}`, { replace: true });
-    }
-  }, [torneio, navigate]);
+  }, [id, torneio?.id]);
 
   if (loading) {
     return (
       <Flex minH="100vh" align="center" justify="center">
-        <Spinner size="xl" color="brand.500" thickness="4px" />
+        <VStack spacing={3}>
+          <Spinner size="xl" thickness="4px" />
+          <Text fontSize="12px" color={textSecondary}>CARREGANDO TORNEIO...</Text>
+        </VStack>
       </Flex>
     );
   }
 
   if (!torneio) {
     return (
-      <Flex minH="100vh" align="center" justify="center">
-        <VStack spacing={4}>
-          <Text fontSize="14px">Nenhum torneio configurado.</Text>
-          <Button onClick={() => navigate('/torneio/configurar')} colorScheme="brand">
-            CRIAR TORNEIO
-          </Button>
-        </VStack>
+      <Flex minH="100vh" align="center" justify="center" direction="column" gap={4}>
+        <Text fontSize="16px" color={textPrimary}>Nenhum torneio ativo.</Text>
+        <Button onClick={() => navigate('/torneio/configurar')}>CRIAR TORNEIO</Button>
       </Flex>
     );
   }
 
+  if (torneio.status === 'aguardando_draft') {
+    return <DraftLobby torneioId={id || torneio.id} />;
+  }
 
-
+  const isCriador = Boolean(currentUserId && torneio.userId && currentUserId === torneio.userId);
+  const isCoAdmin = Boolean(currentUserId && torneio.coAdmins?.includes(currentUserId));
+  const hasAdminRights = isCriador || isCoAdmin;
 
   const handleReset = () => {
     if (window.confirm('Resetar todos os dados deste torneio?')) resetarTorneio();
@@ -104,12 +119,10 @@ export function TorneioMataMata() {
   const progresso = partidas.length > 0 ? (totalFinalizados / partidas.length) * 100 : 0;
 
   return (
-    <Box minH="100vh" >
+    <Box minH="100vh">
       {/* ── Header ──────────────────────────────────────────────── */}
       <Box
-        bg="white"
-        _dark={{ bg: 'gray.900' }}
-        
+        bg={headerBg}
         boxShadow="lg"
         position="sticky"
         top={0}
@@ -120,12 +133,12 @@ export function TorneioMataMata() {
           align="center" justify="space-between" gap={3}
         >
           <HStack spacing={3}>
-            <Image src={LogoBola} alt="logo" h="32px"  />
+            <Image src={LogoBola} alt="logo" h="32px" />
             <VStack spacing={0} align="flex-start">
-              <Heading fontFamily="heading" fontSize={{ base: '16px', md: '20px' }} >
+              <Heading fontFamily="heading" fontSize={{ base: '16px', md: '20px' }} color={textPrimary}>
                 {torneio.nome}
               </Heading>
-              <Text fontSize="12px"  opacity={0.8}>
+              <Text fontSize="12px" color={textSecondary} fontWeight={500}>
                 MATA-MATA {torneio.isDoubleElimination ? '— REPESCAGEM (DOUBLE ELIMINATION)' : `— ${torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}`}
               </Text>
             </VStack>
@@ -133,16 +146,28 @@ export function TorneioMataMata() {
 
           <HStack spacing={2} flexWrap="wrap" justify="flex-end">
             <Badge
-              
-              color="#000"
-              border="1px solid #C3c3c3"
-              boxShadow="md"
+              colorScheme="orange"
+              variant="subtle"
               px={3} py={1}
               fontSize="12px"
+              fontWeight="bold"
               display={{ base: 'none', sm: 'flex' }}
             >
               {totalFinalizados}/{partidas.length} JOGOS
             </Badge>
+
+            {hasAdminRights && (
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="orange"
+                leftIcon={<FiSettings />}
+                onClick={configModalDisclosure.onOpen}
+              >
+                Configurações
+              </Button>
+            )}
+
             <Button
               id="btn-compartilhar-matamata"
               size="sm"
@@ -153,17 +178,21 @@ export function TorneioMataMata() {
             >
               COMPARTILHAR
             </Button>
-            <Button
-              leftIcon={<ResetIcon /> as any}
-              size="sm"
-              colorScheme="red"
-              onClick={handleReset}
-            >
-              RESETAR
-            </Button>
+            {hasAdminRights && (
+              <Button
+                leftIcon={<ResetIcon /> as any}
+                size="sm"
+                colorScheme="red"
+                variant="outline"
+                onClick={handleReset}
+              >
+                RESETAR
+              </Button>
+            )}
             <Button
               size="sm"
               colorScheme="gray"
+              variant="outline"
               onClick={() => navigate('/')}
             >
               ← DASHBOARD
@@ -184,14 +213,14 @@ export function TorneioMataMata() {
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>
-            <Text fontSize="12px" >
+            <Text fontSize="12px" fontWeight={600} color={textSecondary}>
               Progresso do torneio
             </Text>
-            <Text fontSize="12px"  fontWeight={700}>
+            <Text fontSize="12px" fontWeight={700} color={textPrimary}>
               {totalFinalizados}/{partidas.length} ({progresso.toFixed(0)}%)
             </Text>
           </HStack>
-          <Box w="full" h="8px"  border="1px solid #C3c3c3"  overflow="hidden">
+          <Box w="full" h="8px" bg={useColorModeValue('gray.200', 'gray.700')} borderRadius="full" overflow="hidden">
             <Box
               h="full"
               w={`${progresso}%`}
@@ -201,14 +230,12 @@ export function TorneioMataMata() {
           </Box>
         </Box>
 
-
         {/* Banner de campeão */}
         {campeao && (
           <Box
             mb={8}
-            
-            
-            boxShadow="lg"
+            borderRadius="xl"
+            boxShadow="xl"
             overflow="hidden"
           >
             <Box h="6px" bg="linear-gradient(90deg,#C80000,#F94A29,#FDBB00,#F94A29,#C80000)" />
@@ -216,28 +243,33 @@ export function TorneioMataMata() {
               bg="linear-gradient(180deg, #F94A29 0%, #C80000 100%)"
               p={8}
               textAlign="center"
+              color="white"
             >
-              <Text fontSize="10px"  mb={2} textTransform="uppercase" letterSpacing="wide">
-                🏆 CAMPEÃO
-              </Text>
+              <HStack justify="center" spacing={1.5} mb={2}>
+                <FiAward size={16} />
+                <Text fontSize="12px" fontWeight="bold" textTransform="uppercase" letterSpacing="widest">
+                  CAMPEÃO
+                </Text>
+              </HStack>
               <Heading
                 fontFamily="heading"
                 fontSize={{ base: '28px', md: '40px' }}
-                
+                fontWeight={900}
                 textTransform="uppercase"
                 letterSpacing="0.05em"
                 mb={1}
+                color="white"
               >
                 {campeao.nomeAmigo}
               </Heading>
-              <Text  fontSize="12px" mb={3}>{campeao.timeSorteado}</Text>
+              <Text fontSize="14px" fontWeight={600} mb={3} color="orange.100">{campeao.timeSorteado}</Text>
               <Badge
-                
-                
-                
-                bg="transparent"
+                bg="white"
+                color="#C80000"
                 px={4} py={1}
                 fontSize="12px"
+                fontWeight="extrabold"
+                borderRadius="full"
                 letterSpacing="wide"
               >
                 CAMPEÃO DA COPA
@@ -248,7 +280,7 @@ export function TorneioMataMata() {
 
         {/* Lista de participantes */}
         <Box mb={8}>
-          <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>
+          <Heading fontFamily="heading" fontSize={{ base: '18px', md: '22px' }} color={textPrimary} mb={4}>
             PARTICIPANTES
           </Heading>
           <Wrap spacing={3}>
@@ -257,30 +289,34 @@ export function TorneioMataMata() {
               return (
                 <WrapItem key={p.id}>
                   <HStack
-                    bg={isCampeao ? 'linear-gradient(135deg,#F94A29,#C80000)' : 'brand.cardBg'}
-                    
-                    borderColor={isCampeao ? 'brand.mustard' : 'brand.cardBgAlt'}
-                    boxShadow={isCampeao ? 'lg' : 'md'}
+                    bg={isCampeao ? 'linear-gradient(135deg,#F94A29,#C80000)' : cardBg}
+                    border="1px solid"
+                    borderColor={isCampeao ? 'brand.mustard' : cardBorder}
+                    borderRadius="lg"
+                    boxShadow={isCampeao ? 'lg' : 'sm'}
                     px={4} py={2}
                     spacing={3}
                     transition="all 0.1s"
-                    _hover={{ borderColor: 'brand.mustard', transform: 'translate(-1px,-1px)', boxShadow: 'md' }}
+                    _hover={{ borderColor: 'brand.500', transform: 'translateY(-1px)', boxShadow: 'md' }}
                   >
                     <VStack spacing={0} align="flex-start">
-                      <Text
-                        fontFamily="heading"
-                        fontWeight={700}
-                        color={isCampeao ? 'brand.mustard' : 'brand.textMain'}
-                        fontSize={{ base: '13px', md: '15px' }}
-                      >
-                        {isCampeao && '🏆 '}{p.nomeAmigo}
-                      </Text>
+                      <HStack spacing={1.5}>
+                        {isCampeao && <FiAward size={14} color="white" />}
+                        <Text
+                          fontFamily="heading"
+                          fontWeight={700}
+                          color={isCampeao ? 'white' : textPrimary}
+                          fontSize={{ base: '13px', md: '15px' }}
+                        >
+                          {p.nomeAmigo}
+                        </Text>
+                      </HStack>
                       <Badge
-                        bg="transparent"
-                        border="1px solid"
-                        borderColor={isCampeao ? 'brand.mustard' : 'brand.cardBgAlt'}
-                        color={isCampeao ? 'brand.mustard' : 'brand.textMutedToken'}
+                        bg={isCampeao ? 'whiteAlpha.300' : useColorModeValue('gray.100', 'gray.700')}
+                        color={isCampeao ? 'white' : textSecondary}
                         fontSize="10px"
+                        fontWeight="bold"
+                        borderRadius="md"
                         px={2}
                       >
                         {p.timeSorteado}
@@ -298,10 +334,10 @@ export function TorneioMataMata() {
 
         {/* Chaveamento */}
         <Box>
-          <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>
+          <Heading fontFamily="heading" fontSize={{ base: '18px', md: '22px' }} color={textPrimary} mb={2}>
             CHAVEAMENTO
           </Heading>
-          <Text fontSize="12px"  mb={5}>
+          <Text fontSize="12px" color={textSecondary} mb={5}>
             Clique em uma partida para lançar o placar. O vencedor avança automaticamente.
           </Text>
           <Chaveamento />
@@ -312,6 +348,15 @@ export function TorneioMataMata() {
       <ModalCompartilhar
         isOpen={compartilharDisclosure.isOpen}
         onClose={compartilharDisclosure.onClose}
+      />
+
+      {/* Modal Configurações do Torneio */}
+      <ModalConfiguracoesTorneio
+        isOpen={configModalDisclosure.isOpen}
+        onClose={configModalDisclosure.onClose}
+        torneio={torneio}
+        participantes={participantes}
+        currentUserId={currentUserId}
       />
     </Box>
   );
