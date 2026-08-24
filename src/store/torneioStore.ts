@@ -7,9 +7,11 @@ import type {
   Participante,
   Partida,
   ConfiguracaoTorneio,
+  ConfiguracaoDraftTorneio,
   FaseMataMata,
   FormatoTorneio,
   BracketSide,
+  PodioTorneio,
 } from '../types/torneio';
 
 // Fases que participam da progressao sequencial do bracket (terceiro_lugar e final sao paralelas ao fim)
@@ -651,6 +653,72 @@ function avancarDoubleElimination(
 
 
 
+// Helper para calcular e extrair o Pódio completo de qualquer torneio
+export function obterPodioTorneio(
+  torneio: Torneio | null,
+  participantes: Participante[],
+  partidas: Partida[]
+): PodioTorneio {
+  if (!torneio || participantes.length === 0) {
+    return { campeao: null, vice: null, terceiro: null };
+  }
+
+  // Liga pura
+  if (torneio.formato === 'liga') {
+    const ordenados = ordenarParticipantes(participantes, partidas);
+    return {
+      campeao: ordenados[0] || null,
+      vice: ordenados[1] || null,
+      terceiro: ordenados[2] || null,
+    };
+  }
+
+  // Mata-mata ou Liga com Playoffs
+  const bracketReset = partidas.find((p) => p.fase === 'bracket_reset' && p.finalizada && p.vencedorId);
+  const grandFinal = partidas.find((p) => p.fase === 'grand_final' && p.finalizada && p.vencedorId);
+  const finalMatch = partidas.find((p) => p.fase === 'final' && p.finalizada && p.vencedorId);
+  const terceiroMatch = partidas.find((p) => p.fase === 'terceiro_lugar' && p.finalizada && p.vencedorId);
+
+  let campeaoId: string | null = null;
+  let viceId: string | null = null;
+  let terceiroId: string | null = null;
+
+  if (bracketReset) {
+    campeaoId = bracketReset.vencedorId;
+    viceId = bracketReset.perdedorId;
+  } else if (grandFinal) {
+    const pendingReset = partidas.find((p) => p.fase === 'bracket_reset' && !p.finalizada);
+    if (!pendingReset) {
+      campeaoId = grandFinal.vencedorId;
+      viceId = grandFinal.perdedorId;
+    }
+  } else if (finalMatch) {
+    campeaoId = finalMatch.vencedorId;
+    viceId = finalMatch.perdedorId;
+  }
+
+  if (terceiroMatch) {
+    terceiroId = terceiroMatch.vencedorId;
+  }
+
+  // Se não tem partida de 3º lugar mas temos campeão e vice, busca entre os semifinalistas
+  if (!terceiroId && campeaoId && viceId) {
+    const semifinalMatches = partidas.filter((p) => p.fase === 'semifinal' && p.finalizada);
+    const perdedoresSemi = semifinalMatches.map((p) => p.perdedorId).filter(Boolean) as string[];
+    const participantesSemi = participantes.filter((p) => perdedoresSemi.includes(p.id));
+    if (participantesSemi.length > 0) {
+      const ordenadosSemi = ordenarParticipantes(participantesSemi, partidas);
+      terceiroId = ordenadosSemi[0]?.id || null;
+    }
+  }
+
+  const campeao = participantes.find((p) => p.id === campeaoId) || null;
+  const vice = participantes.find((p) => p.id === viceId) || null;
+  const terceiro = participantes.find((p) => p.id === terceiroId) || null;
+
+  return { campeao, vice, terceiro };
+}
+
 // Tipos da store
 interface TorneioState {
   torneio: Torneio | null;
@@ -658,6 +726,27 @@ interface TorneioState {
   partidas: Partida[];
 
   criarTorneio: (config: ConfiguracaoTorneio) => void;
+  iniciarTorneioDraft: (config: ConfiguracaoDraftTorneio) => Promise<string | null>;
+  sortearOrdemDraft: () => Promise<void>;
+  reordenarParticipantesDraft: (novosParticipantes: Participante[]) => Promise<void>;
+  confirmarPickBanParticipante: (
+    participanteId: string,
+    pick: { nome: string; logo?: string },
+    ban?: { nome: string; logo?: string }
+  ) => Promise<void>;
+  finalizarDraftEIniciarTorneio: () => Promise<void>;
+  atualizarDadosEmTempoReal: (dados: {
+    torneio: Torneio;
+    participantes: Participante[];
+    partidas: Partida[];
+  }) => void;
+  atualizarConfiguracoesTorneio: (dados: {
+    nome?: string;
+    grupoId?: string | null;
+    coAdmins?: string[];
+  }) => Promise<void>;
+  adicionarCoAdmin: (usuarioId: string) => Promise<void>;
+  removerCoAdmin: (usuarioId: string) => Promise<void>;
   sortearTudo: (config: {
     nome: string;
     formato: FormatoTorneio;
@@ -672,7 +761,11 @@ interface TorneioState {
     penaltisA?: number, penaltisB?: number
   ) => void;
   publicarTorneio: () => Promise<string | null>;
-  carregarTorneioPublico: (id: string) => Promise<{ user_id: string } | null>;
+  carregarTorneioPublico: (id: string) => Promise<{
+    user_id: string;
+    co_admins: string[];
+    grupo_id: string | null;
+  } | null>;
   resetarTorneio: () => void;
 }
 
@@ -684,7 +777,7 @@ export const useTorneioStore = create<TorneioState>()(
       participantes: [],
       partidas: [],
 
-      // Criar torneio
+      // Criar torneio tradicional/rápido
       criarTorneio: (config) => {
         const torneioId = uuidv4();
         const torneio: Torneio = {
@@ -696,6 +789,9 @@ export const useTorneioStore = create<TorneioState>()(
           criadoEm: new Date().toISOString(),
           playoffsGerados: false,
           isDoubleElimination: config.isDoubleElimination ?? false,
+          modoSorteio: config.modoSorteio || 'sorteio_automatico',
+          grupoId: config.grupoId || null,
+          coAdmins: config.coAdmins || [],
         };
 
         const participantes: Participante[] = config.duplas.map((dupla) => ({
@@ -706,6 +802,7 @@ export const useTorneioStore = create<TorneioState>()(
           nomeAmigo: dupla.amigo,
           timeSorteado: dupla.time,
           logoTime: dupla.logoTime,
+          isConvidado: dupla.isConvidado ?? (!dupla.usuarioId),
           pontos: 0, jogos: 0, vitorias: 0, empates: 0, derrotas: 0,
           golsPro: 0, golsContra: 0,
         }));
@@ -724,6 +821,137 @@ export const useTorneioStore = create<TorneioState>()(
 
         set({ torneio, participantes, partidas });
         get().publicarTorneio();
+      },
+
+      // Iniciar torneio em modo Draft Lobby (Pick & Ban Multiplayer)
+      iniciarTorneioDraft: async (config: ConfiguracaoDraftTorneio) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const torneioId = uuidv4();
+        const torneio: Torneio = {
+          id: torneioId,
+          nome: config.nome,
+          formato: config.formato,
+          idaEVolta: config.idaEVolta,
+          status: 'aguardando_draft',
+          criadoEm: new Date().toISOString(),
+          playoffsGerados: false,
+          isDoubleElimination: config.isDoubleElimination ?? false,
+          modoSorteio: 'pick_ban',
+          turnoDraftAtual: 0,
+          userId: user?.id ?? null,
+          grupoId: config.grupoId || null,
+          coAdmins: config.coAdmins || [],
+        };
+
+        const participantes: Participante[] = config.participantes.map((p) => ({
+          id: uuidv4(),
+          torneioId: torneioId,
+          usuarioId: p.usuarioId || null,
+          fotoUsuario: p.fotoUsuario || null,
+          nomeAmigo: p.nome,
+          timeSorteado: '',
+          logoTime: undefined,
+          timeBanido: undefined,
+          logoTimeBanido: undefined,
+          pickConfirmado: false,
+          isConvidado: p.isConvidado ?? (!p.usuarioId),
+          pontos: 0, jogos: 0, vitorias: 0, empates: 0, derrotas: 0,
+          golsPro: 0, golsContra: 0,
+        }));
+
+        set({ torneio, participantes, partidas: [] });
+        await get().publicarTorneio();
+        return torneioId;
+      },
+
+      // Sortear ordem do draft (Host only)
+      sortearOrdemDraft: async () => {
+        const { torneio, participantes } = get();
+        if (!torneio || torneio.status !== 'aguardando_draft') return;
+
+        const shuffledParticipantes = shuffle([...participantes]);
+        const novoTorneio = { ...torneio, turnoDraftAtual: 0 };
+
+        set({ torneio: novoTorneio, participantes: shuffledParticipantes });
+        await get().publicarTorneio();
+      },
+
+      // Reordenar ordem do draft manualmente (Drag & Drop / Reordenação do Host)
+      reordenarParticipantesDraft: async (novosParticipantes: Participante[]) => {
+        const { torneio } = get();
+        if (!torneio || torneio.status !== 'aguardando_draft') return;
+
+        set({ participantes: novosParticipantes });
+        await get().publicarTorneio();
+      },
+
+      // Confirmar escolha de Pick e Ban de um participante no draft
+      confirmarPickBanParticipante: async (
+        participanteId: string,
+        pick: { nome: string; logo?: string },
+        ban?: { nome: string; logo?: string }
+      ) => {
+        const { torneio, participantes } = get();
+        if (!torneio) return;
+
+        const novosParticipantes = participantes.map((p) =>
+          p.id === participanteId
+            ? {
+                ...p,
+                timeSorteado: pick.nome,
+                logoTime: pick.logo,
+                timeBanido: ban?.nome,
+                logoTimeBanido: ban?.logo,
+                pickConfirmado: true,
+              }
+            : p
+        );
+
+        const proximoTurno = (torneio.turnoDraftAtual ?? 0) + 1;
+        const novoTorneio = { ...torneio, turnoDraftAtual: proximoTurno };
+
+        set({ torneio: novoTorneio, participantes: novosParticipantes });
+        await get().publicarTorneio();
+      },
+
+      // Finalizar draft e iniciar torneio com chaveamento oficial
+      finalizarDraftEIniciarTorneio: async () => {
+        const { torneio, participantes } = get();
+        if (!torneio) return;
+
+        const torneioId = torneio.id;
+        let partidas: Partida[];
+        if (torneio.formato === 'matamata') {
+          if (torneio.isDoubleElimination) {
+            partidas = gerarPartidasDoubleElimination(participantes, torneioId, torneio.idaEVolta);
+          } else {
+            partidas = gerarPartidasMataMata(participantes, torneioId, torneio.idaEVolta);
+          }
+        } else {
+          partidas = gerarPartidasLiga(participantes, torneioId, torneio.idaEVolta);
+        }
+
+        const novoTorneio: Torneio = {
+          ...torneio,
+          status: 'em_andamento',
+        };
+
+        set({ torneio: novoTorneio, partidas });
+        await get().publicarTorneio();
+      },
+
+      // Atualizar dados recebidos via Supabase Realtime (todos os clientes)
+      atualizarDadosEmTempoReal: (dados: {
+        torneio: Torneio;
+        participantes: Participante[];
+        partidas: Partida[];
+      }) => {
+        if (!dados || !dados.torneio) return;
+        set({
+          torneio: dados.torneio,
+          participantes: dados.participantes || [],
+          partidas: dados.partidas || [],
+        });
       },
 
       // Sorteio automatico rapido
@@ -918,14 +1146,65 @@ export const useTorneioStore = create<TorneioState>()(
         get().publicarTorneio();
       },
 
+      // Atualizar configurações pós-criação (Nome, Grupo vinculado, Co-Admins)
+      atualizarConfiguracoesTorneio: async (dadosNovos) => {
+        const { torneio } = get();
+        if (!torneio) return;
+
+        const novoTorneio: Torneio = {
+          ...torneio,
+          nome: dadosNovos.nome !== undefined ? dadosNovos.nome : torneio.nome,
+          grupoId: dadosNovos.grupoId !== undefined ? dadosNovos.grupoId : torneio.grupoId,
+          coAdmins: dadosNovos.coAdmins !== undefined ? dadosNovos.coAdmins : (torneio.coAdmins || []),
+        };
+
+        set({ torneio: novoTorneio });
+        await get().publicarTorneio();
+      },
+
+      // Adicionar Co-Admin ao torneio
+      adicionarCoAdmin: async (usuarioId: string) => {
+        const { torneio } = get();
+        if (!torneio || !usuarioId) return;
+
+        const currentAdmins = torneio.coAdmins || [];
+        if (currentAdmins.includes(usuarioId)) return;
+
+        const novosAdmins = [...currentAdmins, usuarioId];
+        const novoTorneio: Torneio = { ...torneio, coAdmins: novosAdmins };
+
+        set({ torneio: novoTorneio });
+        await get().publicarTorneio();
+      },
+
+      // Remover Co-Admin do torneio
+      removerCoAdmin: async (usuarioId: string) => {
+        const { torneio } = get();
+        if (!torneio || !usuarioId) return;
+
+        const currentAdmins = torneio.coAdmins || [];
+        const novosAdmins = currentAdmins.filter((id) => id !== usuarioId);
+        const novoTorneio: Torneio = { ...torneio, coAdmins: novosAdmins };
+
+        set({ torneio: novoTorneio });
+        await get().publicarTorneio();
+      },
+
       // Publicar no Supabase
       publicarTorneio: async () => {
         const { torneio, participantes, partidas } = get();
         if (!torneio) return null;
 
+        const { data: { user } } = await supabase.auth.getUser();
+
         const payload = {
-          id: torneio.id, nome: torneio.nome, formato: torneio.formato,
+          id: torneio.id,
+          nome: torneio.nome,
+          formato: torneio.formato,
           status: torneio.status,
+          user_id: user?.id || torneio.userId || undefined,
+          co_admins: torneio.coAdmins || [],
+          grupo_id: torneio.grupoId || null,
           dados: { torneio, participantes, partidas },
           atualizado_em: new Date().toISOString(),
         };
@@ -934,18 +1213,43 @@ export const useTorneioStore = create<TorneioState>()(
           .from('torneios_publicos')
           .upsert(payload, { onConflict: 'id' });
 
-        if (error) { console.error('Erro ao publicar torneio:', error.message); return null; }
+        if (error) {
+          console.error('Erro ao publicar torneio:', error.message);
+          return null;
+        }
         return `${window.location.origin}/convite/${torneio.id}`;
       },
 
       // Carregar do Supabase
       carregarTorneioPublico: async (id: string) => {
         const { data, error } = await supabase
-          .from('torneios_publicos').select('dados, user_id').eq('id', id).single();
+          .from('torneios_publicos')
+          .select('dados, user_id, co_admins, grupo_id')
+          .eq('id', id)
+          .single();
+
         if (error || !data?.dados) return null;
-        const { torneio, participantes, partidas } = data.dados as TorneioState;
-        set({ torneio, participantes, partidas });
-        return { user_id: data.user_id };
+        const dadosArmazenados = data.dados as {
+          torneio: Torneio;
+          participantes: Participante[];
+          partidas: Partida[];
+        };
+        const { torneio, participantes, partidas } = dadosArmazenados;
+        if (!torneio) return null;
+
+        const torneioAtualizado: Torneio = {
+          ...torneio,
+          userId: data.user_id || torneio.userId,
+          coAdmins: data.co_admins || torneio.coAdmins || [],
+          grupoId: data.grupo_id || torneio.grupoId || null,
+        };
+
+        set({ torneio: torneioAtualizado, participantes: participantes || [], partidas: partidas || [] });
+        return {
+          user_id: data.user_id,
+          co_admins: data.co_admins || [],
+          grupo_id: data.grupo_id || null,
+        };
       },
 
       // Resetar
