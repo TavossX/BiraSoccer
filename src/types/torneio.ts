@@ -1,7 +1,8 @@
 // ─── Tipos compartilhados do domínio Copa de Amigos ──────────────────────────
 
 export type FormatoTorneio = 'liga' | 'matamata' | 'liga_com_playoffs';
-export type StatusTorneio  = 'configurando' | 'em_andamento' | 'finalizado';
+export type StatusTorneio  = 'aguardando_draft' | 'em_andamento' | 'finalizado' | 'configurando';
+export type ModoSorteio    = 'pick_ban' | 'sorteio_interativo' | 'sorteio_automatico' | 'manual';
 export type TipoJogo       = 'ida' | 'volta' | null;
 export type FaseMataMata   = 'oitavas' | 'quartas' | 'semifinal' | 'final' | 'terceiro_lugar' | 'grand_final' | 'bracket_reset';
 export type BracketSide    = 'UPPER' | 'LOWER';
@@ -15,6 +16,11 @@ export interface Torneio {
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
   playoffsGerados: boolean;    // liga_com_playoffs: true após gerarPlayoffs()
   isDoubleElimination: boolean;   // true = Lower Bracket ativo
+  modoSorteio?: ModoSorteio;
+  turnoDraftAtual?: number;    // Índice do participante da vez no Draft (0 a N-1)
+  userId?: string | null;      // ID do criador/Host
+  coAdmins?: string[];         // IDs dos usuários co-administradores
+  grupoId?: string | null;     // ID do grupo vinculado (se houver)
 }
 
 export interface Participante {
@@ -25,6 +31,11 @@ export interface Participante {
   nomeAmigo: string;
   timeSorteado: string;
   logoTime?: string;
+  // Pick & Ban Multiplayer
+  timeBanido?: string;
+  logoTimeBanido?: string;
+  pickConfirmado?: boolean;
+  isConvidado?: boolean;
   // Estatísticas (Liga)
   pontos: number;
   jogos: number;
@@ -63,11 +74,36 @@ export interface ConfiguracaoTorneio {
   formato: FormatoTorneio;
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
   isDoubleElimination?: boolean;   // opcional, default false
+  modoSorteio?: ModoSorteio;
+  grupoId?: string | null;
+  coAdmins?: string[];
   duplas: {
     amigo: string;
     time: string;
     logoTime?: string;
     usuarioId?: string | null;
     fotoUsuario?: string | null;
+    isConvidado?: boolean;
   }[];
+}
+
+export interface ConfiguracaoDraftTorneio {
+  nome: string;
+  formato: FormatoTorneio;
+  idaEVolta: boolean;
+  isDoubleElimination?: boolean;
+  grupoId?: string | null;
+  coAdmins?: string[];
+  participantes: {
+    nome: string;
+    usuarioId?: string | null;
+    fotoUsuario?: string | null;
+    isConvidado?: boolean;
+  }[];
+}
+
+export interface PodioTorneio {
+  campeao: Participante | null;
+  vice: Participante | null;
+  terceiro: Participante | null;
 }

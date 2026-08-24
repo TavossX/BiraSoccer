@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS public.torneios_publicos (
     formato TEXT NOT NULL,
     status TEXT DEFAULT 'em_andamento',
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    co_admins UUID[] DEFAULT '{}'::UUID[],
+    grupo_id UUID REFERENCES public.grupos(id) ON DELETE SET NULL,
     dados JSONB NOT NULL,
     atualizado_em TIMESTAMPTZ DEFAULT NOW()
 );
@@ -188,7 +190,20 @@ CREATE POLICY "Torneios são publicamente legíveis"
     USING (true);
 
 DROP POLICY IF EXISTS "Usuários criadores gerenciam seus torneios" ON public.torneios_publicos;
-CREATE POLICY "Usuários criadores gerenciam seus torneios"
-    ON public.torneios_publicos FOR ALL
-    USING (auth.uid() = user_id)
+DROP POLICY IF EXISTS "Criadores e Co-Admins atualizam torneios" ON public.torneios_publicos;
+CREATE POLICY "Criadores e Co-Admins atualizam torneios"
+    ON public.torneios_publicos FOR UPDATE
+    USING (
+        auth.uid() = user_id 
+        OR auth.uid() = ANY(co_admins)
+    );
+
+DROP POLICY IF EXISTS "Usuários autenticados criam torneios" ON public.torneios_publicos;
+CREATE POLICY "Usuários autenticados criam torneios"
+    ON public.torneios_publicos FOR INSERT
     WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Apenas criador deleta torneio" ON public.torneios_publicos;
+CREATE POLICY "Apenas criador deleta torneio"
+    ON public.torneios_publicos FOR DELETE
+    USING (auth.uid() = user_id);
