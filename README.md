@@ -140,66 +140,29 @@ EAFC26-CUP/
 
 ---
 
-## Como Executar Localmente
+## Destaques de Engenharia & Desafios Técnicos
 
-### Pré-requisitos
-- **Node.js** (v18 ou superior)
-- **npm** ou **yarn**
-- Conta e projeto criado no [Supabase](https://supabase.com)
+### 1. Sincronização Multiplayer Peer-to-Host (RLS-Safe Broadcast)
+- **O Desafio:** Em um banco relacional seguro com Row Level Security (RLS), apenas o criador do torneio tem permissão de `UPDATE` na linha da tabela `torneios_publicos`. Permitir que múltiplos participantes anônimos ou autenticados fizessem escrita direta violaria as políticas de segurança.
+- **A Solução:** Implementou-se uma arquitetura baseada em canais de **Broadcast via WebSockets (`supabase.channel`)**. Quando um participante confirma seu Pick/Ban, o cliente emite um evento de broadcast. O cliente do Host captura a mensagem, valida a integridade da escolha e executa o `UPDATE` oficial no banco de dados, transmitindo o novo estado sincronizado para todos os presentes na sala em milissegundos.
 
-### 1. Clonar o Repositório
-```bash
-git clone https://github.com/SEU_USUARIO/EAFC26-CUP.git
-cd EAFC26-CUP
-```
+### 2. Padrão Cache-Aside de Baixa Latência (API Football)
+- **O Desafio:** As cotas de consultas em APIs esportivas são limitadas e requisições externas frequentes causam lentidão na busca assíncrona (`AsyncSelect`).
+- **A Solução:** Toda pesquisa passa primeiro pelo cache relacional indexado no Supabase (`times_api_cache`). Em caso de *Cache Miss*, a requisição consulta a API Football externa e popula o banco de forma assíncrona e não bloqueante (*fire-and-forget*), garantindo respostas instantâneas para buscas futuras e consumo mínimo da cota da API.
 
-### 2. Instalar as Dependências
-```bash
-npm install
-```
+### 3. Motor de Torneios e Algoritmo de Mata-Mata
+- **Double Elimination & Bracket Reset:** Gerenciamento nativo de chave superior (Upper Bracket) e repescagem (Lower Bracket). Se o campeão da chave inferior vencer o campeão invicto na Grand Final, o sistema aciona dinamicamente a rodada decisiva de *Bracket Reset*.
+- **Mecanismo de Lucky Loser:** Balanceamento automático de chaves ímpares através da repescagem estatística do melhor derrotado da fase anterior.
 
-### 3. Configurar as Variáveis de Ambiente
-Crie um arquivo `.env.local` na raiz do projeto baseado no `.env.example`:
-
-```bash
-cp .env.example .env.local
-```
-
-Preencha as variáveis no arquivo `.env.local`:
-```env
-VITE_SUPABASE_URL=https://SEU_PROJETO.supabase.co
-VITE_SUPABASE_ANON_KEY=SUA_CHAVE_PUBLICA_ANON
-VITE_FOOTBALL_API_KEY=SUA_CHAVE_API_FOOTBALL_OPCIONAL
-```
-
-### 4. Configurar o Banco de Dados (Supabase)
-1. Acesse o painel do seu projeto no Supabase &rarr; **SQL Editor**.
-2. Cole e execute todo o conteúdo do arquivo [`supabase_schema.sql`](./supabase_schema.sql).
-3. Habilite o recurso de **Realtime** para a tabela `torneios_publicos` em *Database &rarr; Replication*.
-
-### 5. Iniciar o Servidor de Desenvolvimento
-```bash
-npm run dev
-```
-
-Abra no navegador em: `http://localhost:5173`
-
----
-
-## Scripts Disponíveis
-
-| Comando | Descrição |
-| :--- | :--- |
-| `npm run dev` | Inicia o servidor Vite em modo de desenvolvimento com HMR |
-| `npm run build` | Compila o bundle TypeScript e minifica os assets para produção |
-| `npm run preview` | Executa um servidor local para testar o build gerado em `/dist` |
-| `npm run lint` | Executa o linter ESLint para validação de padrões de código |
+### 4. Responsividade Mobile e Arquitetura de Componentes
+- **Navegação em Drawer Lateral:** Menus horizontais densos foram substituídos por um Drawer ergonômico ativado por menu hambúrguer em resoluções mobile (`base` e `md`).
+- **Tabelas Adaptativas:** Em viewports reduzidas, a visualização tabular clássica é convertida automaticamente em cards verticais empilhados com destaque visual para posições e métricas de desempenho.
 
 ---
 
 ## Licença
 
-Este projeto é desenvolvido para fins competitivos, educacionais e portfólio. Distribuído sob a licença **MIT**.
+Este projeto é desenvolvido para fins de portfólio, inovação e uso recreativo. Distribuído sob a licença **MIT**.
 
 ---
 
