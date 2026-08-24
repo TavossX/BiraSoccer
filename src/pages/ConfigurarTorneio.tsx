@@ -90,6 +90,8 @@ export function ConfigurarTorneio() {
   const toast = useToast();
   const navigate = useNavigate();
   const criarTorneio = useTorneioStore((s) => s.criarTorneio);
+  const iniciarTorneioDraft = useTorneioStore((s) => s.iniciarTorneioDraft);
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
 
   // Times Customizados
   const { isOpen: isModalTimeOpen, onOpen: onOpenModalTime, onClose: onCloseModalTime } = useDisclosure();
@@ -215,6 +217,7 @@ export function ConfigurarTorneio() {
   const borderColor = useColorModeValue('#E2E8F0', '#4A5568');
   const hoverBg = useColorModeValue('#EDF2F7', '#4A5568');
   const textColor = useColorModeValue('#1A202C', '#F7FAFC');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
   const brandColor = '#f94a29';
 
   // Select Styles
@@ -312,6 +315,7 @@ export function ConfigurarTorneio() {
       formato,
       idaEVolta,
       isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
+      grupoId: grupoSelecionadoId || null,
       duplas: duplasGeradas,
     });
 
@@ -349,6 +353,7 @@ export function ConfigurarTorneio() {
         logoTime: timeSelecionado.logo,
         usuarioId: participanteSorteado.usuario_id,
         fotoUsuario: participanteSorteado.foto_base64,
+        isConvidado: participanteSorteado.isConvidado ?? (!participanteSorteado.usuario_id),
       },
     ]);
     setParticipantesPendentes((prev) => prev.filter((p) => p.id !== participanteSorteado.id));
@@ -370,6 +375,7 @@ export function ConfigurarTorneio() {
       formato,
       idaEVolta,
       isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
+      grupoId: grupoSelecionadoId || null,
       duplas,
     });
     toast({ title: 'Torneio gerado com sucesso!', status: 'success', duration: 3000, position: 'top' });
@@ -408,7 +414,7 @@ export function ConfigurarTorneio() {
             <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
               Configurar campeonato
             </Heading>
-            <Text fontSize="sm" color="body.color">
+            <Text fontSize="sm" color={textSecondary}>
               Selecione o Grupo de Amigos, escolha os participantes e realize o Sorteio.
             </Text>
           </VStack>
@@ -424,12 +430,12 @@ export function ConfigurarTorneio() {
                 align="center"
                 justify="center"
                 fontSize="sm"
-                fontWeight={700}
+                fontWeight={800}
                 flexShrink={0}
-                borderRadius="5px"
-                bg={step >= s ? 'brand.mustard' : 'brand.cardBg'}
-                borderColor={step >= s ? 'brand.mustard' : 'brand.cardBgAlt'}
-                color={step >= s ? '#000' : 'brand.textMutedToken'}
+                borderRadius="md"
+                bg={step >= s ? 'brand.500' : useColorModeValue('gray.100', 'gray.700')}
+                borderColor={step >= s ? 'brand.500' : useColorModeValue('gray.300', 'gray.600')}
+                color={step >= s ? 'white' : textSecondary}
                 transition="all 0.2s"
               >
                 {s}
@@ -437,10 +443,10 @@ export function ConfigurarTorneio() {
               <Text
                 ml={2}
                 fontSize="12px"
-                fontWeight={600}
+                fontWeight={700}
                 display={{ base: 'none', sm: 'block' }}
-                color="body.color"
-                opacity={step >= s ? 1 : 0.5}
+                color={step >= s ? textColor : textSecondary}
+                opacity={step >= s ? 1 : 0.6}
                 transition="color 0.3s"
               >
                 {s === 1 ? 'DEFINIÇÃO' : s === 2 ? 'DRAFT' : 'RESUMO'}
@@ -449,7 +455,7 @@ export function ConfigurarTorneio() {
                 <Box
                   flex={1}
                   h="2px"
-                  bg={step > s ? 'brand.mustard' : 'brand.cardBgAlt'}
+                  bg={step > s ? 'brand.500' : useColorModeValue('gray.200', 'gray.700')}
                   mx={2}
                   transition="all 0.3s"
                 />
@@ -499,10 +505,10 @@ export function ConfigurarTorneio() {
                         >
                           <Radio value={val} display="none" />
                           <VStack align="flex-start" spacing={1}>
-                            <Text fontWeight={600} fontSize="md">
+                            <Text fontWeight={700} fontSize="md" color={textColor}>
                               {titulo}
                             </Text>
-                            <Text fontSize="sm" color="gray.500">
+                            <Text fontSize="sm" color={textSecondary}>
                               {desc}
                             </Text>
                           </VStack>
@@ -515,19 +521,18 @@ export function ConfigurarTorneio() {
                 <Box
                   borderWidth="1px"
                   borderRadius="md"
-                  borderColor={idaEVolta ? 'brand.500' : 'gray.200'}
-                  _dark={{ borderColor: idaEVolta ? 'brand.500' : 'gray.700' }}
+                  borderColor={idaEVolta ? 'brand.500' : borderColor}
                   p={4}
                   transition="all 0.2s"
-                  bg={useColorModeValue('white', 'gray.800')}
+                  bg={bgColor}
                   boxShadow="sm"
                 >
                   <Flex justify="space-between" align="center">
                     <VStack align="flex-start" spacing={0}>
-                      <Text fontWeight={600} fontSize="md">
+                      <Text fontWeight={700} fontSize="md" color={textColor}>
                         Partidas de ida e volta
                       </Text>
-                      <Text fontSize="sm" color="gray.500" mt={1}>
+                      <Text fontSize="sm" color={textSecondary} mt={1}>
                         {idaEVoltaDesc}
                       </Text>
                     </VStack>
@@ -541,7 +546,7 @@ export function ConfigurarTorneio() {
                     />
                   </Flex>
                   {idaEVolta && (
-                    <Badge mt={3} colorScheme="orange" variant="subtle" borderRadius="2px" fontSize="2xs" px={2}>
+                    <Badge mt={3} colorScheme="orange" variant="subtle" borderRadius="md" fontSize="2xs" px={2} fontWeight="bold">
                       ATIVO -- {formato === 'liga' ? 'Turno duplo' : 'Dois jogos por confronto'}
                     </Badge>
                   )}
@@ -552,19 +557,18 @@ export function ConfigurarTorneio() {
                   <Box
                     borderWidth="1px"
                     borderRadius="md"
-                    borderColor={isDoubleElimination ? 'brand.500' : 'gray.200'}
-                    _dark={{ borderColor: isDoubleElimination ? 'brand.500' : 'gray.700' }}
+                    borderColor={isDoubleElimination ? 'brand.500' : borderColor}
                     p={4}
                     transition="all 0.2s"
-                    bg={useColorModeValue('white', 'gray.800')}
+                    bg={bgColor}
                     boxShadow="sm"
                   >
                     <Flex justify="space-between" align="center">
                       <VStack align="flex-start" spacing={0}>
-                        <Text fontWeight={600} fontSize="md">
+                        <Text fontWeight={700} fontSize="md" color={textColor}>
                           Repescagem (Double Elimination)
                         </Text>
-                        <Text fontSize="sm" color="gray.500" mt={1}>
+                        <Text fontSize="sm" color={textSecondary} mt={1}>
                           Perdedores ganham uma segunda chance na chave de baixo. Quem perder duas vezes é eliminado.
                         </Text>
                       </VStack>
@@ -578,7 +582,7 @@ export function ConfigurarTorneio() {
                       />
                     </Flex>
                     {isDoubleElimination && (
-                      <Badge mt={3} colorScheme="orange" variant="subtle" borderRadius="2px" fontSize="2xs" px={2}>
+                      <Badge mt={3} colorScheme="orange" variant="subtle" borderRadius="md" fontSize="2xs" px={2} fontWeight="bold">
                         ATIVO — Lower Bracket + Grand Final
                       </Badge>
                     )}
@@ -827,7 +831,7 @@ export function ConfigurarTorneio() {
 
                 <Button
                   id="btn-pick-ban"
-                  onClick={() => {
+                  onClick={async () => {
                     if (participantesValidos.length < 2) {
                       toast({ title: 'Adicione pelo menos 2 participantes', status: 'error', duration: 3000, position: 'top' });
                       return;
@@ -847,8 +851,53 @@ export function ConfigurarTorneio() {
                       toast({ title: 'Dê um nome ao torneio (mínimo 3 caracteres)', status: 'error', duration: 3000, position: 'top' });
                       return;
                     }
-                    onOpenPickBan();
+
+                    setIsCreatingDraft(true);
+                    try {
+                      const participantesConfig = participantesValidos.map((p) => ({
+                        nome: p.nome,
+                        usuarioId: p.usuario_id || null,
+                        fotoUsuario: p.foto_base64 || null,
+                        isConvidado: p.isConvidado ?? (!p.usuario_id),
+                      }));
+
+                      const novoTorneioId = await iniciarTorneioDraft({
+                        nome: nomeTorneio.trim(),
+                        formato,
+                        idaEVolta,
+                        isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
+                        grupoId: grupoSelecionadoId || null,
+                        participantes: participantesConfig,
+                      });
+
+                      if (novoTorneioId) {
+                        toast({
+                          title: 'Sala de Draft Criada!',
+                          description: 'Redirecionando para a sala de Pick & Ban multiplayer...',
+                          status: 'success',
+                          duration: 3000,
+                          position: 'top-right',
+                        });
+
+                        if (formato === 'matamata') {
+                          navigate(`/torneio/matamata/${novoTorneioId}`);
+                        } else {
+                          navigate(`/torneio/liga/${novoTorneioId}`);
+                        }
+                      }
+                    } catch (err: any) {
+                      toast({
+                        title: 'Erro ao criar sala de draft',
+                        description: err?.message || 'Tente novamente.',
+                        status: 'error',
+                        duration: 4000,
+                        position: 'top',
+                      });
+                    } finally {
+                      setIsCreatingDraft(false);
+                    }
                   }}
+                  isLoading={isCreatingDraft}
                   variant="outline"
                   size="lg"
                   leftIcon={<FiShield />}
@@ -865,10 +914,10 @@ export function ConfigurarTorneio() {
                   _active={{ transform: 'translateY(0)' }}
                   transition="all 0.2s"
                 >
-                  Modo Pick & Ban
+                  Modo Pick & Ban (Multiplayer)
                 </Button>
-                <Text fontSize="10px" textAlign="center" color="gray.500">
-                  Cada jogador escolhe e bloqueia um time. Sem sorteio!
+                <Text fontSize="10px" textAlign="center" color={textSecondary}>
+                  Cada jogador conectado escolhe e bane um time em tempo real.
                 </Text>
               </VStack>
             </VStack>

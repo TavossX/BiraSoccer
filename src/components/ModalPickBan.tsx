@@ -634,8 +634,8 @@ export function ModalPickBan({
             <VStack spacing={0} align="flex-start">
               <Text fontSize="11px" color={textMuted}>
                 {allPicked
-                  ? '✅ Todos os picks confirmados!'
-                  : `⏳ Faltam ${jogadores.length - picksCount} pick(s)`}
+                  ? 'Todos os picks confirmados!'
+                  : `Faltam ${jogadores.length - picksCount} pick(s)`}
               </Text>
               <Text fontSize="10px" color={textSubtle}>
                 A ordem dos confrontos será sorteada automaticamente.
