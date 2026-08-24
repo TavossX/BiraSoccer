@@ -46,6 +46,8 @@ export function MeusGrupos() {
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColorMuted = useColorModeValue('gray.600', 'gray.400');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
 
   const carregarGrupos = async () => {
     setLoading(true);
@@ -67,37 +69,39 @@ export function MeusGrupos() {
 
   const handleCriarGrupo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nomeNovoGrupo.trim()) return;
+    if (!nomeNovoGrupo.trim() || !userId) return;
 
     setCreating(true);
-    try {
-      const novo = await criarGrupo(nomeNovoGrupo.trim(), userId);
+    const novo = await criarGrupo(nomeNovoGrupo.trim(), userId);
+    setCreating(false);
+
+    if (novo) {
       toast({
-        title: 'Grupo criado com sucesso!',
+        title: 'Grupo criado!',
+        description: `O grupo "${novo.nome}" foi criado com sucesso.`,
         status: 'success',
         duration: 3000,
-        position: 'top',
+        isClosable: true,
       });
       setNomeNovoGrupo('');
       onClose();
       carregarGrupos();
       navigate(`/grupos/${novo.id}`);
-    } catch (err: any) {
+    } else {
       toast({
         title: 'Erro ao criar grupo',
-        description: err.message,
+        description: 'Tente novamente.',
         status: 'error',
-        position: 'top',
+        duration: 3000,
+        isClosable: true,
       });
-    } finally {
-      setCreating(false);
     }
   };
 
   return (
     <Box minH="100vh" px={{ base: 4, md: 8 }} py={10}>
-      <Box maxW="1000px" mx="auto">
-        <HStack justify="space-between" mb={8} align="flex-start">
+      <Box maxW="1100px" mx="auto">
+        <HStack justify="space-between" mb={8} align="flex-start" flexWrap="wrap" gap={4}>
           <VStack spacing={2} align="flex-start">
             <Button
               size="xs"
@@ -112,7 +116,7 @@ export function MeusGrupos() {
             <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
               Meus Grupos de Amigos
             </Heading>
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color={textColorMuted}>
               Organize seus amigos em resenhas, panela de FIFA/EAFC ou ligas fixas.
             </Text>
           </VStack>
@@ -155,10 +159,10 @@ export function MeusGrupos() {
                 <Icon as={FiUsers} size="28px" color="brand.500" />
               </Flex>
             </Flex>
-            <Heading fontSize="18px" mb={2}>
+            <Heading fontSize="18px" color={textPrimary} mb={2}>
               Você não participa de nenhum grupo ainda
             </Heading>
-            <Text fontSize="13px" color="gray.500" maxW="400px" mx="auto" mb={6}>
+            <Text fontSize="13px" color={textColorMuted} maxW="400px" mx="auto" mb={6}>
               Crie o seu primeiro grupo de amigos para organizar campeonatos e importar os membros facilmente!
             </Text>
             <Button colorScheme="brand" leftIcon={<FiPlus />} onClick={onOpen}>
@@ -180,7 +184,7 @@ export function MeusGrupos() {
                   p={6}
                   boxShadow="sm"
                   transition="all 0.2s"
-                  _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                  _hover={{ transform: 'translateY(-2px)', boxShadow: 'md', borderColor: 'brand.500' }}
                   cursor="pointer"
                   onClick={() => navigate(`/grupos/${g.id}`)}
                 >
@@ -202,11 +206,11 @@ export function MeusGrupos() {
                     )}
                   </HStack>
 
-                  <Heading fontSize="18px" mb={1} noOfLines={1}>
+                  <Heading fontSize="18px" color={textPrimary} mb={1} noOfLines={1}>
                     {g.nome}
                   </Heading>
 
-                  <HStack spacing={2} mt={3} fontSize="12px" color="gray.500">
+                  <HStack spacing={2} mt={3} fontSize="12px" color={textColorMuted}>
                     <Avatar
                       size="xs"
                       name={g.criador?.nome || 'Gestor'}
@@ -228,11 +232,11 @@ export function MeusGrupos() {
       {/* Modal Criar Grupo */}
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay backdropFilter="blur(4px)" />
-        <ModalContent borderRadius="xl" as="form" onSubmit={handleCriarGrupo}>
-          <ModalHeader fontSize="18px">Criar Grupo de Amigos</ModalHeader>
+        <ModalContent bg={cardBg} borderRadius="xl" as="form" onSubmit={handleCriarGrupo}>
+          <ModalHeader fontSize="18px" color={textPrimary}>Criar Grupo de Amigos</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <Text fontSize="13px" color="gray.500" mb={4}>
+            <Text fontSize="13px" color={textColorMuted} mb={4}>
               Dê um nome para a sua resenha ou liga de amigos. Você poderá convidar os participantes através de um link!
             </Text>
             <Input
