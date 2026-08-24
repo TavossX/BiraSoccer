@@ -6,7 +6,8 @@ import {
   Image,
   Text,
   VStack,
-  useDisclosure
+  useDisclosure,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { SVGViewer, SingleEliminationBracket, DoubleEliminationBracket } from '@g-loot/react-tournament-brackets';
 import { useMemo, useState } from 'react';
@@ -34,6 +35,14 @@ function CustomMatchComponent({ match }: any) {
   const partidaBase = realMatches && realMatches.length > 0 ? realMatches[0] : null;
   const partidaVolta = isIdaEVolta && realMatches && realMatches.length > 1 ? realMatches[1] : null;
 
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const headerBg = useColorModeValue('gray.100', 'gray.700');
+  const headerText = useColorModeValue('gray.700', 'gray.200');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const dividerColor = useColorModeValue('gray.200', 'gray.700');
+
   const canClick = !isReadOnly && partidaBase && !partidaBase.finalizada && partidaBase.participanteBId !== 'BYE';
 
   // Se nao existe partidaBase, é um slot vazio (A DEFINIR)
@@ -42,21 +51,21 @@ function CustomMatchComponent({ match }: any) {
       <Box
         borderRadius="lg"
         boxShadow="sm"
-        bg="white"
+        bg={cardBg}
         p={2}
         w="220px"
         border="1px solid"
-        borderColor="gray.200"
+        borderColor={useColorModeValue('gray.300', 'gray.600')}
       >
         <VStack spacing={2} align="stretch">
           <Flex justify="space-between" align="center" px={2} py={1}>
-            <Text fontSize="12px" fontWeight="bold" color="gray.400">A Definir</Text>
-            <Text fontSize="12px" color="gray.400">—</Text>
+            <Text fontSize="12px" fontWeight="bold" color={textSecondary}>A Definir</Text>
+            <Text fontSize="12px" color={textSecondary}>—</Text>
           </Flex>
-          <Box h="1px" bg="gray.100" />
+          <Box h="1px" bg={dividerColor} />
           <Flex justify="space-between" align="center" px={2} py={1}>
-            <Text fontSize="12px" fontWeight="bold" color="gray.400">A Definir</Text>
-            <Text fontSize="12px" color="gray.400">—</Text>
+            <Text fontSize="12px" fontWeight="bold" color={textSecondary}>A Definir</Text>
+            <Text fontSize="12px" color={textSecondary}>—</Text>
           </Flex>
         </VStack>
       </Box>
@@ -91,62 +100,62 @@ function CustomMatchComponent({ match }: any) {
     <Box
       borderRadius="lg"
       boxShadow={canClick ? "md" : "sm"}
-      bg="white"
+      bg={cardBg}
       w="240px"
       border="1px solid"
-      borderColor={canClick ? "gray.300" : "gray.200"}
+      borderColor={canClick ? useColorModeValue('gray.300', 'gray.600') : cardBorder}
       cursor={canClick ? "pointer" : "default"}
       onClick={() => canClick && onAbrir(partidaBase)}
       transition="all 0.1s"
       _hover={canClick ? { borderColor: "#F94A29", boxShadow: "lg" } : {}}
       overflow="hidden"
     >
-      <Box bg="gray.50" px={2} py={1} borderBottom="1px solid" borderColor="gray.100" display="flex" justifyContent="space-between" alignItems="center">
+      <Box bg={headerBg} px={2} py={1} borderBottom="1px solid" borderColor={dividerColor} display="flex" justifyContent="space-between" alignItems="center">
         <HStack spacing={1}>
-          <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">
+          <Text fontSize="10px" fontWeight="extrabold" color={headerText} textTransform="uppercase">
             {FASES_LABEL[partidaBase.fase as FaseMataMata] ?? 'Fase'}
           </Text>
           {partidaBase.bracket && (
-            <Badge fontSize="8px" colorScheme={partidaBase.bracket === 'UPPER' ? 'blue' : 'purple'} variant="subtle">
+            <Badge fontSize="8px" colorScheme={partidaBase.bracket === 'UPPER' ? 'blue' : 'purple'} variant="solid">
               {partidaBase.bracket === 'UPPER' ? 'UB' : 'LB'}
             </Badge>
           )}
           {partidaBase.isLuckyLoser && (
-            <Badge fontSize="8px" colorScheme="yellow" variant="solid">
-              LUCKY LOSER
+            <Badge fontSize="8px" bg="#FEF3C7" color="#92400E" border="1px solid #F59E0B" fontWeight="extrabold">
+              ⭐ LUCKY LOSER
             </Badge>
           )}
-          {isIdaEVolta ? (partidaBase.finalizada && !partidaVolta?.finalizada ? <Text fontSize="9px" color="gray.400" ml={1}>(Volta pend.)</Text> : null) : null}
+          {isIdaEVolta ? (partidaBase.finalizada && !partidaVolta?.finalizada ? <Text fontSize="9px" color={textSecondary} ml={1}>(Volta pend.)</Text> : null) : null}
         </HStack>
         {isFinalizada ? (
-          <Badge fontSize="9px" border="1px solid" borderColor="gray.200">FIM</Badge>
+          <Badge fontSize="9px" colorScheme="gray" variant="solid">FIM</Badge>
         ) : !isReadOnly ? (
-          <Badge color="#000" border="1px solid #C3c3c3" fontSize="9px">LANÇAR</Badge>
+          <Badge colorScheme="orange" variant="solid" fontSize="9px">LANÇAR</Badge>
         ) : null}
       </Box>
       <VStack spacing={0} align="stretch">
         {/* Part A */}
         <Flex
           justify="space-between" align="center" px={3} py={2}
-          bg={aVenceu ? "orange.50" : "transparent"}
+          bg={aVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
         >
           <HStack spacing={2} overflow="hidden">
             {pA?.logoTime && <Image src={pA.logoTime} boxSize="20px" objectFit="contain" />}
             <VStack align="flex-start" spacing={0} overflow="hidden">
               <Text
                 fontSize="13px"
-                fontWeight={aVenceu ? "extrabold" : "medium"}
-                color={aVenceu ? "#F94A29" : (bVenceu ? "gray.400" : "gray.700")}
+                fontWeight={aVenceu ? "extrabold" : "bold"}
+                color={aVenceu ? "#F94A29" : textPrimary}
                 noOfLines={1}
               >
                 {pA?.nomeAmigo ?? '?'}
               </Text>
               {pA?.timeSorteado && (
                 <Text
-                  fontSize="10px"
-                  color={aVenceu ? "#F94A29" : (bVenceu ? "gray.300" : "gray.500")}
+                  fontSize="11px"
+                  fontWeight={500}
+                  color={aVenceu ? "brand.600" : textSecondary}
                   noOfLines={1}
-                  opacity={0.9}
                 >
                   {pA.timeSorteado}
                 </Text>
@@ -154,38 +163,38 @@ function CustomMatchComponent({ match }: any) {
             </VStack>
           </HStack>
           <Text
-            fontSize="14px"
-            fontWeight={aVenceu ? "extrabold" : "medium"}
-            color={aVenceu ? "#F94A29" : (bVenceu ? "gray.400" : "gray.700")}
+            fontSize="15px"
+            fontWeight={aVenceu ? "extrabold" : "bold"}
+            color={aVenceu ? "#F94A29" : textPrimary}
           >
             {partidaBase.placarA !== null ? golsA : '-'}
           </Text>
         </Flex>
         
-        <Box h="1px" bg="gray.100" />
+        <Box h="1px" bg={dividerColor} />
 
         {/* Part B */}
         <Flex
           justify="space-between" align="center" px={3} py={2}
-          bg={bVenceu ? "orange.50" : "transparent"}
+          bg={bVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
         >
           <HStack spacing={2} overflow="hidden">
             {pB?.logoTime && <Image src={pB.logoTime} boxSize="20px" objectFit="contain" />}
             <VStack align="flex-start" spacing={0} overflow="hidden">
               <Text
                 fontSize="13px"
-                fontWeight={bVenceu ? "extrabold" : "medium"}
-                color={bVenceu ? "#F94A29" : (aVenceu ? "gray.400" : "gray.700")}
+                fontWeight={bVenceu ? "extrabold" : "bold"}
+                color={bVenceu ? "#F94A29" : textPrimary}
                 noOfLines={1}
               >
                 {isBye ? "BYE" : (pB?.nomeAmigo ?? '?')}
               </Text>
               {pB?.timeSorteado && !isBye && (
                 <Text
-                  fontSize="10px"
-                  color={bVenceu ? "#F94A29" : (aVenceu ? "gray.300" : "gray.500")}
+                  fontSize="11px"
+                  fontWeight={500}
+                  color={bVenceu ? "brand.600" : textSecondary}
                   noOfLines={1}
-                  opacity={0.9}
                 >
                   {pB.timeSorteado}
                 </Text>
@@ -193,17 +202,17 @@ function CustomMatchComponent({ match }: any) {
             </VStack>
           </HStack>
           <Text
-            fontSize="14px"
-            fontWeight={bVenceu ? "extrabold" : "medium"}
-            color={bVenceu ? "#F94A29" : (aVenceu ? "gray.400" : "gray.700")}
+            fontSize="15px"
+            fontWeight={bVenceu ? "extrabold" : "bold"}
+            color={bVenceu ? "#F94A29" : textPrimary}
           >
             {isBye ? '-' : (partidaBase.placarB !== null ? golsB : '-')}
           </Text>
         </Flex>
       </VStack>
       {partidaFinal.penaltisA !== null && partidaFinal.penaltisB !== null && (
-        <Box bg="gray.50" px={2} py={1} borderTop="1px solid" borderColor="gray.100" textAlign="center">
-          <Text fontSize="10px" fontWeight="bold" color="gray.500">
+        <Box bg={headerBg} px={2} py={1} borderTop="1px solid" borderColor={dividerColor} textAlign="center">
+          <Text fontSize="11px" fontWeight="extrabold" color={headerText}>
             PEN: {partidaFinal.penaltisA} x {partidaFinal.penaltisB}
           </Text>
         </Box>
@@ -235,12 +244,18 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
 
   if (perdedor3) others.unshift(perdedor3);
 
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const dividerColor = useColorModeValue('gray.100', 'gray.700');
+
   const PodiumCard = ({ p, position, height, bg, iconColor, title }: any) => (
     <VStack 
       w={{ base: "130px", md: "170px" }} 
-      bg="white" 
+      bg={cardBg} 
       border="1px solid" 
-      borderColor="gray.200" 
+      borderColor={cardBorder} 
       borderRadius="lg" 
       boxShadow="md" 
       p={3}
@@ -273,19 +288,19 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
         onClick={() => p?.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
         _hover={p?.usuarioId ? { opacity: 0.8 } : undefined}
       >
-        <Text fontSize="sm" fontWeight="extrabold" textAlign="center" noOfLines={1} color={position === 1 ? "#F94A29" : "gray.700"}>
+        <Text fontSize="sm" fontWeight="extrabold" textAlign="center" noOfLines={1} color={position === 1 ? "#F94A29" : textPrimary}>
           {p?.nomeAmigo ?? '???'}
         </Text>
         <HStack spacing={1}>
            {p?.logoTime && <Image src={p.logoTime} boxSize="12px" />}
-           <Text fontSize="xs" color="gray.500" noOfLines={1}>{p?.timeSorteado}</Text>
+           <Text fontSize="xs" fontWeight="500" color={textSecondary} noOfLines={1}>{p?.timeSorteado}</Text>
         </HStack>
       </VStack>
       <HStack>
          <Badge colorScheme="green" fontSize="9px">{p?.vitorias || 0}V</Badge>
          <Badge colorScheme="blue" fontSize="9px">{p?.golsPro || 0}GP</Badge>
       </HStack>
-      <Text fontSize="xs" fontWeight="bold" color="gray.400">{title}</Text>
+      <Text fontSize="xs" fontWeight="extrabold" color={useColorModeValue('gray.700', 'gray.300')}>{title}</Text>
     </VStack>
   );
 
@@ -293,7 +308,7 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
     <Box pt={10} pb={20}>
       <VStack spacing={2} mb={10}>
          <Text fontSize="2xl" fontWeight="extrabold" color="#F94A29">TORNEIO ENCERRADO</Text>
-         <Text color="gray.500">Confira a classificação final</Text>
+         <Text color={textSecondary} fontWeight="500">Confira a classificação final</Text>
       </VStack>
 
       <Flex align="flex-end" justify="center" gap={{ base: 2, md: 6 }} minH="320px" mb={12}>
@@ -303,22 +318,22 @@ function TelaPodio({ partidas, participantes }: { partidas: Partida[], participa
       </Flex>
 
       {others.length > 0 && (
-         <Box maxW="600px" mx="auto" bg="white" borderRadius="lg" p={5} boxShadow="sm" border="1px solid" borderColor="gray.200">
-            <Text fontWeight="bold" mb={4} color="gray.600">Outras Colocações</Text>
+         <Box maxW="600px" mx="auto" bg={cardBg} borderRadius="lg" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorder}>
+            <Text fontWeight="bold" mb={4} color={textPrimary}>Outras Colocações</Text>
             <VStack spacing={3} align="stretch">
                {others.map((p, i) => (
-                  <Flex key={p.id} justify="space-between" align="center" py={2} borderBottom="1px solid" borderColor="gray.100">
+                  <Flex key={p.id} justify="space-between" align="center" py={2} borderBottom="1px solid" borderColor={dividerColor}>
                      <HStack spacing={3}>
-                        <Text fontWeight="bold" color="gray.400" w="24px">{i + 4}º</Text>
+                        <Text fontWeight="bold" color={textSecondary} w="24px">{i + 4}º</Text>
                         <HStack>
                            {p?.logoTime && <Image src={p.logoTime} boxSize="16px" />}
-                           <Text fontWeight="medium">{p?.nomeAmigo}</Text>
-                           <Text fontSize="xs" color="gray.400">({p?.timeSorteado})</Text>
+                           <Text fontWeight="bold" color={textPrimary}>{p?.nomeAmigo}</Text>
+                           <Text fontSize="xs" color={textSecondary}>({p?.timeSorteado})</Text>
                         </HStack>
                      </HStack>
                      <HStack>
-                        <Badge colorScheme="gray">{p?.vitorias || 0} V</Badge>
-                        <Badge colorScheme="gray">{p?.golsPro || 0} GP</Badge>
+                        <Badge colorScheme="green" variant="subtle">{p?.vitorias || 0} V</Badge>
+                        <Badge colorScheme="blue" variant="subtle">{p?.golsPro || 0} GP</Badge>
                      </HStack>
                   </Flex>
                ))}
@@ -592,7 +607,7 @@ export function Chaveamento({ isReadOnly = false }: { isReadOnly?: boolean }) {
                    color="orange.500"
                    fontWeight="bold"
                  >
-                   🏆 Grande Final
+                   Grande Final
                  </Text>
                  <HStack spacing={6}>
                    {grandFinalCards.map(m => (
@@ -634,8 +649,8 @@ export function Chaveamento({ isReadOnly = false }: { isReadOnly?: boolean }) {
                textTransform="uppercase"
                letterSpacing="wide"
                mb={3}
-               color="gray.500"
-               fontWeight="bold"
+               color={useColorModeValue('gray.700', 'gray.300')}
+               fontWeight="extrabold"
             >
                Disputa de 3º Lugar
             </Text>

@@ -42,6 +42,9 @@ export function MeusTimes() {
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorder = useColorModeValue('gray.200', 'gray.700');
   const hoverShadow = useColorModeValue('lg', 'dark-lg');
+  const textColorMuted = useColorModeValue('gray.600', 'gray.400');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const headerBg = useColorModeValue('white', 'gray.900');
 
   const fetchTimes = useCallback(async () => {
     setLoading(true);
@@ -101,8 +104,7 @@ export function MeusTimes() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <Box
         as="header"
-        bg="white"
-        _dark={{ bg: 'gray.900' }}
+        bg={headerBg}
         boxShadow="lg"
         position="sticky"
         top={0}
@@ -152,22 +154,24 @@ export function MeusTimes() {
       <Box maxW="1200px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 10 }}>
         {/* Saudação */}
         <Box
-          boxShadow="md"
+          bg={cardBg}
+          boxShadow="sm"
           px={6}
           py={4}
           mb={8}
           border="1px solid"
-          borderRadius="5px"
+          borderColor={cardBorder}
+          borderRadius="lg"
         >
           <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
             <VStack align="flex-start" spacing={0}>
               <HStack spacing={2} align="center">
                 <Box as={FiShield} size="24px" color="brand.500" />
-                <Heading fontFamily="heading" fontSize={{ base: '22px', md: '30px' }}>
+                <Heading fontFamily="heading" fontSize={{ base: '22px', md: '30px' }} color={textPrimary}>
                   Meus Times
                 </Heading>
               </HStack>
-              <Text fontSize="12px" mt={1}>
+              <Text fontSize="13px" color={textColorMuted} mt={1}>
                 Gerencie seus times personalizados com escudos customizados.
               </Text>
             </VStack>
@@ -185,15 +189,18 @@ export function MeusTimes() {
         {/* Stat card */}
         <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4} mb={8}>
           <Box
+            bg={cardBg}
             border="1px solid"
-            borderRadius="5px"
-            boxShadow="md"
+            borderColor={cardBorder}
+            borderRadius="lg"
+            boxShadow="sm"
             p={5}
           >
             <Stat>
               <StatLabel
                 fontSize="12px"
                 fontWeight={700}
+                color={textColorMuted}
                 textTransform="uppercase"
                 letterSpacing="wide"
               >
@@ -202,7 +209,8 @@ export function MeusTimes() {
               <StatNumber
                 fontFamily="heading"
                 fontSize="3xl"
-                fontWeight={700}
+                fontWeight={900}
+                color={textPrimary}
                 lineHeight="1.2"
               >
                 {times.length}
@@ -216,24 +224,25 @@ export function MeusTimes() {
           h="4px"
           bg="linear-gradient(90deg, #C80000, #F94A29, #FDBB00, #F94A29, #C80000)"
           mb={8}
+          borderRadius="full"
         />
 
         {/* Grid de times */}
         {loading ? (
           <Flex justify="center" py={10}>
             <VStack spacing={3}>
-              <Spinner size="xl" thickness="4px" />
-              <Text fontSize="12px">CARREGANDO...</Text>
+              <Spinner size="xl" thickness="4px" color="brand.500" />
+              <Text fontSize="12px" color={textColorMuted}>CARREGANDO...</Text>
             </VStack>
           </Flex>
         ) : times.length === 0 ? (
-          <Box boxShadow="md" p={10} textAlign="center">
+          <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="lg" boxShadow="sm" p={10} textAlign="center">
             <VStack spacing={4}>
               <Box as={FiShield} size="48px" color="gray.400" />
-              <Text fontSize="sm" fontWeight={500}>
+              <Text fontSize="md" fontWeight={700} color={textPrimary}>
                 Você ainda não possui nenhum time personalizado.
               </Text>
-              <Text fontSize="xs" color="gray.500">
+              <Text fontSize="13px" color={textColorMuted}>
                 Crie seu primeiro time com escudo customizado!
               </Text>
               <Button
@@ -253,13 +262,14 @@ export function MeusTimes() {
                 bg={cardBg}
                 border="1px solid"
                 borderColor={cardBorder}
-                borderRadius="md"
-                boxShadow="md"
+                borderRadius="lg"
+                boxShadow="sm"
                 overflow="hidden"
                 transition="all 0.25s ease"
                 _hover={{
                   transform: 'translateY(-4px)',
                   boxShadow: hoverShadow,
+                  borderColor: 'brand.500',
                 }}
               >
                 {/* Barra decorativa topo */}
@@ -293,6 +303,7 @@ export function MeusTimes() {
                     fontFamily="heading"
                     fontWeight={700}
                     fontSize="sm"
+                    color={textPrimary}
                     textAlign="center"
                     noOfLines={2}
                   >
@@ -300,7 +311,7 @@ export function MeusTimes() {
                   </Text>
 
                   {/* Data de criação */}
-                  <Text fontSize="xs" color="gray.500">
+                  <Text fontSize="xs" color={textColorMuted}>
                     {new Date(time.created_at).toLocaleDateString()}
                   </Text>
 
@@ -336,16 +347,16 @@ export function MeusTimes() {
         )}
       </Box>
 
-      {/* Modal Criar/Editar */}
+      {/* Modal Criar / Editar Time */}
       <ModalCriarTime
         isOpen={isOpen}
         onClose={() => {
           setTimeParaEditar(null);
           onClose();
         }}
-        userId={userId}
-        onTimeSalvo={handleTimeSalvo}
         timeParaEditar={timeParaEditar}
+        onTimeSalvo={handleTimeSalvo}
+        userId={userId}
       />
     </Box>
   );

@@ -55,7 +55,8 @@ export function CompletarPerfil() {
   const [saving, setSaving] = useState(false);
 
   const cardBg = useColorModeValue('white', 'gray.800');
-  const textColorMuted = useColorModeValue('gray.500', 'gray.400');
+  const textColorMuted = useColorModeValue('gray.600', 'gray.400');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -141,7 +142,7 @@ export function CompletarPerfil() {
       });
 
       toast({
-        title: '✅ Perfil atualizado!',
+        title: 'Perfil atualizado!',
         status: 'success',
         duration: 3000,
         position: 'top',
@@ -176,8 +177,8 @@ export function CompletarPerfil() {
         </Flex>
 
         <VStack spacing={2} textAlign="center" mb={6}>
-          <Heading fontSize={{ base: '20px', md: '24px' }}>Completar Seu Perfil</Heading>
-          <Text fontSize="13px" color="gray.500">
+          <Heading fontSize={{ base: '20px', md: '24px' }} color={textPrimary}>Completar Seu Perfil</Heading>
+          <Text fontSize="13px" color={textColorMuted}>
             Configure seu apelido e foto para que seus amigos te identifiquem nos campeonatos.
           </Text>
         </VStack>
@@ -265,7 +266,7 @@ export function CompletarPerfil() {
               )}
             </Box>
             <Box mt={4}>
-              <Text fontSize="12px" color="gray.500" mb={1}>
+              <Text fontSize="12px" color={textColorMuted} fontWeight={600} mb={1}>
                 Zoom
               </Text>
               <Slider value={zoom} min={1} max={3} step={0.1} onChange={(v) => setZoom(v)}>

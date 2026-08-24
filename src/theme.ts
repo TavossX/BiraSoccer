@@ -17,7 +17,14 @@ const colors = {
     700: '#942a14',
     800: '#621a09',
     900: '#310a01',
+    orange: '#f94a29',
+    red: '#e53e3e',
     mustard: '#FDBB00',
+    cardBg: '#ffffff',
+    cardBgAlt: '#f1f5f9',
+    textMain: '#1e293b',
+    textMuted: '#64748b',
+    textMutedToken: '#64748b',
   },
 };
 
@@ -30,7 +37,7 @@ const styles = {
   global: (props: any) => ({
     body: {
       bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
-      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.600',
+      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
     },
   }),
 };
@@ -47,32 +54,58 @@ const components = {
   },
   Input: {
     variants: {
-      outline: {
+      outline: (props: any) => ({
         field: {
           borderRadius: 'md',
+          borderColor: props.colorMode === 'dark' ? 'gray.600' : 'gray.300',
+          bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+          color: props.colorMode === 'dark' ? 'gray.100' : 'gray.900',
+          _hover: {
+            borderColor: props.colorMode === 'dark' ? 'gray.500' : 'gray.400',
+          },
+          _focus: {
+            borderColor: 'brand.500',
+            boxShadow: '0 0 0 1px #f94a29',
+          },
         },
-      },
+      }),
     },
   },
   NumberInput: {
     variants: {
-      outline: {
+      outline: (props: any) => ({
         field: {
           borderRadius: 'md',
+          borderColor: props.colorMode === 'dark' ? 'gray.600' : 'gray.300',
+          bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+          color: props.colorMode === 'dark' ? 'gray.100' : 'gray.900',
+          _focus: {
+            borderColor: 'brand.500',
+            boxShadow: '0 0 0 1px #f94a29',
+          },
         },
         stepper: {
           borderRadius: 'md',
+          borderColor: props.colorMode === 'dark' ? 'gray.600' : 'gray.300',
+          color: props.colorMode === 'dark' ? 'gray.200' : 'gray.700',
         },
-      },
+      }),
     },
   },
   Select: {
     variants: {
-      outline: {
+      outline: (props: any) => ({
         field: {
           borderRadius: 'md',
+          borderColor: props.colorMode === 'dark' ? 'gray.600' : 'gray.300',
+          bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+          color: props.colorMode === 'dark' ? 'gray.100' : 'gray.900',
+          _focus: {
+            borderColor: 'brand.500',
+            boxShadow: '0 0 0 1px #f94a29',
+          },
         },
-      },
+      }),
     },
   },
   Card: {
@@ -80,18 +113,22 @@ const components = {
       container: {
         borderRadius: 'lg',
         boxShadow: 'sm',
+        borderWidth: '1px',
+        borderColor: props.colorMode === 'dark' ? 'gray.700' : 'gray.200',
         bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
-      }
-    })
+        color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+      },
+    }),
   },
   Modal: {
     baseStyle: (props: any) => ({
       dialog: {
         borderRadius: 'lg',
         bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
-      }
-    })
-  }
+        color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+      },
+    }),
+  },
 };
 
 export const theme = extendTheme({ config, colors, fonts, styles, components });

@@ -87,7 +87,7 @@ export function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({
-        title: '⛔ Falha no login.',
+        title: 'Falha no login.',
         description: error.message,
         status: 'error',
         duration: 4000,
@@ -97,7 +97,7 @@ export function Login() {
       return;
     }
     toast({
-      title: '✅ Bem-vindo de volta!',
+      title: 'Bem-vindo de volta!',
       status: 'success',
       duration: 2000,
       isClosable: true,
@@ -120,7 +120,7 @@ export function Login() {
 
     if (error) {
       toast({
-        title: '⛔ Erro ao solicitar redefinição.',
+        title: 'Erro ao solicitar redefinição.',
         description: error.message,
         status: 'error',
         duration: 5000,
@@ -131,7 +131,7 @@ export function Login() {
     }
 
     toast({
-      title: '📧 E-mail enviado!',
+      title: 'E-mail enviado!',
       description: 'Verifique sua caixa de entrada para redefinir sua senha.',
       status: 'success',
       duration: 6000,

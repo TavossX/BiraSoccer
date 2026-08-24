@@ -17,6 +17,9 @@ export function ConviteGrupo() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textColorMuted = useColorModeValue('gray.600', 'gray.400');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
 
   useEffect(() => {
     const processarConvite = async () => {
@@ -45,7 +48,7 @@ export function ConviteGrupo() {
         // Guarda no localStorage e redireciona para login
         localStorage.setItem('pending_invite_token', token);
         toast({
-          title: '🔐 Faça login ou cadastre-se',
+          title: 'Faça login ou cadastre-se',
           description: `Entre na sua conta para se juntar ao grupo "${conv.grupo?.nome}".`,
           status: 'info',
           duration: 6000,
@@ -61,7 +64,7 @@ export function ConviteGrupo() {
 
       if (res.sucesso) {
         toast({
-          title: '🎉 Sucesso!',
+          title: 'Sucesso!',
           description: res.mensagem || 'Você agora é membro do grupo!',
           status: 'success',
           duration: 4000,
@@ -85,7 +88,7 @@ export function ConviteGrupo() {
     return (
       <Flex minH="100vh" align="center" justify="center" direction="column" gap={4}>
         <Spinner size="xl" color="brand.500" thickness="4px" />
-        <Text fontSize="14px" color="gray.500">
+        <Text fontSize="14px" color={textColorMuted}>
           Processando convite de grupo...
         </Text>
       </Flex>
@@ -94,7 +97,7 @@ export function ConviteGrupo() {
 
   return (
     <Flex minH="100vh" align="center" justify="center" px={4} py={10}>
-      <Box w="full" maxW="460px" bg={cardBg} borderRadius="xl" boxShadow="xl" p={8} textAlign="center">
+      <Box w="full" maxW="460px" bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" boxShadow="xl" p={8} textAlign="center">
         <Flex justify="space-between" align="center" mb={6}>
           <Image src={LogoCompleta} alt="EAFC26 Cup" h="44px" objectFit="contain" />
           <ThemeToggle />
@@ -105,7 +108,7 @@ export function ConviteGrupo() {
             <Heading fontSize="20px" color="red.500">
               Convite Indisponível
             </Heading>
-            <Text fontSize="14px" color="gray.500">
+            <Text fontSize="14px" color={textColorMuted}>
               {errorMsg}
             </Text>
             <Button colorScheme="brand" onClick={() => navigate('/dashboard')}>
@@ -114,8 +117,8 @@ export function ConviteGrupo() {
           </VStack>
         ) : (
           <VStack spacing={5}>
-            <Heading fontSize="20px">Convite de Grupo</Heading>
-            <Text fontSize="14px" color="gray.500">
+            <Heading fontSize="20px" color={textPrimary}>Convite de Grupo</Heading>
+            <Text fontSize="14px" color={textColorMuted}>
               Você foi convidado para se juntar ao grupo <strong>{convite?.grupo?.nome}</strong>.
             </Text>
             <Button

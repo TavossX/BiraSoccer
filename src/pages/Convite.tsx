@@ -16,20 +16,18 @@ import {
   Text,
   useToast,
   VStack,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import LogoBola from '../assets/logos/LogoBola.png';
 import { Chaveamento } from '../components/Chaveamento';
 import { TabelaClassificacao } from '../components/TabelaClassificacao';
+import { DraftLobby } from '../components/DraftLobby';
 import { supabase } from '../lib/supabase';
 import { useTorneioStore } from '../store/torneioStore';
 import { FiRefreshCw as RefreshIcon } from 'react-icons/fi';
 
-// ─── Ícones SVG ───────────────────────────────────────────────────────────────
-
-
-// ─── Página ───────────────────────────────────────────────────────────────────
 export function Convite() {
   const { campeonatoId } = useParams<{ campeonatoId: string }>();
   const navigate = useNavigate();
@@ -42,7 +40,13 @@ export function Convite() {
   const [atualizando, setAtualizando] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(true);
 
-  // Progresso calculado reativamente (antes dos returns condicionais)
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const headerBg = useColorModeValue('white', 'gray.900');
+
+  // Progresso calculado reativamente
   const totalFinalizados = partidas.filter((p) => p.finalizada).length;
   const totalPartidas    = partidas.length;
   const progresso        = totalPartidas > 0 ? Math.round((totalFinalizados / totalPartidas) * 100) : 0;
@@ -68,7 +72,7 @@ export function Convite() {
     if (showToast) {
       setAtualizando(false);
       toast({
-        title: result ? '✅ Dados atualizados!' : '⛔ Erro ao atualizar',
+        title: result ? 'Dados atualizados!' : 'Erro ao atualizar',
         status: result ? 'success' : 'error',
         duration: 2000,
         position: 'top',
@@ -87,16 +91,15 @@ export function Convite() {
       carregar(false, true);
     }, 10000);
 
-    // Limpeza: remove o timer ao sair
     return () => clearInterval(interval);
   }, [campeonatoId]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (status === 'carregando') {
     return (
-      <Flex minH="100vh"  align="center" justify="center" direction="column" gap={4}>
-        <Spinner size="xl"  thickness="4px" speed="0.8s" />
-        <Text fontSize="12px" >CARREGANDO TORNEIO...</Text>
+      <Flex minH="100vh" align="center" justify="center" direction="column" gap={4}>
+        <Spinner size="xl" color="brand.500" thickness="4px" speed="0.8s" />
+        <Text fontSize="12px" color={textSecondary}>CARREGANDO TORNEIO...</Text>
       </Flex>
     );
   }
@@ -104,22 +107,25 @@ export function Convite() {
   // ── Erro ───────────────────────────────────────────────────────────────────
   if (status === 'erro' || !torneio) {
     return (
-      <Flex minH="100vh"  align="center" justify="center" px={4}>
+      <Flex minH="100vh" align="center" justify="center" px={4}>
         <Box
           maxW="400px" w="full" 
-           
-          boxShadow="md"
+          bg={cardBg}
+          border="1px solid"
+          borderColor={cardBorder}
+          borderRadius="lg"
+          boxShadow="sm"
           p={8} textAlign="center"
         >
-          <Heading fontFamily="heading" fontSize="20px"  mb={3}>Torneio não encontrado</Heading>
-          <Text fontSize="12px"  mb={6} lineHeight="1.8">
+          <Heading fontFamily="heading" fontSize="20px" color={textPrimary} mb={3}>Torneio não encontrado</Heading>
+          <Text fontSize="12px" color={textSecondary} mb={6} lineHeight="1.8">
             Este link pode estar incorreto ou o torneio ainda não foi publicado.
           </Text>
           <VStack spacing={3}>
-            <Button w="full" onClick={() => carregar()} variant="arcade" fontSize="11px">
-              ▶ TENTAR NOVAMENTE
+            <Button w="full" onClick={() => carregar()} colorScheme="brand" size="md">
+              TENTAR NOVAMENTE
             </Button>
-            <Button w="full" variant="outline" fontSize="10px"
+            <Button w="full" variant="outline" size="sm"
               onClick={() => navigate('/torneio/configurar')}>
               CRIAR MEU TORNEIO
             </Button>
@@ -129,16 +135,21 @@ export function Convite() {
     );
   }
 
+  // ── Se o torneio estiver aguardando draft, renderiza a sala de draft em tempo real ─
+  if (torneio.status === 'aguardando_draft') {
+    return <DraftLobby torneioId={campeonatoId || torneio.id} isReadOnly={false} />;
+  }
+
   // ── Torneio carregado ─────────────────────────────────────────────────────
 
   return (
-    <Box minH="100vh" >
-      {/* Header somente leitura */}
+    <Box minH="100vh">
+      {/* Header */}
       <Box
-        
-        borderBottom="3px solid"
-        bg="#171923"
+        bg={headerBg}
         boxShadow="md"
+        borderBottom="1px solid"
+        borderColor={cardBorder}
         position="sticky" top={0} zIndex={100}
       >
         <Flex
@@ -146,19 +157,19 @@ export function Convite() {
           align="center" justify="space-between" gap={3}
         >
           <HStack spacing={3}>
-            <Image src={LogoBola} alt="EAFC26 Cup" h="32px"  />
+            <Image src={LogoBola} alt="EAFC26 Cup" h="32px" />
             <VStack spacing={0} align="flex-start">
-              <Heading fontFamily="heading" fontSize={{ base: '15px', md: '19px' }}  lineHeight="1.1">{torneio.nome}</Heading>
+              <Heading fontFamily="heading" fontSize={{ base: '15px', md: '19px' }} color={textPrimary} lineHeight="1.1">{torneio.nome}</Heading>
               <HStack spacing={2}>
                 <Badge
-                   color="#000"
-                  border="1px solid #C3c3c3"
+                  colorScheme="orange"
+                  variant="subtle"
                   fontSize="10px" px={2}
                 >
                   {torneio.formato === 'liga' ? 'LIGA' : torneio.formato === 'liga_com_playoffs' ? 'LIGA + PLAYOFFS' : 'MATA-MATA'}
                 </Badge>
                 {isReadOnly && (
-                  <Badge bg="transparent" border="1px solid"   fontSize="10px" px={2}>
+                  <Badge colorScheme="purple" variant="outline" fontSize="10px" px={2}>
                     SOMENTE LEITURA
                   </Badge>
                 )}
@@ -178,9 +189,8 @@ export function Convite() {
               id="btn-atualizar"
               leftIcon={<RefreshIcon /> as any}
               size="sm"
-              variant="ghost"
-              
-              _hover={{ color: 'white', bg: 'brand.cardBg' }}
+              variant="solid"
+              colorScheme="orange"
               isLoading={atualizando}
               loadingText="ATUALIZANDO..."
               onClick={() => carregar(true)}
@@ -197,14 +207,14 @@ export function Convite() {
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>
-            <Text fontSize="12px" >
+            <Text fontSize="12px" fontWeight={600} color={textSecondary}>
               PROGRESSO DO TORNEIO
             </Text>
-            <Text fontSize="12px"  fontWeight={700}>
+            <Text fontSize="12px" fontWeight={700} color={textPrimary}>
               {totalFinalizados}/{totalPartidas} ({progresso}%)
             </Text>
           </HStack>
-          <Box w="full" h="8px"  border="1px solid"  overflow="hidden">
+          <Box w="full" h="8px" bg={useColorModeValue('gray.200', 'gray.700')} borderRadius="full" overflow="hidden">
             <Box
               h="full"
               w={`${progresso}%`}
@@ -217,11 +227,14 @@ export function Convite() {
         {/* Participantes */}
         <Box
           mb={6} 
-           
-          boxShadow="md"
+          bg={cardBg}
+          border="1px solid"
+          borderColor={cardBorder}
+          borderRadius="lg"
+          boxShadow="sm"
           p={4}
         >
-          <Text fontSize="12px"  fontWeight={700}
+          <Text fontSize="12px" fontWeight={700} color={textSecondary}
             textTransform="uppercase" letterSpacing="wide" mb={3}>
             {participantes.length} PARTICIPANTES
           </Text>
@@ -229,13 +242,15 @@ export function Convite() {
             {participantes.map((p) => (
               <HStack
                 key={p.id}
-                
+                bg={useColorModeValue('gray.50', 'gray.750')}
                 border="1px solid" 
+                borderColor={cardBorder}
+                borderRadius="md"
                 px={3} py={1}
                 spacing={2}
               >
-                <Text fontFamily="heading" fontSize="12px" >{p.nomeAmigo}</Text>
-                <Badge bg="transparent" border="1px solid"   fontSize="10px" px={2}>
+                <Text fontFamily="heading" fontSize="12px" fontWeight={600} color={textPrimary}>{p.nomeAmigo}</Text>
+                <Badge bg="transparent" border="1px solid" borderColor={cardBorder} color={textSecondary} fontSize="10px" px={2}>
                   {p.timeSorteado}
                 </Badge>
               </HStack>
@@ -248,25 +263,25 @@ export function Convite() {
         {/* Conteúdo principal: tabela ou chaveamento */}
         {torneio.formato === 'liga' ? (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>Classificação</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={5}>Classificação</Heading>
             <TabelaClassificacao />
           </Box>
         ) : torneio.formato === 'liga_com_playoffs' ? (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={5}>Classificação</Heading>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={5}>Classificação</Heading>
             <TabelaClassificacao />
 
             {torneio.playoffsGerados && (
               <Box mt={10}>
-                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>Playoffs</Heading>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={4}>Playoffs</Heading>
                 <Chaveamento isReadOnly={isReadOnly} />
               </Box>
             )}
           </Box>
         ) : (
           <Box>
-            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={2}>Chaveamento</Heading>
-            <Text fontSize="12px"  mb={5}>
+            <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={2}>Chaveamento</Heading>
+            <Text fontSize="12px" color={textSecondary} mb={5}>
               Acompanhe os confrontos e veja quem avança de fase.
             </Text>
             <Chaveamento isReadOnly={isReadOnly} />
@@ -283,7 +298,7 @@ export function Convite() {
           return (
             <Box mt={8}>
               <Box h="2px" bg="linear-gradient(90deg,#C80000,#F94A29,#FDBB00,#F94A29,#C80000)" mb={6} />
-              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }}  mb={4}>
+              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary} mb={4}>
                 Rodadas
               </Heading>
 
@@ -297,34 +312,37 @@ export function Convite() {
                   return (
                     <AccordionItem
                       key={rodada}
+                      bg={cardBg}
+                      border="1px solid"
+                      borderColor={cardBorder}
+                      borderRadius="lg"
                       mb={3}
                       overflow="hidden"
-                      boxShadow="md"
+                      boxShadow="sm"
                     >
                       <AccordionButton
-                        _hover={{ bg: 'brand.red' }}
-                        _expanded={{ bg: 'brand.red', borderBottom: '1px solid #C3c3c3', borderColor: 'brand.mustard' }}
+                        _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
+                        _expanded={{ bg: useColorModeValue('gray.50', 'gray.750'), borderBottomWidth: '1px', borderColor: cardBorder }}
                         py={3} px={4}
                       >
                         <HStack flex={1} spacing={3}>
-                          <Text fontFamily="heading" fontSize={{ base: '14px', md: '16px' }} >
+                          <Text fontFamily="heading" fontSize={{ base: '14px', md: '16px' }} fontWeight="extrabold" color={textPrimary}>
                             RODADA {rodada}
                           </Text>
                           <Badge
-                            bg="transparent"
-                            border="1px solid"
+                            colorScheme="blue"
+                            variant="subtle"
                             fontSize="10px"
-                            color="gray.700"
-                            borderRadius="5px"
+                            borderRadius="md"
                             px={2}
                           >
                             {torneio.idaEVolta ? (isVolta ? 'VOLTA' : 'IDA') : `RD${rodada}`}
                           </Badge>
                           <Badge
-                            bg={rodadaCompleta ? 'brand.cardBgAlt' : 'brand.orange'}
-                            color={rodadaCompleta ? 'brand.textMutedToken' : 'white'}
-                            border="1px solid #C3c3c3"
+                            colorScheme={rodadaCompleta ? "green" : "orange"}
+                            variant="solid"
                             fontSize="10px"
+                            borderRadius="md"
                             px={2}
                           >
                             {finalizadosRodada}/{jogosRodada.length}
@@ -344,30 +362,32 @@ export function Convite() {
                             return (
                               <Box
                                 key={jogo.id}
-                                borderColor={jogo.finalizada ? 'brand.cardBgAlt' : 'brand.mustard'}
-                                boxShadow="md"
-                                border="1px solid #C3c3c3"
+                                bg={cardBg}
+                                border="1px solid"
+                                borderColor={cardBorder}
+                                boxShadow="sm"
                                 borderRadius="md"
                                 overflow="hidden"
                               >
                                 {/* Player A */}
                                 <Flex px={3} py={2} justify="space-between" align="center"
-                                  bg={aVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
+                                  bg={aVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
                                   borderBottom="1px solid"
+                                  borderColor={cardBorder}
                                 >
                                   <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
                                     <Text
                                       fontFamily="heading"
                                       fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
                                       fontSize={{ base: '13px', md: '14px' }}
-                                      color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                      color={aVenceu ? '#F94A29' : textPrimary}
                                       noOfLines={1}
                                     >
                                       {pA?.nomeAmigo ?? '?'}
                                     </Text>
                                     <HStack spacing={1}>
-                                      {pA?.logoTime && <Image src={pA.logoTime} boxSize="10px" objectFit="contain" opacity={bVenceu ? 0.35 : 1} />}
-                                      <Text fontSize="xs" color={aVenceu ? 'gray.600' : (bVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                      {pA?.logoTime && <Image src={pA.logoTime} boxSize="12px" objectFit="contain" opacity={bVenceu ? 0.4 : 1} />}
+                                      <Text fontSize="xs" fontWeight={500} color={aVenceu ? 'brand.600' : textSecondary} noOfLines={1}>
                                         {pA?.timeSorteado ?? '—'}
                                       </Text>
                                     </HStack>
@@ -376,7 +396,7 @@ export function Convite() {
                                     fontFamily="heading"
                                     fontWeight={aVenceu ? 900 : (bVenceu ? 500 : 700)}
                                     fontSize={{ base: '20px', md: '22px' }}
-                                    color={aVenceu ? '#F94A29' : (bVenceu ? 'gray.500' : 'brand.textMain')}
+                                    color={aVenceu ? '#F94A29' : textPrimary}
                                   >
                                     {jogo.placarA ?? '—'}
                                   </Text>
@@ -384,21 +404,21 @@ export function Convite() {
 
                                 {/* Player B */}
                                 <Flex px={3} py={2} justify="space-between" align="center"
-                                  bg={bVenceu ? 'rgba(253,187,0,0.12)' : 'transparent'}
+                                  bg={bVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
                                 >
                                   <VStack align="flex-start" spacing={0} flex={1} overflow="hidden">
                                     <Text
                                       fontFamily="heading"
                                       fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
                                       fontSize={{ base: '13px', md: '14px' }}
-                                      color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                      color={bVenceu ? '#F94A29' : textPrimary}
                                       noOfLines={1}
                                     >
                                       {pB?.nomeAmigo ?? '?'}
                                     </Text>
                                     <HStack spacing={1}>
-                                      {pB?.logoTime && <Image src={pB.logoTime} boxSize="10px" objectFit="contain" opacity={aVenceu ? 0.35 : 1} />}
-                                      <Text fontSize="xs" color={bVenceu ? 'gray.600' : (aVenceu ? 'gray.400' : 'gray.500')} noOfLines={1}>
+                                      {pB?.logoTime && <Image src={pB.logoTime} boxSize="12px" objectFit="contain" opacity={aVenceu ? 0.4 : 1} />}
+                                      <Text fontSize="xs" fontWeight={500} color={bVenceu ? 'brand.600' : textSecondary} noOfLines={1}>
                                         {pB?.timeSorteado ?? '—'}
                                       </Text>
                                     </HStack>
@@ -407,7 +427,7 @@ export function Convite() {
                                     fontFamily="heading"
                                     fontWeight={bVenceu ? 900 : (aVenceu ? 500 : 700)}
                                     fontSize={{ base: '20px', md: '22px' }}
-                                    color={bVenceu ? '#F94A29' : (aVenceu ? 'gray.500' : 'brand.textMain')}
+                                    color={bVenceu ? '#F94A29' : textPrimary}
                                   >
                                     {jogo.placarB ?? '—'}
                                   </Text>
@@ -416,21 +436,25 @@ export function Convite() {
                                 {/* Status da partida */}
                                 {jogo.finalizada ? (
                                   <Flex
-                                    borderTop="1px solid #C3c3c3"
+                                    borderTop="1px solid"
+                                    borderColor={cardBorder}
+                                    bg={useColorModeValue('gray.50', 'gray.750')}
                                     px={3} py={1}
                                     justify="center"
                                   >
-                                    <Text fontSize="11px" color="gray.400" fontWeight={600} textTransform="uppercase">
+                                    <Text fontSize="11px" color={textSecondary} fontWeight={700} textTransform="uppercase">
                                       FINALIZADA
                                     </Text>
                                   </Flex>
                                 ) : (
                                   <Flex
-                                    borderTop="1px solid #C3c3c3"
+                                    borderTop="1px solid"
+                                    borderColor={cardBorder}
+                                    bg={useColorModeValue('gray.50', 'gray.750')}
                                     px={3} py={1}
                                     justify="center"
                                   >
-                                    <Text fontSize="11px" color="brand.orange" fontWeight={600} textTransform="uppercase">
+                                    <Text fontSize="11px" color="orange.500" fontWeight={700} textTransform="uppercase">
                                       PENDENTE
                                     </Text>
                                   </Flex>
@@ -449,15 +473,15 @@ export function Convite() {
         })()}
 
         {/* Rodapé */}
-        <Box mt={10} pt={6} borderTop="1px solid #C3c3c3"  textAlign="center">
-          <Text fontSize="12px" >
+        <Box mt={10} pt={6} borderTop="1px solid" borderColor={cardBorder} textAlign="center">
+          <Text fontSize="12px" color={textSecondary}>
             EAFC26 CUP — ID: {torneio.id}
           </Text>
           <Button
-            mt={3} size="sm" variant="arcade" fontSize="10px"
+            mt={3} size="sm" colorScheme="brand"
             onClick={() => navigate('/torneio/configurar')}
           >
-            ▶ CRIAR MEU TORNEIO
+            CRIAR MEU TORNEIO
           </Button>
         </Box>
       </Box>

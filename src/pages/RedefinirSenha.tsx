@@ -103,7 +103,7 @@ export function RedefinirSenha() {
 
     if (error) {
       toast({
-        title: '⛔ Erro ao redefinir senha.',
+        title: 'Erro ao redefinir senha.',
         description: error.message,
         status: 'error',
         duration: 5000,
@@ -114,7 +114,7 @@ export function RedefinirSenha() {
     }
 
     toast({
-      title: '✅ Senha redefinida com sucesso!',
+      title: 'Senha redefinida com sucesso!',
       description: 'Você já pode fazer login com sua nova senha.',
       status: 'success',
       duration: 4000,

@@ -23,7 +23,7 @@ import { supabase } from '../lib/supabase';
 import { obterPerfil } from '../services/perfisService';
 import type { Perfil } from '../types/social';
 import type { Partida, Participante, Torneio } from '../types/torneio';
-import { FiArrowLeft, FiAward, FiShield, FiTarget, FiTrendingUp } from 'react-icons/fi';
+import { FiArrowLeft, FiAward, FiShield, FiTarget, FiTrendingUp, FiTag } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
 
 interface EstatisticasJogador {
@@ -52,6 +52,8 @@ export function PerfilJogador() {
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColorMuted = useColorModeValue('gray.600', 'gray.400');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
 
   useEffect(() => {
     const calcularEstatisticas = async () => {
@@ -78,48 +80,44 @@ export function PerfilJogador() {
         torneiosData.forEach((row) => {
           const dados = row.dados as {
             torneio: Torneio;
-            participantes: Participante[];
             partidas: Partida[];
+            participantes: Participante[];
           };
-
           if (!dados || !dados.participantes || !dados.partidas) return;
 
-          // Encontra se este jogador participou deste torneio
-          const partDoJogador = dados.participantes.find(
-            (pt) => pt.usuarioId === id
+          // Verificar se o jogador participou deste torneio
+          const part = dados.participantes.find(
+            (p) => p.usuarioId === id || (p.nomeAmigo && p.nomeAmigo === pData?.nome)
           );
 
-          if (partDoJogador) {
+          if (part) {
             tJogados++;
+            vitoriasTotal += part.vitorias || 0;
+            golsTotal += part.golsPro || 0;
 
-            // Contabilizar gols e estatísticas da liga se existirem
-            golsTotal += partDoJogador.golsPro || 0;
+            // Calcular pódio se o torneio estiver finalizado
+            const finalizadas = dados.partidas.filter((p) => p.finalizada).length;
+            if (finalizadas === dados.partidas.length && dados.partidas.length > 0) {
+              if (dados.torneio.formato === 'matamata') {
+                const finalMatch = dados.partidas.find(
+                  (p) => p.fase === 'final' && p.finalizada
+                );
+                const thirdMatch = dados.partidas.find(
+                  (p) => p.fase === 'terceiro_lugar' && p.finalizada
+                );
 
-            // Calcular vitórias em partidas
-            dados.partidas.forEach((p) => {
-              if (p.finalizada && p.vencedorId === partDoJogador.id) {
-                vitoriasTotal++;
+                if (finalMatch?.vencedorId === part.id) ouro++;
+                else if (finalMatch?.perdedorId === part.id) prata++;
+                else if (thirdMatch?.vencedorId === part.id) bronze++;
+              } else {
+                // Liga / Pontos Corridos: 1º, 2º e 3º por pontos
+                const sorted = [...dados.participantes].sort(
+                  (a, b) => b.pontos - a.pontos || b.golsPro - b.golsContra - (a.golsPro - a.golsContra)
+                );
+                if (sorted[0]?.id === part.id) ouro++;
+                else if (sorted[1]?.id === part.id) prata++;
+                else if (sorted[2]?.id === part.id) bronze++;
               }
-            });
-
-            // Se o torneio possui partidas de fase final/mata-mata ou liga calculada
-            const finalMatch = dados.partidas.find(
-              (p) => p.fase === 'final' && p.finalizada
-            );
-            const terceiroMatch = dados.partidas.find(
-              (p) => p.fase === 'terceiro_lugar' && p.finalizada
-            );
-
-            if (finalMatch) {
-              if (finalMatch.vencedorId === partDoJogador.id) {
-                ouro++;
-              } else if (finalMatch.perdedorId === partDoJogador.id) {
-                prata++;
-              }
-            }
-
-            if (terceiroMatch && terceiroMatch.vencedorId === partDoJogador.id) {
-              bronze++;
             }
           }
         });
@@ -143,7 +141,10 @@ export function PerfilJogador() {
   if (loading) {
     return (
       <Flex minH="100vh" align="center" justify="center">
-        <Spinner size="xl" color="brand.500" thickness="4px" />
+        <VStack spacing={4}>
+          <Spinner size="xl" color="brand.500" thickness="4px" />
+          <Text fontSize="12px" color={textColorMuted}>CARREGANDO PERFIL...</Text>
+        </VStack>
       </Flex>
     );
   }
@@ -151,7 +152,7 @@ export function PerfilJogador() {
   if (!perfil && !id) {
     return (
       <Box minH="100vh" p={10} textAlign="center">
-        <Text>Perfil não encontrado.</Text>
+        <Text color={textPrimary}>Perfil não encontrado.</Text>
         <Button mt={4} onClick={() => navigate('/dashboard')}>
           Voltar ao Dashboard
         </Button>
@@ -177,7 +178,7 @@ export function PerfilJogador() {
             <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
               Hub do Jogador
             </Heading>
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color={textColorMuted}>
               Perfil do participante, estatísticas globais e troféus conquistados.
             </Text>
           </VStack>
@@ -207,13 +208,16 @@ export function PerfilJogador() {
               borderColor="brand.500"
             />
             <VStack align={{ base: 'center', md: 'flex-start' }} spacing={2} flex={1}>
-              <Heading fontSize="26px">{perfil?.nome || 'Jogador'}</Heading>
+              <Heading fontSize="26px" color={textPrimary}>{perfil?.nome || 'Jogador'}</Heading>
               {perfil?.steam_id && (
                 <Badge colorScheme="orange" fontSize="13px" px={3} py={1} borderRadius="md">
-                  🎮 {perfil.steam_id}
+                  <HStack spacing={1.5}>
+                    <FiTag size={12} />
+                    <Text>{perfil.steam_id}</Text>
+                  </HStack>
                 </Badge>
               )}
-              <Text fontSize="12px" color="gray.500" mt={1}>
+              <Text fontSize="12px" color={textColorMuted} mt={1}>
                 Membro desde{' '}
                 {perfil?.criado_em ? new Date(perfil.criado_em).toLocaleDateString() : '2026'}
               </Text>
@@ -222,14 +226,14 @@ export function PerfilJogador() {
         </Box>
 
         {/* Estatísticas Globais */}
-        <Heading fontSize="20px" mb={4}>
+        <Heading fontSize="20px" color={textPrimary} mb={4}>
           Estatísticas Globais
         </Heading>
 
         <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4} mb={8}>
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={5} boxShadow="sm">
             <Stat>
-              <StatLabel fontSize="12px" fontWeight={700} color="gray.500">
+              <StatLabel fontSize="12px" fontWeight={700} color={textColorMuted}>
                 TORNEIOS DISPUTADOS
               </StatLabel>
               <StatNumber fontSize="3xl" color="brand.500" fontWeight={800}>
@@ -240,7 +244,7 @@ export function PerfilJogador() {
 
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={5} boxShadow="sm">
             <Stat>
-              <StatLabel fontSize="12px" fontWeight={700} color="gray.500">
+              <StatLabel fontSize="12px" fontWeight={700} color={textColorMuted}>
                 VITÓRIAS EM JOGOS
               </StatLabel>
               <StatNumber fontSize="3xl" color="green.500" fontWeight={800}>
@@ -251,7 +255,7 @@ export function PerfilJogador() {
 
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={5} boxShadow="sm">
             <Stat>
-              <StatLabel fontSize="12px" fontWeight={700} color="gray.500">
+              <StatLabel fontSize="12px" fontWeight={700} color={textColorMuted}>
                 GOLS MARCADOS
               </StatLabel>
               <StatNumber fontSize="3xl" color="blue.500" fontWeight={800}>
@@ -262,43 +266,49 @@ export function PerfilJogador() {
         </SimpleGrid>
 
         {/* Galeria de Troféus */}
-        <Heading fontSize="20px" mb={4}>
-          Galeria de Troféus 🏆
+        <Heading fontSize="20px" color={textPrimary} mb={4}>
+          Galeria de Troféus
         </Heading>
 
         <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4}>
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={6} textAlign="center" boxShadow="sm">
-            <Text fontSize="40px" mb={2}>
-              🥇
-            </Text>
+            <Flex justify="center" mb={3}>
+              <Box p={3} borderRadius="full" bg="rgba(253, 187, 0, 0.15)">
+                <FiAward size={32} color="#FDBB00" />
+              </Box>
+            </Flex>
             <Heading fontSize="20px" color="#FDBB00">
               {stats.ouroCount}x Campeão
             </Heading>
-            <Text fontSize="12px" color="gray.500" mt={1}>
+            <Text fontSize="12px" color={textColorMuted} mt={1}>
               Primeiro Lugar
             </Text>
           </Box>
 
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={6} textAlign="center" boxShadow="sm">
-            <Text fontSize="40px" mb={2}>
-              🥈
-            </Text>
-            <Heading fontSize="20px" color="gray.400">
+            <Flex justify="center" mb={3}>
+              <Box p={3} borderRadius="full" bg="rgba(192, 192, 192, 0.2)">
+                <FiAward size={32} color={useColorModeValue('#718096', '#CBD5E0')} />
+              </Box>
+            </Flex>
+            <Heading fontSize="20px" color={useColorModeValue('gray.600', 'gray.300')}>
               {stats.prataCount}x Vice-Campeão
             </Heading>
-            <Text fontSize="12px" color="gray.500" mt={1}>
+            <Text fontSize="12px" color={textColorMuted} mt={1}>
               Segundo Lugar
             </Text>
           </Box>
 
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={6} textAlign="center" boxShadow="sm">
-            <Text fontSize="40px" mb={2}>
-              🥉
-            </Text>
+            <Flex justify="center" mb={3}>
+              <Box p={3} borderRadius="full" bg="rgba(205, 127, 50, 0.15)">
+                <FiAward size={32} color="#CD7F32" />
+              </Box>
+            </Flex>
             <Heading fontSize="20px" color="#CD7F32">
               {stats.bronzeCount}x 3º Lugar
             </Heading>
-            <Text fontSize="12px" color="gray.500" mt={1}>
+            <Text fontSize="12px" color={textColorMuted} mt={1}>
               Terceiro Lugar
             </Text>
           </Box>

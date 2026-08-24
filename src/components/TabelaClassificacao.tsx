@@ -14,6 +14,7 @@ import {
   VStack,
   Image,
   Avatar,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +55,13 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
   const navigate = useNavigate();
   const { participantes, partidas } = useTorneioStore();
 
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBorder = useColorModeValue('gray.200', 'gray.700');
+  const textPrimary = useColorModeValue('gray.900', 'gray.100');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const theadBg = useColorModeValue('gray.50', 'gray.750');
+  const dividerColor = useColorModeValue('gray.200', 'gray.700');
+
   const classificacao = useMemo(
     () => ordenarParticipantes(participantes, partidas),
     [participantes, partidas]
@@ -65,7 +73,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
   if (classificacao.length === 0) {
     return (
       <Flex h="200px" align="center" justify="center">
-        <Text fontSize="12px" >Nenhum participante cadastrado.</Text>
+        <Text fontSize="12px" color={textSecondary}>Nenhum participante cadastrado.</Text>
       </Flex>
     );
   }
@@ -74,19 +82,18 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
     <Box>
       {/* Progresso */}
       <HStack mb={4} justify="space-between">
-        <Text fontSize="12px" >
+        <Text fontSize="12px" color={textSecondary} fontWeight={500}>
           Progresso:{' '}
-          <Text as="span" fontWeight={700} >
+          <Text as="span" fontWeight={700} color={textPrimary}>
             {totalJogos}/{totalPartidas}
           </Text>{' '}
           partidas
         </Text>
         <Badge
-          bg={totalJogos === totalPartidas ? 'brand.cardBgAlt' : 'brand.orange'}
-          color={totalJogos === totalPartidas ? 'brand.textMutedToken' : 'black'}
-          border="1px solid #C3c3c3"
-          borderRadius="5px"
-          boxShadow="md"
+          colorScheme={totalJogos === totalPartidas ? "green" : "orange"}
+          variant="solid"
+          borderRadius="md"
+          boxShadow="sm"
           px={3} py={1}
           fontSize="12px"
         >
@@ -96,27 +103,29 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
 
       {/* Tabela */}
       <Box
-        
-        
-        boxShadow="md"
+        bg={cardBg}
+        border="1px solid"
+        borderColor={cardBorder}
+        borderRadius="lg"
+        boxShadow="sm"
         overflowX="auto"
       >
         <Table variant="unstyled" size="sm">
           <Thead>
             <Tr
-              
-              borderBottom="1px solid #C3c3c3"
-              
+              bg={theadBg}
+              borderBottom="1px solid"
+              borderColor={dividerColor}
             >
               {['#', 'Participante', 'P', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'].map((col) => (
                 <Th
                   key={col}
                   fontFamily="heading"
-                  fontSize={{ base: '13px', md: '15px' }}
-                  fontWeight={700}
+                  fontSize={{ base: '12px', md: '13px' }}
+                  fontWeight={800}
                   textTransform="uppercase"
                   letterSpacing="wider"
-                  
+                  color={textSecondary}
                   py={3}
                   px={col === '#' || col === 'P' ? 4 : 3}
                   textAlign={col === 'Participante' ? 'left' : 'center'}
@@ -158,10 +167,10 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                   key={p.id}
                   bg={rowBg}
                   borderBottom="1px solid"
-                  
+                  borderColor={dividerColor}
                   position="relative"
                   transition="background 0.1s"
-                  _hover={{ bg: 'rgba(253,187,0,0.05)' }}
+                  _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}
                 >
                   {/* Posição com borda esquerda */}
                   <Td position="relative" px={4} py={3} textAlign="center" w="44px">
@@ -175,7 +184,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                       fontFamily="heading"
                       fontWeight={900}
                       fontSize={{ base: '14px', md: '16px' }}
-                      color={isTop4 ? 'brand.mustard' : isFirst ? 'brand.orange' : 'brand.textMain'}
+                      color={isTop4 ? 'brand.mustard' : isFirst ? '#F94A29' : textPrimary}
                     >
                       {pos}º
                     </Text>
@@ -202,12 +211,13 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                           fontFamily="heading"
                           fontWeight={700}
                           fontSize={{ base: '13px', md: '15px' }}
+                          color={textPrimary}
                         >
                           {p.nomeAmigo}
                         </Text>
                         <HStack spacing={1}>
                           {p.logoTime && <Image src={p.logoTime} boxSize="12px" objectFit="contain" />}
-                          <Text fontSize="12px">{p.timeSorteado}</Text>
+                          <Text fontSize="12px" fontWeight={500} color={textSecondary}>{p.timeSorteado}</Text>
                         </HStack>
                       </VStack>
                     </HStack>
@@ -219,7 +229,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                       fontFamily="heading"
                       fontWeight={900}
                       fontSize={{ base: '16px', md: '18px' }}
-                      
+                      color={textPrimary}
                     >
                       {p.pontos}
                     </Text>
@@ -228,18 +238,18 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                   {/* J V E D */}
                   {[p.jogos, p.vitorias, p.empates, p.derrotas].map((val, i) => (
                     <Td key={i} py={3} px={3} textAlign="center">
-                      <Text fontFamily="heading" fontSize="12px" >{val}</Text>
+                      <Text fontFamily="heading" fontSize="12px" fontWeight={600} color={textPrimary}>{val}</Text>
                     </Td>
                   ))}
 
                   {/* GP */}
                   <Td py={3} px={3} textAlign="center">
-                    <Text fontFamily="heading" fontSize="12px" >{p.golsPro}</Text>
+                    <Text fontFamily="heading" fontSize="12px" fontWeight={600} color={textPrimary}>{p.golsPro}</Text>
                   </Td>
 
                   {/* GC */}
                   <Td py={3} px={3} textAlign="center">
-                    <Text fontFamily="heading" fontSize="12px" >{p.golsContra}</Text>
+                    <Text fontFamily="heading" fontSize="12px" fontWeight={600} color={textPrimary}>{p.golsContra}</Text>
                   </Td>
 
                   {/* SG */}
@@ -248,7 +258,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                       fontFamily="heading"
                       fontSize="12px"
                       fontWeight={700}
-                      color={sg > 0 ? 'brand.mustard' : sg < 0 ? 'brand.orange' : 'brand.textMutedToken'}
+                      color={sg > 0 ? 'green.500' : sg < 0 ? 'red.500' : textSecondary}
                     >
                       {sg > 0 ? `+${sg}` : sg}
                     </Text>
@@ -265,21 +275,21 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
         {highlightTop4 ? (
           <HStack spacing={2}>
             <Box w="4px" h="16px" bg="#FDBB00" borderRadius="2px" />
-            <Text fontSize="12px" >Top 4 — Classificados para Playoffs</Text>
+            <Text fontSize="12px" fontWeight={500} color={textSecondary}>Top 4 — Classificados para Playoffs</Text>
           </HStack>
         ) : (
           <>
             <HStack spacing={2}>
               <Box w="4px" h="16px" bg="#F94A29" borderRadius="2px" />
-              <Text fontSize="12px" >Campeão / Promoção</Text>
+              <Text fontSize="12px" fontWeight={500} color={textSecondary}>Campeão / Promoção</Text>
             </HStack>
             <HStack spacing={2}>
               <Box w="4px" h="16px" bg="#C80000" borderRadius="2px" />
-              <Text fontSize="12px" >Zona de Rebaixamento</Text>
+              <Text fontSize="12px" fontWeight={500} color={textSecondary}>Zona de Rebaixamento</Text>
             </HStack>
           </>
         )}
-        <Text fontSize="12px" >
+        <Text fontSize="12px" color={textSecondary}>
           Critérios: Pts → Saldo → GP → Confronto Direto
         </Text>
       </HStack>

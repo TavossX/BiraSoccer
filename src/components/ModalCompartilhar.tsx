@@ -46,30 +46,30 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
 
   const { onCopy, hasCopied } = useClipboard(link ?? '');
 
-  // Publica automaticamente ao abrir o modal
-  useEffect(() => {
-    if (!isOpen || !torneio) return;
+  const gerarLink = async () => {
+    if (!torneio) return;
+    setPublicando(true);
     setErro(null);
+    const url = await publicarTorneio();
+    setPublicando(false);
 
-    const publicar = async () => {
-      setPublicando(true);
-      const url = await publicarTorneio();
-      setPublicando(false);
+    if (url) {
+      setLink(url);
+    } else {
+      setErro('Não foi possível publicar o torneio. Verifique sua conexão e as credenciais do Supabase.');
+    }
+  };
 
-      if (url) {
-        setLink(url);
-      } else {
-        setErro('Não foi possível publicar o torneio. Verifique sua conexão e as credenciais do Supabase.');
-      }
-    };
-
-    publicar();
+  useEffect(() => {
+    if (isOpen) {
+      gerarLink();
+    }
   }, [isOpen, torneio?.id]);
 
   const handleCopiar = () => {
     onCopy();
     toast({
-      title: '🔗 Link copiado!',
+      title: 'Link copiado!',
       description: 'Agora é só colar e enviar para seus amigos.',
       status: 'success',
       duration: 3000,
@@ -81,7 +81,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
   const handleCompartilharWhatsApp = () => {
     if (!link || !torneio) return;
     const texto = encodeURIComponent(
-      `🏆 *${torneio.nome}* — Copa de Amigos EA FC 26\n\nAcompanhe os resultados em tempo real:\n${link}`
+      `*${torneio.nome}* — BiraSoccer\n\nAcompanhe os resultados em tempo real:\n${link}`
     );
     window.open(`https://wa.me/?text=${texto}`, '_blank');
   };

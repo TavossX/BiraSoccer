@@ -81,7 +81,7 @@ export function Register() {
 
     if (error) {
       toast({
-        title: '⛔ Erro ao criar conta.',
+        title: 'Erro ao criar conta.',
         description: error.message,
         status: 'error',
         duration: 5000,
@@ -92,7 +92,7 @@ export function Register() {
     }
 
     toast({
-      title: '✅ Conta criada!',
+      title: 'Conta criada!',
       description: 'Verifique seu e-mail para confirmar o cadastro.',
       status: 'success',
       duration: 6000,
