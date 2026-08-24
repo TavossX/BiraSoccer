@@ -158,7 +158,14 @@ export function ModalPickBan({
       backgroundColor: selectMenuBg,
       border: `1px solid ${selectBorderIdle}`,
       borderRadius: '8px',
-      zIndex: 20,
+      boxShadow: '0 12px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3)',
+      overflow: 'hidden',
+      zIndex: 99999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      backgroundColor: selectMenuBg,
+      padding: '4px',
     }),
     option: (base: any, state: any) => ({
       ...base,
@@ -166,7 +173,7 @@ export function ModalPickBan({
         ? selectDisabledBg
         : state.isFocused
         ? selectOptionHoverBg
-        : 'transparent',
+        : selectMenuBg,
       color: state.isDisabled ? selectDisabledColor : textPrimary,
       cursor: state.isDisabled ? 'not-allowed' : 'pointer',
       opacity: state.isDisabled ? 0.5 : 1,
@@ -177,7 +184,7 @@ export function ModalPickBan({
     indicatorSeparator: () => ({ display: 'none' }),
     dropdownIndicator: (base: any) => ({ ...base, color: pickAccent, padding: '4px 6px' }),
     clearIndicator: (base: any) => ({ ...base, color: selectClearColor, '&:hover': { color: textPrimary } }),
-    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 99999 }),
   }), [selectBg, selectBorderIdle, selectMenuBg, selectOptionHoverBg, selectDisabledBg, selectDisabledColor, textPrimary, selectPlaceholderColor, selectClearColor]);
 
   // ── Select Styles (Ban) ───────────────────────────────────────────────────
@@ -197,7 +204,14 @@ export function ModalPickBan({
       backgroundColor: selectMenuBg,
       border: `1px solid ${selectBanBorderIdle}`,
       borderRadius: '8px',
-      zIndex: 20,
+      boxShadow: '0 12px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3)',
+      overflow: 'hidden',
+      zIndex: 99999,
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      backgroundColor: selectMenuBg,
+      padding: '4px',
     }),
     option: (base: any, state: any) => ({
       ...base,
@@ -205,7 +219,7 @@ export function ModalPickBan({
         ? selectDisabledBg
         : state.isFocused
         ? selectBanOptionHoverBg
-        : 'transparent',
+        : selectMenuBg,
       color: state.isDisabled ? selectDisabledColor : textPrimary,
       cursor: state.isDisabled ? 'not-allowed' : 'pointer',
       opacity: state.isDisabled ? 0.5 : 1,
@@ -216,14 +230,14 @@ export function ModalPickBan({
     indicatorSeparator: () => ({ display: 'none' }),
     dropdownIndicator: (base: any) => ({ ...base, color: banAccent, padding: '4px 6px' }),
     clearIndicator: (base: any) => ({ ...base, color: selectClearColor, '&:hover': { color: textPrimary } }),
-    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 99999 }),
   }), [selectBanBg, selectBanBorderIdle, selectMenuBg, selectBanOptionHoverBg, selectDisabledBg, selectDisabledColor, textPrimary, selectPlaceholderColor, selectClearColor]);
 
   // ── Load Options com exclusão mútua ───────────────────────────────────────
   const createLoadOptions = useCallback(
     (playerIdx: number, type: 'pick' | 'ban') => {
       return async (inputValue: string) => {
-        if (inputValue.length < 2) return [];
+        if (!inputValue || inputValue.length < 4) return [];
         const results = await searchTeams(inputValue);
 
         // ID do time atualmente selecionado por ESTE jogador neste slot

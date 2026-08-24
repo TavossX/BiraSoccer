@@ -65,7 +65,7 @@ export function CadastroJogador() {
     >
       <VStack as="form" onSubmit={handleSubmit(onSubmit)} spacing={5}>
         <Heading size="md" w="full" bgGradient="linear(to-r, brand.300, purple.300)" bgClip="text">
-          ➕ Novo Jogador
+          Novo Jogador
         </Heading>
 
         <FormControl isInvalid={!!errors.nome}>

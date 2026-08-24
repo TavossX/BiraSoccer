@@ -235,14 +235,24 @@ export function ConfigurarTorneio() {
     menu: (base: any) => ({
       ...base,
       borderRadius: '8px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      boxShadow: '0 12px 28px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3)',
       border: `1px solid ${borderColor}`,
       backgroundColor: bgColor,
-      zIndex: 5,
+      zIndex: 99999,
+      overflow: 'hidden',
+    }),
+    menuList: (base: any) => ({
+      ...base,
+      backgroundColor: bgColor,
+      padding: '4px',
+    }),
+    menuPortal: (base: any) => ({
+      ...base,
+      zIndex: 99999,
     }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? hoverBg : 'transparent',
+      backgroundColor: state.isFocused ? hoverBg : bgColor,
       color: textColor,
       cursor: 'pointer',
     }),
@@ -275,7 +285,7 @@ export function ConfigurarTorneio() {
   };
 
   const loadOptions = async (inputValue: string) => {
-    if (inputValue.length < 2) return [];
+    if (!inputValue || inputValue.length < 4) return [];
     const results = await searchTeams(inputValue);
     return results.map((team) => ({
       value: team,
@@ -779,6 +789,7 @@ export function ConfigurarTorneio() {
                     isMulti
                     cacheOptions
                     defaultOptions
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                     loadOptions={loadOptions}
                     value={times.filter((t: any) => !t._custom).map((t) => ({ value: t, label: t.nome }))}
                     onChange={(selected: any) => {
@@ -787,7 +798,7 @@ export function ConfigurarTorneio() {
                       setTimes([...customTimes, ...newApiTimes]);
                     }}
                     placeholder="Pesquisar time (ex: Real Madrid)..."
-                    noOptionsMessage={() => 'Digite para buscar na API'}
+                    noOptionsMessage={() => 'Digite ao menos 4 letras para buscar'}
                     formatOptionLabel={(data: any) => (
                       <HStack>
                         <Image src={data.value.logo} boxSize="20px" objectFit="contain" />

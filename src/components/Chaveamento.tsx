@@ -122,7 +122,7 @@ function CustomMatchComponent({ match }: any) {
           )}
           {partidaBase.isLuckyLoser && (
             <Badge fontSize="8px" bg="#FEF3C7" color="#92400E" border="1px solid #F59E0B" fontWeight="extrabold">
-              ⭐ LUCKY LOSER
+              LUCKY LOSER
             </Badge>
           )}
           {isIdaEVolta ? (partidaBase.finalizada && !partidaVolta?.finalizada ? <Text fontSize="9px" color={textSecondary} ml={1}>(Volta pend.)</Text> : null) : null}

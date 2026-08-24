@@ -72,7 +72,7 @@ export function AtualizarPlacar() {
       <VStack as="form" onSubmit={handleSubmit(onSubmit)} spacing={5}>
         <HStack w="full" justify="space-between" align="center">
           <Heading size="md" bgGradient="linear(to-r, green.300, teal.300)" bgClip="text">
-            ⚽ Atualizar Placar
+            Atualizar Placar
           </Heading>
           <Badge colorScheme="green" variant="subtle" fontSize="xs" px={2} py={1} borderRadius="full">
             AO VIVO
