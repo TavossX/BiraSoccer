@@ -44,7 +44,9 @@ import {
   FiClock,
   FiUserCheck,
   FiCheckCircle,
+  FiEdit2,
 } from 'react-icons/fi';
+import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
 
 interface TorneioItem {
   id: string;
@@ -64,6 +66,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [perfilUsuario, setPerfilUsuario] = useState<Perfil | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [totalMeusTimes, setTotalMeusTimes] = useState(0);
 
   const navigate = useNavigate();
@@ -440,15 +443,37 @@ export function Dashboard() {
           borderColor={cardBorder}
           borderRadius="xl"
         >
-          <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
-            <VStack align="flex-start" spacing={1}>
-              <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary}>
-                Olá, {perfilUsuario?.nome || 'Jogador'}
-              </Heading>
-              <Text fontSize="13px" color={textSecondary}>
-                Acompanhe seus campeonatos, grupos e estatísticas de jogo.
-              </Text>
-            </VStack>
+          <HStack justify="space-between" align="center" flexWrap="wrap" gap={3}>
+            <HStack spacing={4} align="center">
+              <Avatar
+                size="md"
+                name={perfilUsuario?.nome || 'Jogador'}
+                src={perfilUsuario?.foto_base64 || undefined}
+                border="2px solid"
+                borderColor="brand.500"
+                cursor="pointer"
+                onClick={() => userId && navigate(`/perfil/${userId}`)}
+              />
+              <VStack align="flex-start" spacing={1}>
+                <Heading fontFamily="heading" fontSize={{ base: '20px', md: '26px' }} color={textPrimary}>
+                  Olá, {perfilUsuario?.nome || 'Jogador'}
+                </Heading>
+                <Text fontSize="13px" color={textSecondary}>
+                  Acompanhe seus campeonatos, grupos e estatísticas de jogo.
+                </Text>
+              </VStack>
+            </HStack>
+
+            <Button
+              size="sm"
+              variant="outline"
+              colorScheme="orange"
+              leftIcon={<FiEdit2 />}
+              onClick={() => setIsEditOpen(true)}
+              fontWeight={700}
+            >
+              Editar Perfil
+            </Button>
           </HStack>
         </Box>
 
@@ -572,6 +597,16 @@ export function Dashboard() {
           </TabPanels>
         </Tabs>
       </Box>
+
+      {/* Modal de Edição de Perfil */}
+      {perfilUsuario && (
+        <ModalEditarPerfil
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          perfil={perfilUsuario}
+          onPerfilAtualizado={(novo) => setPerfilUsuario(novo)}
+        />
+      )}
     </Box>
   );
 }

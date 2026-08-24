@@ -23,8 +23,9 @@ import { supabase } from '../lib/supabase';
 import { obterPerfil } from '../services/perfisService';
 import type { Perfil } from '../types/social';
 import type { Partida, Participante, Torneio } from '../types/torneio';
-import { FiArrowLeft, FiAward, FiShield, FiTarget, FiTrendingUp, FiTag } from 'react-icons/fi';
+import { FiArrowLeft, FiAward, FiEdit2, FiShield, FiTag, FiTarget, FiTrendingUp } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
 
 interface EstatisticasJogador {
   torneiosJogados: number;
@@ -39,6 +40,8 @@ export function PerfilJogador() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [stats, setStats] = useState<EstatisticasJogador>({
     torneiosJogados: 0,
@@ -59,6 +62,13 @@ export function PerfilJogador() {
     const calcularEstatisticas = async () => {
       if (!id) return;
       setLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
 
       // Buscar Perfil
       const pData = await obterPerfil(id);
@@ -198,32 +208,59 @@ export function PerfilJogador() {
           <Flex
             direction={{ base: 'column', md: 'row' }}
             align={{ base: 'center', md: 'flex-start' }}
+            justify="space-between"
             gap={6}
           >
-            <Avatar
-              size="2xl"
-              name={perfil?.nome || 'Jogador'}
-              src={perfil?.foto_base64 || undefined}
-              border="4px solid"
-              borderColor="brand.500"
-            />
-            <VStack align={{ base: 'center', md: 'flex-start' }} spacing={2} flex={1}>
-              <Heading fontSize="26px" color={textPrimary}>{perfil?.nome || 'Jogador'}</Heading>
-              {perfil?.steam_id && (
-                <Badge colorScheme="orange" fontSize="13px" px={3} py={1} borderRadius="md">
-                  <HStack spacing={1.5}>
-                    <FiTag size={12} />
-                    <Text>{perfil.steam_id}</Text>
-                  </HStack>
-                </Badge>
-              )}
-              <Text fontSize="12px" color={textColorMuted} mt={1}>
-                Membro desde{' '}
-                {perfil?.criado_em ? new Date(perfil.criado_em).toLocaleDateString() : '2026'}
-              </Text>
-            </VStack>
+            <HStack spacing={6} align={{ base: 'center', md: 'flex-start' }} flexWrap={{ base: 'wrap', md: 'nowrap' }} justify={{ base: 'center', md: 'flex-start' }}>
+              <Avatar
+                size="2xl"
+                name={perfil?.nome || 'Jogador'}
+                src={perfil?.foto_base64 || undefined}
+                border="4px solid"
+                borderColor="brand.500"
+              />
+              <VStack align={{ base: 'center', md: 'flex-start' }} spacing={2} flex={1}>
+                <Heading fontSize="26px" color={textPrimary}>{perfil?.nome || 'Jogador'}</Heading>
+                {perfil?.steam_id && (
+                  <Badge colorScheme="orange" fontSize="13px" px={3} py={1} borderRadius="md">
+                    <HStack spacing={1.5}>
+                      <FiTag size={12} />
+                      <Text>{perfil.steam_id}</Text>
+                    </HStack>
+                  </Badge>
+                )}
+                <Text fontSize="12px" color={textColorMuted} mt={1}>
+                  Membro desde{' '}
+                  {perfil?.criado_em ? new Date(perfil.criado_em).toLocaleDateString() : '2026'}
+                </Text>
+              </VStack>
+            </HStack>
+
+            {/* Botão de Editar Perfil (se for o próprio usuário) */}
+            {currentUserId && perfil && currentUserId === perfil.id && (
+              <Button
+                size="sm"
+                colorScheme="orange"
+                variant="outline"
+                leftIcon={<FiEdit2 />}
+                onClick={() => setIsEditOpen(true)}
+                fontWeight={700}
+              >
+                Editar Perfil
+              </Button>
+            )}
           </Flex>
         </Box>
+
+        {/* Modal de Edição de Perfil */}
+        {perfil && (
+          <ModalEditarPerfil
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            perfil={perfil}
+            onPerfilAtualizado={(novoPerfil) => setPerfil(novoPerfil)}
+          />
+        )}
 
         {/* Estatísticas Globais */}
         <Heading fontSize="20px" color={textPrimary} mb={4}>
