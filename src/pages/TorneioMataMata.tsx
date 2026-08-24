@@ -86,8 +86,15 @@ export function TorneioMataMata() {
   };
 
   const confrontoFinal = (() => {
-    const voltaFinal = partidas.find((p) => p.fase === 'final' && p.jogo === 'volta' && p.finalizada && p.vencedorId);
-    return voltaFinal ?? null;
+    const bracketReset = partidas.find((p) => p.fase === 'bracket_reset' && p.finalizada && p.vencedorId);
+    if (bracketReset) return bracketReset;
+    const grandFinal = partidas.find((p) => p.fase === 'grand_final' && p.finalizada && p.vencedorId);
+    if (grandFinal) {
+      const pendingReset = partidas.find((p) => p.fase === 'bracket_reset' && !p.finalizada);
+      if (!pendingReset) return grandFinal;
+    }
+    const finalMatch = partidas.find((p) => p.fase === 'final' && p.finalizada && p.vencedorId);
+    return finalMatch ?? null;
   })();
   const campeao = confrontoFinal
     ? participantes.find((p) => p.id === confrontoFinal.vencedorId)
@@ -119,7 +126,7 @@ export function TorneioMataMata() {
                 {torneio.nome}
               </Heading>
               <Text fontSize="12px"  opacity={0.8}>
-                MATA-MATA — {torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}
+                MATA-MATA {torneio.isDoubleElimination ? '— REPESCAGEM (DOUBLE ELIMINATION)' : `— ${torneio.idaEVolta ? 'IDA E VOLTA' : 'JOGO ÚNICO'}`}
               </Text>
             </VStack>
           </HStack>

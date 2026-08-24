@@ -8,7 +8,7 @@ import {
   VStack,
   useDisclosure
 } from '@chakra-ui/react';
-import { SVGViewer, SingleEliminationBracket } from '@g-loot/react-tournament-brackets';
+import { SVGViewer, SingleEliminationBracket, DoubleEliminationBracket } from '@g-loot/react-tournament-brackets';
 import { useMemo, useState } from 'react';
 import { FiAward } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,8 @@ const FASES_LABEL: Record<FaseMataMata, string> = {
   semifinal:      'Semifinal',
   final:          'Final',
   terceiro_lugar: '3º Lugar',
+  grand_final:    'Grande Final',
+  bracket_reset:  'Bracket Reset',
 };
 
 const ORDEM_FASES: FaseMataMata[] = ['oitavas', 'quartas', 'semifinal', 'final'];
@@ -100,10 +102,22 @@ function CustomMatchComponent({ match }: any) {
       overflow="hidden"
     >
       <Box bg="gray.50" px={2} py={1} borderBottom="1px solid" borderColor="gray.100" display="flex" justifyContent="space-between" alignItems="center">
-        <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">
-          {FASES_LABEL[partidaBase.fase as FaseMataMata] ?? 'Fase'}
-          {isIdaEVolta ? (partidaBase.finalizada && !partidaVolta?.finalizada ? ' (Volta pend.)' : '') : ''}
-        </Text>
+        <HStack spacing={1}>
+          <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">
+            {FASES_LABEL[partidaBase.fase as FaseMataMata] ?? 'Fase'}
+          </Text>
+          {partidaBase.bracket && (
+            <Badge fontSize="8px" colorScheme={partidaBase.bracket === 'UPPER' ? 'blue' : 'purple'} variant="subtle">
+              {partidaBase.bracket === 'UPPER' ? 'UB' : 'LB'}
+            </Badge>
+          )}
+          {partidaBase.isLuckyLoser && (
+            <Badge fontSize="8px" colorScheme="yellow" variant="solid">
+              LUCKY LOSER
+            </Badge>
+          )}
+          {isIdaEVolta ? (partidaBase.finalizada && !partidaVolta?.finalizada ? <Text fontSize="9px" color="gray.400" ml={1}>(Volta pend.)</Text> : null) : null}
+        </HStack>
         {isFinalizada ? (
           <Badge fontSize="9px" border="1px solid" borderColor="gray.200">FIM</Badge>
         ) : !isReadOnly ? (
@@ -201,19 +215,25 @@ function CustomMatchComponent({ match }: any) {
 // -- TELA DE PODIO --
 function TelaPodio({ partidas, participantes }: { partidas: Partida[], participantes: Participante[] }) {
   const navigate = useNavigate();
-  const finalMatch = partidas.filter(p => p.fase === 'final').sort((a,b)=>a.rodada - b.rodada).pop();
-  const thirdMatch = partidas.filter(p => p.fase === 'terceiro_lugar').sort((a,b)=>a.rodada - b.rodada).pop();
+  const finalMatch = (
+    partidas.find(p => p.fase === 'bracket_reset' && p.finalizada) ||
+    partidas.find(p => p.fase === 'grand_final' && p.finalizada) ||
+    partidas.filter(p => p.fase === 'final' && p.finalizada).sort((a, b) => a.rodada - b.rodada).pop()
+  );
+  const thirdMatch = partidas.filter(p => p.fase === 'terceiro_lugar' && p.finalizada).sort((a, b) => a.rodada - b.rodada).pop();
 
   const vencedor1 = participantes.find(p => p.id === finalMatch?.vencedorId);
   const perdedor1 = participantes.find(p => p.id === finalMatch?.perdedorId); // 2o lugar
-  const vencedor3 = participantes.find(p => p.id === thirdMatch?.vencedorId); // 3o lugar
+  // Em Double Elimination, se não houver partida de 3º lugar dedicada, o 3º é o perdedor da Lower Final
+  const lowerFinal = partidas.filter(p => p.bracket === 'LOWER' && p.finalizada).sort((a, b) => a.rodada - b.rodada).pop();
+  const vencedor3 = participantes.find(p => p.id === thirdMatch?.vencedorId) || (lowerFinal ? participantes.find(p => p.id === lowerFinal.perdedorId) : undefined);
   const perdedor3 = participantes.find(p => p.id === thirdMatch?.perdedorId); // 4o lugar
 
   const top4Ids = [vencedor1?.id, perdedor1?.id, vencedor3?.id, perdedor3?.id].filter(Boolean);
   const others = participantes.filter(p => !top4Ids.includes(p.id))
     .sort((a, b) => b.pontos - a.pontos || (b.golsPro - b.golsContra) - (a.golsPro - a.golsContra));
 
-  if(perdedor3) others.unshift(perdedor3);
+  if (perdedor3) others.unshift(perdedor3);
 
   const PodiumCard = ({ p, position, height, bg, iconColor, title }: any) => (
     <VStack 
@@ -325,8 +345,13 @@ export function Chaveamento({ isReadOnly = false }: { isReadOnly?: boolean }) {
   
   // Verifica se o torneio acabou (todas as partidas mata-mata finalizadas, e as da final)
   const allMataMataFinished = mataMataPartidas.length > 0 && mataMataPartidas.every(p => p.finalizada);
-  const hasFinal = mataMataPartidas.some(p => p.fase === 'final');
-  // terceiro lugar pode n existir se for so 2 times, entao assumimos true se nao existir, ou false se existir e nao tiver finalizada
+  const isDoubleElim = torneio?.isDoubleElimination || false;
+
+  // Para Double Elimination: precisa ter grand_final resolvida (e possivelmente bracket_reset)
+  const hasGrandFinal = mataMataPartidas.some(p => p.fase === 'grand_final');
+  const hasBracketReset = mataMataPartidas.some(p => p.fase === 'bracket_reset');
+  const hasFinal = isDoubleElim ? hasGrandFinal : mataMataPartidas.some(p => p.fase === 'final');
+  // terceiro lugar pode n existir se for so 2 times
   const isFinished = allMataMataFinished && hasFinal;
 
   // Mapeamento dinâmico para a biblioteca
@@ -428,6 +453,64 @@ export function Chaveamento({ isReadOnly = false }: { isReadOnly?: boolean }) {
      };
   });
 
+  // ── Double Elimination: separar em Upper e Lower para a lib ──
+  const doubleElimMatches = useMemo(() => {
+    if (!isDoubleElim) return null;
+
+    const upperPartidas = partidas.filter(p => p.bracket === 'UPPER' && p.fase !== 'grand_final' && p.fase !== 'bracket_reset');
+    const lowerPartidas = partidas.filter(p => p.bracket === 'LOWER');
+
+    // Converter para formato da lib
+    const toLibMatch = (p: Partida, idx: number) => {
+      const pA = participantes.find(pp => pp.id === p.participanteAId);
+      const pB = participantes.find(pp => pp.id === p.participanteBId);
+      const isTBD_A = p.participanteAId === 'TBD';
+      const isTBD_B = p.participanteBId === 'TBD';
+
+      return {
+        id: idx + 1,
+        nextMatchId: null,
+        nextLooserMatchId: undefined,
+        tournamentRoundText: String(p.rodada + 1),
+        startTime: '',
+        state: p.finalizada ? 'PLAYED' : 'SCHEDULED',
+        participants: [],
+        customData: {
+          fase: p.fase,
+          realMatches: [p],
+          isIdaEVolta: false,
+          onAbrir: abrirModal,
+          isReadOnly,
+          participantes,
+        }
+      };
+    };
+
+    const upper = upperPartidas.map((p, i) => toLibMatch(p, i));
+    const lower = lowerPartidas.map((p, i) => toLibMatch(p, i + 1000));
+
+    return { upper, lower };
+  }, [partidas, isDoubleElim, isReadOnly, participantes]);
+
+  // Grand Final e Bracket Reset (renderizadas como cards independentes)
+  const grandFinalMatches = partidas.filter(p => p.fase === 'grand_final' || p.fase === 'bracket_reset');
+  const grandFinalCards = grandFinalMatches.map((p, i) => ({
+    id: 'gf-' + i,
+    nextMatchId: null,
+    tournamentRoundText: '',
+    startTime: '',
+    state: 'SCHEDULED',
+    participants: [],
+    customData: {
+      fase: p.fase,
+      realMatches: [p],
+      isIdaEVolta: false,
+      onAbrir: abrirModal,
+      isReadOnly,
+      participantes,
+    }
+  }));
+
   if (mataMataPartidas.length === 0) {
     return (
       <Flex h="200px" align="center" justify="center">
@@ -443,28 +526,107 @@ export function Chaveamento({ isReadOnly = false }: { isReadOnly?: boolean }) {
   return (
     <>
       <Box overflowX="auto" pb={4} pt={10} minH="400px" h="fit-content">
-         {bracketMatches.length > 0 && (
-            <SingleEliminationBracket
-               matches={bracketMatches}
-               matchComponent={CustomMatchComponent}
-               svgWrapper={({ children, ...props }: any) => (
-                  <SVGViewer width={1000} height={500} {...props}>
-                     {children}
-                  </SVGViewer>
+         {isDoubleElim && doubleElimMatches ? (
+           <>
+             {/* Upper Bracket */}
+             <Box mb={6}>
+               <Text fontSize="12px" fontWeight="bold" color="blue.500" textTransform="uppercase" letterSpacing="wide" mb={2} px={4}>
+                 ▲ UPPER BRACKET
+               </Text>
+               {doubleElimMatches.upper.length > 0 && (
+                 <SingleEliminationBracket
+                   matches={doubleElimMatches.upper}
+                   matchComponent={CustomMatchComponent}
+                   svgWrapper={({ children, ...props }: any) => (
+                     <SVGViewer width={1000} height={400} {...props}>
+                       {children}
+                     </SVGViewer>
+                   )}
+                   options={{
+                     style: {
+                       connectorColor: '#93C5FD',
+                       connectorColorHighlight: '#3B82F6',
+                       boxHeight: 130,
+                       width: 280
+                     }
+                   }}
+                 />
                )}
-               options={{
-                  style: {
-                     connectorColor: '#cbd5e1',
-                     connectorColorHighlight: '#cbd5e1',
-                     boxHeight: 130,
-                     width: 280
-                  }
-               }}
-            />
+             </Box>
+
+             {/* Lower Bracket */}
+             <Box mb={6}>
+               <Text fontSize="12px" fontWeight="bold" color="purple.500" textTransform="uppercase" letterSpacing="wide" mb={2} px={4}>
+                 ▼ LOWER BRACKET
+               </Text>
+               {doubleElimMatches.lower.length > 0 && (
+                 <SingleEliminationBracket
+                   matches={doubleElimMatches.lower}
+                   matchComponent={CustomMatchComponent}
+                   svgWrapper={({ children, ...props }: any) => (
+                     <SVGViewer width={1000} height={400} {...props}>
+                       {children}
+                     </SVGViewer>
+                   )}
+                   options={{
+                     style: {
+                       connectorColor: '#C4B5FD',
+                       connectorColorHighlight: '#8B5CF6',
+                       boxHeight: 130,
+                       width: 280
+                     }
+                   }}
+                 />
+               )}
+             </Box>
+
+             {/* Grand Final + Bracket Reset */}
+             {grandFinalCards.length > 0 && (
+               <Box mt={6} px={4} maxW="1000px">
+                 <Text
+                   fontSize="12px"
+                   fontFamily="heading"
+                   textTransform="uppercase"
+                   letterSpacing="wide"
+                   mb={3}
+                   color="orange.500"
+                   fontWeight="bold"
+                 >
+                   🏆 Grande Final
+                 </Text>
+                 <HStack spacing={6}>
+                   {grandFinalCards.map(m => (
+                     <CustomMatchComponent key={m.id} match={m} />
+                   ))}
+                 </HStack>
+               </Box>
+             )}
+           </>
+         ) : (
+           /* Single Elimination (fluxo original) */
+           bracketMatches.length > 0 && (
+             <SingleEliminationBracket
+                matches={bracketMatches}
+                matchComponent={CustomMatchComponent}
+                svgWrapper={({ children, ...props }: any) => (
+                   <SVGViewer width={1000} height={500} {...props}>
+                      {children}
+                   </SVGViewer>
+                )}
+                options={{
+                   style: {
+                      connectorColor: '#cbd5e1',
+                      connectorColorHighlight: '#cbd5e1',
+                      boxHeight: 130,
+                      width: 280
+                   }
+                }}
+             />
+           )
          )}
       </Box>
 
-      {terceiroLugarMatches.length > 0 && (
+      {!isDoubleElim && terceiroLugarMatches.length > 0 && (
          <Box mt={6} px={4} maxW="1000px">
             <Text
                fontSize="12px"

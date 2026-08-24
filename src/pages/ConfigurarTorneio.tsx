@@ -66,6 +66,7 @@ export function ConfigurarTorneio() {
 
   const [formato, setFormato] = useState<FormatoTorneio>('liga');
   const [idaEVolta, setIdaEVolta] = useState(false);
+  const [isDoubleElimination, setIsDoubleElimination] = useState(false);
 
   // Grupos e Participantes
   const [meusGrupos, setMeusGrupos] = useState<Grupo[]>([]);
@@ -310,6 +311,7 @@ export function ConfigurarTorneio() {
       nome: getValues('nomeTorneio'),
       formato,
       idaEVolta,
+      isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
       duplas: duplasGeradas,
     });
 
@@ -363,7 +365,13 @@ export function ConfigurarTorneio() {
 
   // Etapa 3
   const onGerarCampeonato = () => {
-    criarTorneio({ nome: getValues('nomeTorneio'), formato, idaEVolta, duplas });
+    criarTorneio({
+      nome: getValues('nomeTorneio'),
+      formato,
+      idaEVolta,
+      isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
+      duplas,
+    });
     toast({ title: 'Torneio gerado com sucesso!', status: 'success', duration: 3000, position: 'top' });
     const novoTorneio = useTorneioStore.getState().torneio;
     const path = formato === 'matamata' ? '/torneio/matamata' : '/torneio/liga';
@@ -463,7 +471,12 @@ export function ConfigurarTorneio() {
 
                 <FormControl>
                   <FormLabel>Formato</FormLabel>
-                  <RadioGroup value={formato} onChange={(v) => setFormato(v as FormatoTorneio)}>
+                  <RadioGroup value={formato} onChange={(v) => {
+                    setFormato(v as FormatoTorneio);
+                    if (v !== 'matamata') {
+                      setIsDoubleElimination(false);
+                    }
+                  }}>
                     <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={3}>
                       {[
                         { val: 'liga', titulo: 'Todos contra Todos', desc: 'Pontos Corridos.' },
@@ -533,6 +546,44 @@ export function ConfigurarTorneio() {
                     </Badge>
                   )}
                 </Box>
+
+                {/* ── Switch de Double Elimination (Repescagem) ── */}
+                {formato === 'matamata' && (
+                  <Box
+                    borderWidth="1px"
+                    borderRadius="md"
+                    borderColor={isDoubleElimination ? 'brand.500' : 'gray.200'}
+                    _dark={{ borderColor: isDoubleElimination ? 'brand.500' : 'gray.700' }}
+                    p={4}
+                    transition="all 0.2s"
+                    bg={useColorModeValue('white', 'gray.800')}
+                    boxShadow="sm"
+                  >
+                    <Flex justify="space-between" align="center">
+                      <VStack align="flex-start" spacing={0}>
+                        <Text fontWeight={600} fontSize="md">
+                          Repescagem (Double Elimination)
+                        </Text>
+                        <Text fontSize="sm" color="gray.500" mt={1}>
+                          Perdedores ganham uma segunda chance na chave de baixo. Quem perder duas vezes é eliminado.
+                        </Text>
+                      </VStack>
+                      <Switch
+                        id="switch-double-elimination"
+                        isChecked={isDoubleElimination}
+                        onChange={(e) => setIsDoubleElimination(e.target.checked)}
+                        colorScheme="orange"
+                        size="lg"
+                        ml={4}
+                      />
+                    </Flex>
+                    {isDoubleElimination && (
+                      <Badge mt={3} colorScheme="orange" variant="subtle" borderRadius="2px" fontSize="2xs" px={2}>
+                        ATIVO — Lower Bracket + Grand Final
+                      </Badge>
+                    )}
+                  </Box>
+                )}
               </VStack>
 
               <Box h="2px" opacity={0.3} />
@@ -961,6 +1012,7 @@ export function ConfigurarTorneio() {
         formato={formato}
         idaEVolta={idaEVolta}
         nomeTorneio={getValues('nomeTorneio') || ''}
+        isDoubleElimination={formato === 'matamata' ? isDoubleElimination : false}
       />
     </Box>
   );

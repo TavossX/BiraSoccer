@@ -3,7 +3,8 @@
 export type FormatoTorneio = 'liga' | 'matamata' | 'liga_com_playoffs';
 export type StatusTorneio  = 'configurando' | 'em_andamento' | 'finalizado';
 export type TipoJogo       = 'ida' | 'volta' | null;
-export type FaseMataMata   = 'oitavas' | 'quartas' | 'semifinal' | 'final' | 'terceiro_lugar';
+export type FaseMataMata   = 'oitavas' | 'quartas' | 'semifinal' | 'final' | 'terceiro_lugar' | 'grand_final' | 'bracket_reset';
+export type BracketSide    = 'UPPER' | 'LOWER';
 
 export interface Torneio {
   id: string;
@@ -13,6 +14,7 @@ export interface Torneio {
   criadoEm: string;
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
   playoffsGerados: boolean;    // liga_com_playoffs: true após gerarPlayoffs()
+  isDoubleElimination: boolean;   // true = Lower Bracket ativo
 }
 
 export interface Participante {
@@ -50,12 +52,17 @@ export interface Partida {
   penaltisB: number | null;
   vencedorId: string | null;           // calculado automaticamente
   perdedorId: string | null;           // calculado automaticamente (usado para 3º lugar)
+  // Double Elimination / Lucky Loser
+  bracket?: BracketSide;               // undefined = single elimination
+  loserNextMatchId?: string | null;    // link para o slot na lower bracket
+  isLuckyLoser?: boolean;              // marcação visual "Melhor Perdedor"
 }
 
 export interface ConfiguracaoTorneio {
   nome: string;
   formato: FormatoTorneio;
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
+  isDoubleElimination?: boolean;   // opcional, default false
   duplas: {
     amigo: string;
     time: string;
@@ -64,4 +71,3 @@ export interface ConfiguracaoTorneio {
     fotoUsuario?: string | null;
   }[];
 }
-

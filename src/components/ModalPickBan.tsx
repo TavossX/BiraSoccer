@@ -38,6 +38,7 @@ interface ModalPickBanProps {
   formato: FormatoTorneio;
   idaEVolta: boolean;
   nomeTorneio: string;
+  isDoubleElimination?: boolean;
 }
 
 // ─── Animações ──────────────────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ export function ModalPickBan({
   formato,
   idaEVolta,
   nomeTorneio,
+  isDoubleElimination,
 }: ModalPickBanProps) {
   const navigate = useNavigate();
   const toast = useToast();
@@ -284,6 +286,7 @@ export function ModalPickBan({
       nome: nomeTorneio,
       formato,
       idaEVolta,
+      isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
       duplas: duplasEmbaralhadas,
     });
 
