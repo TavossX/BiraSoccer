@@ -26,6 +26,7 @@ import type { Partida, Participante, Torneio } from '../types/torneio';
 import { FiArrowLeft, FiAward, FiEdit2, FiShield, FiTag, FiTarget, FiTrendingUp } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
+import { Navbar } from '../components/Navbar';
 
 interface EstatisticasJogador {
   torneiosJogados: number;
@@ -171,28 +172,19 @@ export function PerfilJogador() {
   }
 
   return (
-    <Box minH="100vh" px={{ base: 4, md: 8 }} py={10}>
-      <Box maxW="1000px" mx="auto">
-        <HStack justify="space-between" mb={8} align="flex-start">
-          <VStack spacing={2} align="flex-start">
-            <Button
-              size="xs"
-              variant="ghost"
-              mb={2}
-              onClick={() => navigate('/dashboard')}
-              px={0}
-              leftIcon={<FiArrowLeft />}
-            >
-              Voltar
-            </Button>
-            <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
+    <Box minH="100vh">
+      <Navbar />
+
+      <Box maxW="1000px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
+        <HStack justify="space-between" mb={6} align="center" flexWrap="wrap" gap={3}>
+          <VStack spacing={1} align="flex-start">
+            <Heading fontSize={{ base: '20px', md: '28px' }} color="brand.500">
               Hub do Jogador
             </Heading>
-            <Text fontSize="sm" color={textColorMuted}>
+            <Text fontSize="13px" color={textColorMuted}>
               Perfil do participante, estatísticas globais e troféus conquistados.
             </Text>
           </VStack>
-          <ThemeToggle />
         </HStack>
 
         {/* Card do Perfil */}

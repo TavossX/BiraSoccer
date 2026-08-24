@@ -26,6 +26,7 @@ import { supabase } from '../lib/supabase';
 import { listarMeusTimes, excluirTime } from '../services/timesCustomizadosService';
 import type { TimeCustomizado } from '../services/timesCustomizadosService';
 import { ModalCriarTime } from '../components/ModalCriarTime';
+import { Navbar } from '../components/Navbar';
 import { IoMdAdd } from 'react-icons/io';
 import { FiEdit2, FiTrash2, FiArrowLeft, FiShield } from 'react-icons/fi';
 
@@ -101,62 +102,16 @@ export function MeusTimes() {
 
   return (
     <Box minH="100vh">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <Box
-        as="header"
-        bg={headerBg}
-        boxShadow="lg"
-        position="sticky"
-        top={0}
-        zIndex={100}
-      >
-        <Flex
-          maxW="1200px"
-          mx="auto"
-          px={{ base: 4, md: 8 }}
-          py={3}
-          align="center"
-          justify="space-between"
-          gap={3}
-        >
-          <HStack spacing={3}>
-            <Image
-              src={LogoCompleta}
-              alt="EAFC26 Cup"
-              h={{ base: '36px', md: '48px' }}
-              cursor="pointer"
-              onClick={() => navigate('/dashboard')}
-            />
-          </HStack>
-
-          <HStack spacing={2} flexShrink={0}>
-            <Button
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              variant="outline"
-              leftIcon={<FiArrowLeft /> as any}
-            >
-              Dashboard
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleLogout}
-              colorScheme="red"
-              variant="outline"
-            >
-              Logout
-            </Button>
-          </HStack>
-        </Flex>
-      </Box>
+      {/* ── Header Unificado com Menu Hambúrguer (Mobile) ─────────── */}
+      <Navbar />
 
       {/* ── Conteúdo ─────────────────────────────────────────────── */}
-      <Box maxW="1200px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 10 }}>
+      <Box maxW="1200px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
         {/* Saudação */}
         <Box
           bg={cardBg}
           boxShadow="sm"
-          px={6}
+          px={{ base: 4, md: 6 }}
           py={4}
           mb={8}
           border="1px solid"

@@ -544,7 +544,7 @@ export function DraftLobby({ torneioId: propTorneioId, isReadOnly }: DraftLobbyP
   );
 
   return (
-    <Box minH="100vh" px={{ base: 4, md: 8 }} py={8}>
+    <Box minH="100vh" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
       <Box maxW="1100px" mx="auto">
         {/* ── Header da Sala de Draft ────────────────────────────────────── */}
         <Flex justify="space-between" align="center" flexWrap="wrap" gap={4} mb={6}>

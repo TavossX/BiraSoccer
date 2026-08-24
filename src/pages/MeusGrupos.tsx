@@ -32,6 +32,7 @@ import { criarGrupo, listarMeusGrupos } from '../services/gruposService';
 import type { Grupo } from '../types/social';
 import { FiUsers, FiPlus, FiArrowLeft, FiChevronRight } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { Navbar } from '../components/Navbar';
 
 export function MeusGrupos() {
   const navigate = useNavigate();
@@ -77,8 +78,7 @@ export function MeusGrupos() {
 
     if (novo) {
       toast({
-        title: 'Grupo criado!',
-        description: `O grupo "${novo.nome}" foi criado com sucesso.`,
+        title: 'Grupo criado com sucesso!',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -86,7 +86,6 @@ export function MeusGrupos() {
       setNomeNovoGrupo('');
       onClose();
       carregarGrupos();
-      navigate(`/grupos/${novo.id}`);
     } else {
       toast({
         title: 'Erro ao criar grupo',
@@ -99,38 +98,28 @@ export function MeusGrupos() {
   };
 
   return (
-    <Box minH="100vh" px={{ base: 4, md: 8 }} py={10}>
-      <Box maxW="1100px" mx="auto">
-        <HStack justify="space-between" mb={8} align="flex-start" flexWrap="wrap" gap={4}>
-          <VStack spacing={2} align="flex-start">
-            <Button
-              size="xs"
-              variant="ghost"
-              mb={2}
-              onClick={() => navigate('/dashboard')}
-              px={0}
-              leftIcon={<FiArrowLeft />}
-            >
-              Voltar ao Dashboard
-            </Button>
-            <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
+    <Box minH="100vh">
+      <Navbar />
+
+      <Box maxW="1100px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
+        <HStack justify="space-between" mb={6} align="center" flexWrap="wrap" gap={3}>
+          <VStack spacing={1} align="flex-start">
+            <Heading fontSize={{ base: '20px', md: '28px' }} color="brand.500">
               Meus Grupos de Amigos
             </Heading>
-            <Text fontSize="sm" color={textColorMuted}>
+            <Text fontSize="13px" color={textColorMuted}>
               Organize seus amigos em resenhas, panela de FIFA/EAFC ou ligas fixas.
             </Text>
           </VStack>
-          <HStack spacing={3}>
-            <ThemeToggle />
-            <Button
-              colorScheme="brand"
-              leftIcon={<FiPlus />}
-              onClick={onOpen}
-              size="md"
-            >
-              Criar Grupo
-            </Button>
-          </HStack>
+          <Button
+            colorScheme="orange"
+            leftIcon={<FiPlus />}
+            onClick={onOpen}
+            size="sm"
+            fontWeight={800}
+          >
+            Criar Grupo
+          </Button>
         </HStack>
 
         {loading ? (

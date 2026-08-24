@@ -46,6 +46,7 @@ import {
   FiCheckCircle,
   FiEdit2,
 } from 'react-icons/fi';
+import { Navbar } from '../components/Navbar';
 import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
 
 interface TorneioItem {
@@ -357,88 +358,18 @@ export function Dashboard() {
 
   return (
     <Box minH="100vh">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <Box as="header" bg={headerBg} boxShadow="sm" position="sticky" top={0} zIndex={100}>
-        <Flex
-          maxW="1200px"
-          mx="auto"
-          px={{ base: 4, md: 8 }}
-          py={3}
-          align="center"
-          justify="space-between"
-          gap={3}
-        >
-          {/* Logo */}
-          <HStack spacing={3}>
-            <Image src={LogoCompleta} alt="BiraSoccer" h={{ base: '36px', md: '46px' }} />
-          </HStack>
-
-          {/* Ações */}
-          <HStack spacing={2} flexShrink={0}>
-            <Button
-              id="btn-meus-grupos"
-              size="sm"
-              onClick={() => navigate('/grupos')}
-              variant="outline"
-              colorScheme="orange"
-              leftIcon={<FiUsers />}
-            >
-              Meus Grupos
-            </Button>
-            <Button
-              id="btn-meus-times"
-              size="sm"
-              onClick={() => navigate('/meus-times')}
-              variant="outline"
-              colorScheme="orange"
-              leftIcon={<FiShield />}
-            >
-              Meus Times
-            </Button>
-            <Button
-              id="btn-novo-torneio"
-              size="sm"
-              onClick={() => navigate('/torneio/configurar')}
-              colorScheme="orange"
-              leftIcon={<FiPlus />}
-              fontWeight={800}
-            >
-              Criar Torneio
-            </Button>
-            {userId && (
-              <Tooltip label="Meu Perfil" placement="top">
-                <Avatar
-                  size="sm"
-                  name={perfilUsuario?.nome || 'Perfil'}
-                  src={perfilUsuario?.foto_base64 || undefined}
-                  cursor="pointer"
-                  onClick={() => navigate(`/perfil/${userId}`)}
-                  border="2px solid"
-                  borderColor="brand.500"
-                />
-              </Tooltip>
-            )}
-            <IconButton
-              aria-label="Logout"
-              icon={<FiLogOut />}
-              size="sm"
-              onClick={handleLogout}
-              colorScheme="red"
-              variant="ghost"
-            />
-          </HStack>
-        </Flex>
-      </Box>
+      {/* ── Header Unificado com Menu Hambúrguer (Drawer Mobile) ──── */}
+      <Navbar />
 
       {/* ── Conteúdo Principal ───────────────────────────────────── */}
-      <Box maxW="1200px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 10 }}>
+      <Box maxW="1200px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
         {/* Saudação */}
         <Box
           bg={cardBg}
           boxShadow="sm"
-          px={6}
-          py={5}
-          mb={8}
+          px={{ base: 4, md: 6 }}
+          py={{ base: 4, md: 5 }}
+          mb={6}
           border="1px solid"
           borderColor={cardBorder}
           borderRadius="xl"

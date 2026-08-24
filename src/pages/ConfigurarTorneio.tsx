@@ -34,6 +34,7 @@ import { useTorneioStore } from '../store/torneioStore';
 import type { FormatoTorneio } from '../types/torneio';
 import type { Grupo, ParticipanteTorneioSelecao } from '../types/social';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { Navbar } from '../components/Navbar';
 import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { searchTeams, TimeFutebol } from '../services/apiFutebol';
@@ -406,29 +407,19 @@ export function ConfigurarTorneio() {
       : 'Gera um segundo turno espelhado (volta em casa).';
 
   return (
-    <Box minH="100vh" px={{ base: 4, md: 8 }} py={10}>
-      <Box maxW="760px" mx="auto">
-        <HStack justify="space-between" mb={8} align="flex-start">
-          <VStack spacing={2} align="flex-start">
-            <Button
-              size="xs"
-              variant="ghost"
-              mb={2}
-              onClick={() => navigate('/')}
-              px={0}
-              _hover={{ color: 'brand.orange' }}
-              leftIcon={<ResetIcon />}
-            >
-              ← Voltar para o Dashboard
-            </Button>
-            <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
+    <Box minH="100vh">
+      <Navbar />
+
+      <Box maxW="760px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
+        <HStack justify="space-between" mb={6} align="center" flexWrap="wrap" gap={3}>
+          <VStack spacing={1} align="flex-start">
+            <Heading fontSize={{ base: '20px', md: '28px' }} color="brand.500">
               Configurar campeonato
             </Heading>
-            <Text fontSize="sm" color={textSecondary}>
+            <Text fontSize="13px" color={textSecondary}>
               Selecione o Grupo de Amigos, escolha os participantes e realize o Sorteio.
             </Text>
           </VStack>
-          <ThemeToggle />
         </HStack>
 
         <HStack spacing={0} mb={8}>

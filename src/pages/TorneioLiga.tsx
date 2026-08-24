@@ -5,6 +5,12 @@ import {
   Flex,
   Heading,
   HStack,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
   SimpleGrid,
   Text,
   useDisclosure,
@@ -31,8 +37,16 @@ import { ModalCompartilhar } from '../components/ModalCompartilhar';
 import { ModalConfiguracoesTorneio } from '../components/ModalConfiguracoesTorneio';
 import { Chaveamento } from '../components/Chaveamento';
 import { DraftLobby } from '../components/DraftLobby';
+import { ThemeToggle } from '../components/ThemeToggle';
 import type { Partida } from '../types/torneio';
-import { FiRefreshCw as ResetIcon, FiLogOut as LogoutIcon, FiShare2 as ShareIcon, FiSettings } from 'react-icons/fi';
+import {
+  FiRefreshCw as ResetIcon,
+  FiLogOut as LogoutIcon,
+  FiShare2 as ShareIcon,
+  FiSettings,
+  FiMenu,
+  FiHome,
+} from 'react-icons/fi';
 
 export function TorneioLiga() {
   const { id } = useParams<{ id?: string }>();
@@ -162,14 +176,15 @@ export function TorneioLiga() {
             </VStack>
           </HStack>
 
-          <HStack spacing={2} flexWrap="wrap" justify="flex-end">
+          {/* ── Ações Desktop ────────────────────────────────────────── */}
+          <HStack spacing={2} display={{ base: 'none', md: 'flex' }}>
             <Badge
               colorScheme="orange"
               variant="subtle"
-              px={3} py={1}
+              px={3}
+              py={1}
               fontSize="12px"
               fontWeight="bold"
-              display={{ base: 'none', sm: 'flex' }}
             >
               {totalFinalizadas}/{partidas.length} Jogos
             </Badge>
@@ -190,44 +205,78 @@ export function TorneioLiga() {
               id="btn-compartilhar-liga"
               size="sm"
               colorScheme="blue"
-              leftIcon={<ShareIcon /> as any}
+              leftIcon={<ShareIcon />}
               onClick={compartilharDisclosure.onOpen}
-              display={{ base: 'none', sm: 'flex' }}
             >
-              COMPARTILHAR
+              Compartilhar
             </Button>
+
             {hasAdminRights && (
               <Button
-                leftIcon={<ResetIcon /> as any}
+                leftIcon={<ResetIcon />}
                 size="sm"
                 colorScheme="red"
                 variant="outline"
                 onClick={handleReset}
               >
-                RESETAR
+                Resetar
               </Button>
             )}
+
+            <ThemeToggle />
+
             <Button
               size="sm"
               colorScheme="gray"
-              variant="outline"
-              onClick={() => navigate('/')}
+              variant="ghost"
+              leftIcon={<FiHome />}
+              onClick={() => navigate('/dashboard')}
             >
-              ← DASHBOARD
+              Dashboard
             </Button>
-            <Button
-              size="sm"
-              colorScheme="red"
-              onClick={handleLogout}
-              leftIcon={<LogoutIcon /> as any}
-            >
-              Sair
-            </Button>
+          </HStack>
+
+          {/* ── Ações Mobile (Menu Hambúrguer de Ações) ─────────────────── */}
+          <HStack spacing={2} display={{ base: 'flex', md: 'none' }}>
+            <ThemeToggle />
+
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                icon={<FiMenu size={20} />}
+                size="sm"
+                variant="outline"
+                colorScheme="orange"
+                aria-label="Menu do Torneio"
+              />
+              <MenuList bg={useColorModeValue('white', 'gray.800')} borderColor={useColorModeValue('gray.200', 'gray.700')} zIndex={100}>
+                {hasAdminRights && (
+                  <MenuItem icon={<FiSettings />} onClick={configModalDisclosure.onOpen}>
+                    Configurações do Torneio
+                  </MenuItem>
+                )}
+                <MenuItem icon={<ShareIcon />} onClick={compartilharDisclosure.onOpen}>
+                  Compartilhar Torneio
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem icon={<FiHome />} onClick={() => navigate('/dashboard')}>
+                  Ir ao Dashboard
+                </MenuItem>
+                {hasAdminRights && (
+                  <>
+                    <MenuDivider />
+                    <MenuItem icon={<ResetIcon />} color="red.500" onClick={handleReset}>
+                      Resetar Torneio
+                    </MenuItem>
+                  </>
+                )}
+              </MenuList>
+            </Menu>
           </HStack>
         </Flex>
       </Box>
 
-      <Box maxW="1200px" mx="auto" px={{ base: 4, md: 8 }} py={{ base: 6, md: 8 }}>
+      <Box maxW="1200px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
         {/* Barra de progresso */}
         <Box mb={6}>
           <HStack justify="space-between" mb={2}>

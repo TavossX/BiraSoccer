@@ -101,8 +101,9 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
         </Badge>
       </HStack>
 
-      {/* Tabela */}
+      {/* ── Visualização Desktop (Tabela Completa) ────────────────── */}
       <Box
+        display={{ base: 'none', md: 'block' }}
         bg={cardBg}
         border="1px solid"
         borderColor={cardBorder}
@@ -121,7 +122,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                 <Th
                   key={col}
                   fontFamily="heading"
-                  fontSize={{ base: '12px', md: '13px' }}
+                  fontSize="13px"
                   fontWeight={800}
                   textTransform="uppercase"
                   letterSpacing="wider"
@@ -183,7 +184,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                     <Text
                       fontFamily="heading"
                       fontWeight={900}
-                      fontSize={{ base: '14px', md: '16px' }}
+                      fontSize="16px"
                       color={isTop4 ? 'brand.mustard' : isFirst ? '#F94A29' : textPrimary}
                     >
                       {pos}º
@@ -210,7 +211,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                         <Text
                           fontFamily="heading"
                           fontWeight={700}
-                          fontSize={{ base: '13px', md: '15px' }}
+                          fontSize="15px"
                           color={textPrimary}
                         >
                           {p.nomeAmigo}
@@ -228,7 +229,7 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
                     <Text
                       fontFamily="heading"
                       fontWeight={900}
-                      fontSize={{ base: '16px', md: '18px' }}
+                      fontSize="18px"
                       color={textPrimary}
                     >
                       {p.pontos}
@@ -269,6 +270,172 @@ export function TabelaClassificacao({ highlightTop4 = false }: { highlightTop4?:
           </Tbody>
         </Table>
       </Box>
+
+      {/* ── Visualização Mobile (Cards Verticais Empilhados) ─────────── */}
+      <VStack display={{ base: 'flex', md: 'none' }} spacing={3} align="stretch">
+        {classificacao.map((p, idx) => {
+          const pos = idx + 1;
+          const sg  = p.golsPro - p.golsContra;
+          const isTop4  = highlightTop4 && pos <= 4;
+          const isLast2 = !highlightTop4 && pos > classificacao.length - 2 && classificacao.length > 3;
+          const isFirst = pos === 1;
+
+          const cardBorderColor = isTop4
+            ? '#FDBB00'
+            : isFirst
+            ? '#F94A29'
+            : isLast2
+            ? '#C80000'
+            : cardBorder;
+
+          const itemBg = isTop4
+            ? (pos === 1 ? 'rgba(253,187,0,0.12)' : 'rgba(253,187,0,0.05)')
+            : (isFirst ? 'rgba(249,74,41,0.08)' : cardBg);
+
+          return (
+            <Box
+              key={p.id}
+              bg={itemBg}
+              border="1px solid"
+              borderColor={cardBorderColor}
+              borderRadius="xl"
+              p={3.5}
+              boxShadow="sm"
+              position="relative"
+              overflow="hidden"
+            >
+              {/* Borda de Destaque Esquerda */}
+              <Box
+                position="absolute"
+                left={0}
+                top={0}
+                bottom={0}
+                w="5px"
+                bg={cardBorderColor}
+              />
+
+              <Flex justify="space-between" align="center" mb={2.5}>
+                <HStack spacing={3} pl={1}>
+                  <Flex
+                    w="28px"
+                    h="28px"
+                    borderRadius="full"
+                    bg={isTop4 ? '#FDBB00' : isFirst ? '#F94A29' : useColorModeValue('gray.100', 'gray.700')}
+                    color={isTop4 || isFirst ? 'white' : textPrimary}
+                    align="center"
+                    justify="center"
+                    fontWeight={900}
+                    fontSize="13px"
+                  >
+                    {pos}º
+                  </Flex>
+
+                  <Avatar
+                    size="sm"
+                    name={p.nomeAmigo}
+                    src={p.fotoUsuario || undefined}
+                    cursor={p.usuarioId ? 'pointer' : 'default'}
+                    onClick={() => p.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
+                  />
+
+                  <VStack
+                    align="flex-start"
+                    spacing={0}
+                    cursor={p.usuarioId ? 'pointer' : 'default'}
+                    onClick={() => p.usuarioId && navigate(`/perfil/${p.usuarioId}`)}
+                  >
+                    <Text fontWeight={800} fontSize="14px" color={textPrimary} noOfLines={1}>
+                      {p.nomeAmigo}
+                    </Text>
+                    <HStack spacing={1}>
+                      {p.logoTime && <Image src={p.logoTime} boxSize="13px" objectFit="contain" />}
+                      <Text fontSize="11px" fontWeight={600} color={textSecondary} noOfLines={1}>
+                        {p.timeSorteado}
+                      </Text>
+                    </HStack>
+                  </VStack>
+                </HStack>
+
+                {/* Pontos em Destaque */}
+                <VStack spacing={0} align="flex-end">
+                  <Badge colorScheme="orange" variant="solid" fontSize="13px" px={2.5} py={0.5} borderRadius="md">
+                    {p.pontos} PTS
+                  </Badge>
+                </VStack>
+              </Flex>
+
+              {/* Grid de Estatísticas Rápidas */}
+              <Flex
+                bg={useColorModeValue('whiteAlpha.700', 'blackAlpha.300')}
+                borderRadius="lg"
+                p={2}
+                justify="space-around"
+                align="center"
+                border="1px solid"
+                borderColor={useColorModeValue('gray.200', 'whiteAlpha.100')}
+              >
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    Jogos
+                  </Text>
+                  <Text fontSize="12px" fontWeight={800} color={textPrimary}>
+                    {p.jogos}
+                  </Text>
+                </VStack>
+
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    Vitórias
+                  </Text>
+                  <Text fontSize="12px" fontWeight={800} color="green.500">
+                    {p.vitorias}
+                  </Text>
+                </VStack>
+
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    Empates
+                  </Text>
+                  <Text fontSize="12px" fontWeight={800} color={textSecondary}>
+                    {p.empates}
+                  </Text>
+                </VStack>
+
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    Derrotas
+                  </Text>
+                  <Text fontSize="12px" fontWeight={800} color="red.500">
+                    {p.derrotas}
+                  </Text>
+                </VStack>
+
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    GP / GC
+                  </Text>
+                  <Text fontSize="12px" fontWeight={800} color={textPrimary}>
+                    {p.golsPro}/{p.golsContra}
+                  </Text>
+                </VStack>
+
+                <VStack spacing={0}>
+                  <Text fontSize="9px" fontWeight={700} color={textSecondary} textTransform="uppercase">
+                    Saldo
+                  </Text>
+                  <Text
+                    fontSize="12px"
+                    fontWeight={800}
+                    color={sg > 0 ? 'green.500' : sg < 0 ? 'red.500' : textSecondary}
+                  >
+                    {sg > 0 ? `+${sg}` : sg}
+                  </Text>
+                </VStack>
+              </Flex>
+            </Box>
+          );
+        })}
+      </VStack>
 
       {/* Legenda */}
       <HStack spacing={4} mt={4} flexWrap="wrap">

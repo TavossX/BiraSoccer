@@ -40,6 +40,7 @@ import {
   FiCheckCircle,
 } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { Navbar } from '../components/Navbar';
 
 interface TorneioGrupoItem {
   id: string;
@@ -177,46 +178,39 @@ export function DetalhesGrupo() {
   const isGestor = grupo.criador_id === userId;
 
   return (
-    <Box minH="100vh" px={{ base: 4, md: 8 }} py={10}>
-      <Box maxW="1000px" mx="auto">
+    <Box minH="100vh">
+      <Navbar />
+
+      <Box maxW="1000px" mx="auto" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
         {/* Header do Grupo */}
-        <HStack justify="space-between" mb={8} align="flex-start" flexWrap="wrap" gap={4}>
-          <VStack spacing={2} align="flex-start">
-            <Button
-              size="xs"
-              variant="ghost"
-              mb={2}
-              onClick={() => navigate('/grupos')}
-              px={0}
-              leftIcon={<FiArrowLeft />}
-            >
-              ← Voltar aos Grupos
-            </Button>
+        <HStack justify="space-between" mb={6} align="center" flexWrap="wrap" gap={3}>
+          <VStack spacing={1} align="flex-start">
             <HStack spacing={3}>
-              <Heading fontSize={{ base: '24px', md: '32px' }} color="brand.500">
+              <Heading fontSize={{ base: '20px', md: '28px' }} color="brand.500">
                 {grupo.nome}
               </Heading>
               {isGestor && (
-                <Badge colorScheme="orange" variant="subtle" fontSize="12px" px={2} py={1}>
+                <Badge colorScheme="orange" variant="subtle" fontSize="11px" px={2} py={0.5}>
                   SOU GESTOR
                 </Badge>
               )}
             </HStack>
-            <Text fontSize="sm" color={textColorMuted}>
+            <Text fontSize="13px" color={textColorMuted}>
               {membros.length} participante(s) registrado(s) neste grupo.
             </Text>
           </VStack>
-          <HStack spacing={3}>
-            <ThemeToggle />
+          <HStack spacing={2}>
             {isGestor && (
               <Button
                 colorScheme="orange"
                 variant="solid"
+                size="sm"
                 leftIcon={<FiLink />}
                 onClick={handleGerarLinkConvite}
                 isLoading={generatingLink}
+                fontWeight={700}
               >
-                Gerar Link de Convite
+                Link de Convite
               </Button>
             )}
           </HStack>
