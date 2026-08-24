@@ -29,7 +29,6 @@ export async function listarMeusTimes(userId: string): Promise<TimeCustomizado[]
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Erro ao listar times customizados:', error);
     return [];
   }
 
@@ -53,7 +52,6 @@ export async function criarTime(
     .single();
 
   if (error) {
-    console.error('Erro ao criar time customizado:', error);
     return null;
   }
 
@@ -75,7 +73,6 @@ export async function atualizarTime(
     .single();
 
   if (error) {
-    console.error('Erro ao atualizar time customizado:', error);
     return null;
   }
 
@@ -92,7 +89,6 @@ export async function excluirTime(id: string): Promise<boolean> {
     .eq('id', id);
 
   if (error) {
-    console.error('Erro ao excluir time customizado:', error);
     return false;
   }
 

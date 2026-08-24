@@ -10,7 +10,6 @@ export async function listarMeusGrupos(usuarioId: string): Promise<Grupo[]> {
     .eq('usuario_id', usuarioId);
 
   if (membroErr) {
-    console.error('Erro ao buscar grupos do usuário:', membroErr.message);
     return [];
   }
 
@@ -25,7 +24,6 @@ export async function listarMeusGrupos(usuarioId: string): Promise<Grupo[]> {
     .order('criado_em', { ascending: false });
 
   if (error) {
-    console.error('Erro ao listar grupos:', error.message);
     return [];
   }
 
@@ -44,19 +42,14 @@ export async function obterGrupo(grupoId: string): Promise<{
     .single();
 
   if (grupoErr || !grupo) {
-    console.error('Erro ao buscar grupo:', grupoErr?.message);
     return { grupo: null, membros: [] };
   }
 
-  const { data: membros, error: membrosErr } = await supabase
+  const { data: membros } = await supabase
     .from('grupo_membros')
     .select('*, perfil:perfis!usuario_id(*)')
     .eq('grupo_id', grupoId)
     .order('data_entrada', { ascending: true });
-
-  if (membrosErr) {
-    console.error('Erro ao buscar membros do grupo:', membrosErr.message);
-  }
 
   return {
     grupo,
@@ -73,19 +66,14 @@ export async function criarGrupo(nome: string, criadorId: string): Promise<Grupo
     .single();
 
   if (grupoErr || !novoGrupo) {
-    console.error('Erro ao criar grupo:', grupoErr?.message);
     throw grupoErr;
   }
 
   // Adiciona criador à grupo_membros
-  const { error: membroErr } = await supabase.from('grupo_membros').insert({
+  await supabase.from('grupo_membros').insert({
     grupo_id: novoGrupo.id,
     usuario_id: criadorId,
   });
-
-  if (membroErr) {
-    console.error('Erro ao adicionar criador ao grupo_membros:', membroErr.message);
-  }
 
   return novoGrupo;
 }
@@ -104,7 +92,6 @@ export async function gerarConviteGrupo(grupoId: string): Promise<ConviteGrupo> 
     .single();
 
   if (error || !data) {
-    console.error('Erro ao gerar convite:', error?.message);
     throw error;
   }
 
@@ -120,7 +107,6 @@ export async function obterConvitePorToken(token: string): Promise<ConviteGrupo 
     .single();
 
   if (error || !data) {
-    console.error('Erro ao validar convite:', error?.message);
     return null;
   }
 
@@ -159,7 +145,6 @@ export async function entrarNoGrupoPorToken(
   });
 
   if (error) {
-    console.error('Erro ao entrar no grupo:', error.message);
     return { sucesso: false, mensagem: 'Erro ao entrar no grupo: ' + error.message };
   }
 

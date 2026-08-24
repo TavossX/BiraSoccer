@@ -1214,7 +1214,6 @@ export const useTorneioStore = create<TorneioState>()(
           .upsert(payload, { onConflict: 'id' });
 
         if (error) {
-          console.error('Erro ao publicar torneio:', error.message);
           return null;
         }
         return `${window.location.origin}/convite/${torneio.id}`;

@@ -49,13 +49,11 @@ export async function searchTeams(query: string): Promise<TimeFutebol[]> {
     }
   } catch {
     // Se o cache falhar, seguimos silenciosamente para a API
-    console.warn('[Cache-Aside] Erro ao ler cache, fallback para API.');
   }
 
   // ── Passo 2: Cache Miss — buscar na API Football ─────────────────────────
   const apiKey = import.meta.env.VITE_FOOTBALL_API_KEY;
   if (!apiKey) {
-    console.error('VITE_FOOTBALL_API_KEY não está definida no arquivo .env');
     return [];
   }
 
@@ -93,11 +91,7 @@ export async function searchTeams(query: string): Promise<TimeFutebol[]> {
         supabase
           .from('times_api_cache')
           .upsert(rows, { onConflict: 'api_id,search_term', ignoreDuplicates: true })
-          .then(({ error: insertError }) => {
-            if (insertError) {
-              console.warn('[Cache-Aside] Erro ao popular cache (silenciado):', insertError.message);
-            }
-          });
+          .then();
       }
 
       // ── Passo 4: Retorna os dados para a interface ───────────────────────
@@ -105,8 +99,7 @@ export async function searchTeams(query: string): Promise<TimeFutebol[]> {
     }
 
     return [];
-  } catch (error) {
-    console.error('Erro ao buscar times da API-Football:', error);
+  } catch {
     return [];
   }
 }

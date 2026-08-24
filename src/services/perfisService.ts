@@ -9,7 +9,6 @@ export async function obterPerfil(usuarioId: string): Promise<Perfil | null> {
     .maybeSingle();
 
   if (error) {
-    console.error('Erro ao obter perfil:', error.message);
     return null;
   }
   return data;
@@ -39,7 +38,6 @@ export async function atualizarPerfil(
     .single();
 
   if (error) {
-    console.error('Erro ao atualizar perfil:', error.message);
     throw error;
   }
   return data;
