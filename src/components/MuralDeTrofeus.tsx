@@ -137,14 +137,14 @@ export function MuralDeTrofeus({ userId }: MuralDeTrofeusProps) {
           py={2}
           borderRadius="xl"
           border="1px solid"
-          borderColor="brand.500"
+          borderColor={useColorModeValue('brand.500', 'orange.400')}
           spacing={2}
         >
-          <Icon as={FiStar} color="brand.500" />
+          <Icon as={FiStar} color={useColorModeValue('brand.500', 'yellow.400')} />
           <Text fontSize="12px" fontWeight={700} color={textSecondary}>
             XP Acumulado:
           </Text>
-          <Text fontSize="15px" fontWeight={900} color="brand.500">
+          <Text fontSize="15px" fontWeight={900} color={useColorModeValue('brand.500', 'yellow.400')}>
             {totalXp} XP
           </Text>
         </HStack>
@@ -156,7 +156,7 @@ export function MuralDeTrofeus({ userId }: MuralDeTrofeusProps) {
           <Text fontSize="12px" fontWeight={700} color={textSecondary}>
             Progresso das Conquistas
           </Text>
-          <Text fontSize="12px" fontWeight={800} color="brand.500">
+          <Text fontSize="12px" fontWeight={800} color={useColorModeValue('brand.500', 'orange.300')}>
             {porcentagem}% Concluído
           </Text>
         </Flex>

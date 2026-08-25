@@ -26,6 +26,21 @@ const colors = {
     textMuted: '#64748b',
     textMutedToken: '#64748b',
   },
+  gray: {
+    50: '#f8fafc',
+    100: '#f1f5f9',
+    200: '#e2e8f0',
+    300: '#cbd5e1',
+    400: '#94a3b8',
+    500: '#64748b',
+    600: '#475569',
+    700: '#334155',
+    750: '#242f44', // Superfície sólida interna
+    800: '#1e293b', // Superfície de cards principais
+    850: '#141d2e', // Superfície de popovers e dropdowns sólidos
+    900: '#0f172a', // Fundo principal da página
+    950: '#090d16',
+  },
 };
 
 const fonts = {
@@ -126,6 +141,33 @@ const components = {
         borderRadius: 'lg',
         bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
         color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+      },
+    }),
+  },
+  Popover: {
+    baseStyle: (props: any) => ({
+      content: {
+        bg: props.colorMode === 'dark' ? 'gray.850' : 'white',
+        color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+        borderColor: props.colorMode === 'dark' ? 'gray.700' : 'gray.200',
+        boxShadow: '2xl',
+      },
+    }),
+  },
+  Menu: {
+    baseStyle: (props: any) => ({
+      list: {
+        bg: props.colorMode === 'dark' ? 'gray.850' : 'white',
+        color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+        borderColor: props.colorMode === 'dark' ? 'gray.700' : 'gray.200',
+        boxShadow: 'xl',
+      },
+      item: {
+        bg: props.colorMode === 'dark' ? 'gray.850' : 'white',
+        color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+        _hover: {
+          bg: props.colorMode === 'dark' ? 'gray.750' : 'gray.100',
+        },
       },
     }),
   },
