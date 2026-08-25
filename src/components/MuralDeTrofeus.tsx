@@ -14,6 +14,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { obterMuralConquistas } from '../services/conquistasService';
 import type { ConquistaComStatus } from '../types/gamificacao';
 import {
@@ -69,6 +70,12 @@ export function MuralDeTrofeus({ userId }: MuralDeTrofeusProps) {
   const lockedBg = useColorModeValue('gray.50', 'gray.850');
 
   useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    // 1. Carregar lista inicial
     const carregar = async () => {
       setLoading(true);
       const lista = await obterMuralConquistas(userId);
@@ -76,6 +83,29 @@ export function MuralDeTrofeus({ userId }: MuralDeTrofeusProps) {
       setLoading(false);
     };
     carregar();
+
+    // 2. Escutar desbloqueios em tempo real para atualizar os cards e barra de progresso
+    const channelId = `mural-conquistas-${userId}-${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase
+      .channel(channelId)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'usuario_conquistas',
+          filter: `user_id=eq.${userId}`,
+        },
+        async () => {
+          const listaAtualizada = await obterMuralConquistas(userId);
+          setConquistas(listaAtualizada);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
   const total = conquistas.length;

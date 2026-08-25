@@ -298,7 +298,7 @@ VALUES
     ('paredao', 'Paredão / Clean Sheet', 'Venceu uma partida sem sofrer nenhum gol.', '🛡️', 'partidas', 100)
 ON CONFLICT (id) DO NOTHING;
 
--- Habilitar Realtime para a tabela de notificações no Supabase
+-- Habilitar Realtime para as tabelas de notificações e conquistas no Supabase
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -306,6 +306,13 @@ BEGIN
         WHERE pubname = 'supabase_realtime' AND tablename = 'notificacoes'
     ) THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.notificacoes;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'usuario_conquistas'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.usuario_conquistas;
     END IF;
 END $$;
 
