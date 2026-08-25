@@ -150,9 +150,10 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     };
     carregar();
 
-    // 2. Assinar canal Supabase Realtime
+    // 2. Assinar canal Supabase Realtime com ID único por instância
+    const channelId = `notificacoes-${userId}-${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel(`notificacoes-${userId}`)
+      .channel(channelId)
       .on(
         'postgres_changes',
         {
