@@ -1,0 +1,5 @@
+# Configuração local e de funções do Supabase
+project_id = "birasoccer"
+
+[functions.send-achievement-email]
+verify_jwt = false
