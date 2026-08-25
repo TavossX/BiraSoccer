@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SmtpClient } from 'https://deno.land/x/smtp@v0.7.0/mod.ts';
+import nodemailer from 'npm:nodemailer@6.9.13';
 import { corsHeaders } from '../_shared/cors.ts';
 import { gerarHtmlEmailConquista } from '../_shared/emailTemplate.ts';
 
@@ -13,7 +13,7 @@ interface WebhookPayload {
     conquista_id: string;
     desbloqueado_em?: string;
   };
-  // Suporte a chamada direta
+  // Suporte a chamada direta/manual
   user_id?: string;
   conquista_id?: string;
 }
@@ -26,7 +26,19 @@ serve(async (req: Request) => {
 
   try {
     // 2. Extração do payload do Webhook
-    const body: WebhookPayload = await req.json();
+    let body: WebhookPayload;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Payload JSON inválido.' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const userId = body.record?.user_id || body.user_id;
     const conquistaId = body.record?.conquista_id || body.conquista_id;
 
@@ -122,7 +134,7 @@ serve(async (req: Request) => {
       appUrl,
     });
 
-    // 7. Envio do E-mail via Gmail SMTP (porta 465 TLS)
+    // 7. Envio do E-mail via Gmail SMTP com Nodemailer
     const gmailUser = Deno.env.get('GMAIL_USER');
     const gmailPassword = Deno.env.get('GMAIL_APP_PASSWORD');
 
@@ -148,37 +160,31 @@ serve(async (req: Request) => {
       );
     }
 
-    const client = new SmtpClient();
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: gmailUser,
+        pass: gmailPassword,
+      },
+    });
 
-    try {
-      // Conectar via TLS direto na porta 465 (padrão Gmail seguro)
-      await client.connectTLS({
-        hostname: 'smtp.gmail.com',
-        port: 465,
-        username: gmailUser,
-        password: gmailPassword,
-      });
+    const info = await transporter.sendMail({
+      from: `BiraSoccer <${gmailUser}>`,
+      to: userEmail,
+      subject: `🏆 Nova Conquista: ${conquista.titulo} (+${conquista.pontos_xp} XP)`,
+      html: htmlEmail,
+    });
 
-      // Disparar o e-mail formatado
-      await client.send({
-        from: `BiraSoccer <${gmailUser}>`,
-        to: userEmail,
-        subject: `🏆 Nova Conquista: ${conquista.titulo} (+${conquista.pontos_xp} XP)`,
-        html: htmlEmail,
-      });
-
-      console.log(`✅ E-mail de conquista enviado via Gmail SMTP para ${userEmail}`);
-    } finally {
-      try {
-        await client.close();
-      } catch {
-        // Ignora erro ao fechar socket
-      }
-    }
+    console.log(
+      `✅ E-mail de conquista enviado via Gmail SMTP para ${userEmail} (MessageId: ${info.messageId})`
+    );
 
     return new Response(
       JSON.stringify({
         success: true,
+        messageId: info.messageId,
         recipient: userEmail,
         conquista: conquista.titulo,
       }),
