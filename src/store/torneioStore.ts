@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
-import type {
+import {
   Torneio,
   Participante,
   Partida,
@@ -13,6 +13,10 @@ import type {
   BracketSide,
   PodioTorneio,
 } from '../types/torneio';
+import {
+  verificarGatilhosPartida,
+  verificarGatilhosTorneioFinalizado,
+} from '../services/conquistasService';
 
 // Fases que participam da progressao sequencial do bracket (terceiro_lugar e final sao paralelas ao fim)
 const ORDEM_FASES_BRACKET: FaseMataMata[] = ['oitavas', 'quartas', 'semifinal', 'final'];
@@ -1030,7 +1034,36 @@ export const useTorneioStore = create<TorneioState>()(
           });
 
         const novosParticipantes = participantes.map((p) => ({ ...p, ...stats.get(p.id) }));
-        set({ partidas: novasPartidas, participantes: novosParticipantes });
+
+        // Disparar gatilhos de notificação e conquista para a partida
+        const { torneio } = get();
+        const partA = participantes.find((p) => p.id === partida.participanteAId);
+        const partB = participantes.find((p) => p.id === partida.participanteBId);
+        if (partA && partB) {
+          verificarGatilhosPartida({
+            usuarioIdA: partA.usuarioId,
+            usuarioIdB: partB.usuarioId,
+            placarA,
+            placarB,
+            nomeAmigoA: partA.nomeAmigo,
+            nomeAmigoB: partB.nomeAmigo,
+            timeA: partA.timeSorteado,
+            timeB: partB.timeSorteado,
+            torneioId: partida.torneioId,
+            torneioNome: torneio?.nome || 'Torneio',
+          });
+        }
+
+        // Verificar se todas as partidas da liga foram concluídas
+        const todasFinalizadas = novasPartidas.every((p) => p.finalizada);
+        let torneioAtualizado = torneio;
+        if (todasFinalizadas && torneio && torneio.status !== 'finalizado') {
+          torneioAtualizado = { ...torneio, status: 'finalizado' };
+          const podio = obterPodioTorneio(torneioAtualizado, novosParticipantes, novasPartidas);
+          verificarGatilhosTorneioFinalizado(torneioAtualizado, podio, novosParticipantes);
+        }
+
+        set({ torneio: torneioAtualizado, partidas: novasPartidas, participantes: novosParticipantes });
         get().publicarTorneio();
       },
 
@@ -1142,7 +1175,41 @@ export const useTorneioStore = create<TorneioState>()(
           }
         }
 
-        set({ partidas: novasPartidas });
+        // Disparar gatilhos de notificação e conquista para a partida
+        const partA = participantes.find((p) => p.id === partida.participanteAId);
+        const partB = participantes.find((p) => p.id === partida.participanteBId);
+        if (partA && partB) {
+          verificarGatilhosPartida({
+            usuarioIdA: partA.usuarioId,
+            usuarioIdB: partB.usuarioId,
+            placarA,
+            placarB,
+            nomeAmigoA: partA.nomeAmigo,
+            nomeAmigoB: partB.nomeAmigo,
+            timeA: partA.timeSorteado,
+            timeB: partB.timeSorteado,
+            torneioId: partida.torneioId,
+            torneioNome: torneio?.nome || 'Torneio',
+          });
+        }
+
+        // Checar se o torneio de mata-mata ou playoffs foi finalizado
+        const podio = obterPodioTorneio(torneio, participantes, novasPartidas);
+        let torneioAtualizado = torneio;
+        if (podio.campeao && torneio && torneio.status !== 'finalizado') {
+          const finalMatchesFinalizadas = novasPartidas.some(
+            (p) =>
+              (p.fase === 'final' || p.fase === 'grand_final' || p.fase === 'bracket_reset') &&
+              p.finalizada &&
+              p.vencedorId === podio.campeao?.id
+          );
+          if (finalMatchesFinalizadas) {
+            torneioAtualizado = { ...torneio, status: 'finalizado' };
+            verificarGatilhosTorneioFinalizado(torneioAtualizado, podio, participantes);
+          }
+        }
+
+        set({ torneio: torneioAtualizado, partidas: novasPartidas });
         get().publicarTorneio();
       },
 
