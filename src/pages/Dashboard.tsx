@@ -48,6 +48,7 @@ import {
 } from 'react-icons/fi';
 import { Navbar } from '../components/Navbar';
 import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
+import { MuralDeTrofeus } from '../components/MuralDeTrofeus';
 
 interface TorneioItem {
   id: string;
@@ -454,6 +455,9 @@ export function Dashboard() {
             </Stat>
           </Box>
         </SimpleGrid>
+
+        {/* ── Mural de Troféus & Gamificação ─────────────────────── */}
+        <MuralDeTrofeus userId={userId} />
 
         {/* Divisória degradê */}
         <Box h="3px" bg="linear-gradient(90deg, #C80000, #F94A29, #FDBB00, #F94A29, #C80000)" mb={8} borderRadius="full" />
