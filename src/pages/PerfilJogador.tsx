@@ -27,6 +27,7 @@ import { FiArrowLeft, FiAward, FiEdit2, FiShield, FiTag, FiTarget, FiTrendingUp 
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
 import { Navbar } from '../components/Navbar';
+import { MuralDeTrofeus } from '../components/MuralDeTrofeus';
 
 interface EstatisticasJogador {
   torneiosJogados: number;
@@ -342,6 +343,9 @@ export function PerfilJogador() {
             </Text>
           </Box>
         </SimpleGrid>
+
+        {/* Mural de Troféus do Jogador */}
+        <MuralDeTrofeus userId={id || currentUserId} />
       </Box>
     </Box>
   );

@@ -31,6 +31,7 @@ import type { Perfil } from '../types/social';
 import LogoCompleta from '../assets/logos/LogoCompleta.png';
 import { ThemeToggle } from './ThemeToggle';
 import { ModalEditarPerfil } from './ModalEditarPerfil';
+import { NotificationBell } from './NotificationBell';
 import {
   FiAward,
   FiEdit2,
@@ -198,6 +199,9 @@ export function Navbar({
 
             <Divider orientation="vertical" h="20px" borderColor={borderColor} />
 
+            {/* Sino de Notificações em Tempo Real */}
+            <NotificationBell userId={userId} />
+
             <ThemeToggle />
 
             {userId && (
@@ -227,9 +231,10 @@ export function Navbar({
             />
           </HStack>
 
-          {/* ── Botões Mobile (Hambúrguer + ThemeToggle) ───────────────── */}
+          {/* ── Botões Mobile (Hambúrguer + Notificações + ThemeToggle) ─── */}
           <HStack spacing={2} display={{ base: 'flex', md: 'none' }}>
             {childrenAcoes}
+            <NotificationBell userId={userId} />
             <ThemeToggle />
             <IconButton
               aria-label="Abrir Menu de Navegação"
