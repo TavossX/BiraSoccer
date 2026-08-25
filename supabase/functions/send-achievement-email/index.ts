@@ -171,10 +171,15 @@ serve(async (req: Request) => {
     });
 
     const info = await transporter.sendMail({
-      from: `BiraSoccer <${gmailUser}>`,
+      from: `"BiraSoccer" <${gmailUser}>`,
       to: userEmail,
       subject: `🏆 Nova Conquista: ${conquista.titulo} (+${conquista.pontos_xp} XP)`,
+      text: `Fala, ${nomeUsuario}!\n\nVocê acabou de desbloquear a conquista "${conquista.titulo}" (+${conquista.pontos_xp} XP) no BiraSoccer.\n\nDescrição: ${conquista.descricao}\n\nAcesse seu mural de troféus: ${appUrl}/dashboard\n\n© 2026 BiraSoccer`,
       html: htmlEmail,
+      headers: {
+        'X-Entity-Ref-ID': `${userId}-${conquistaId}-${Date.now()}`,
+        'List-Unsubscribe': `<${appUrl}/dashboard>`,
+      },
     });
 
     console.log(

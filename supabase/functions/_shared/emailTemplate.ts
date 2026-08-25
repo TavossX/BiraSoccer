@@ -18,14 +18,25 @@ export function gerarHtmlEmailConquista({
   pontosXp,
   appUrl = 'https://biranosoccer.vercel.app',
 }: EmailConquistaProps): string {
-  const urlMural = `${appUrl.replace(/\/$/, '')}/dashboard`;
+  const urlBase = appUrl.replace(/\/$/, '');
+  const urlMural = `${urlBase}/dashboard`;
+  const logoUrl = `${urlBase}/logo.png`;
 
   return `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🏆 Nova Conquista Desbloqueada - BiraSoccer</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
   <style>
     /* Reset & Base */
     body {
@@ -56,63 +67,36 @@ export function gerarHtmlEmailConquista({
       height: 6px;
       background: linear-gradient(90deg, #C80000 0%, #F94A29 50%, #FDBB00 100%);
     }
-    /* Header */
+    /* Header com Logo */
     .header {
-      padding: 32px 24px 20px 24px;
+      padding: 32px 24px;
       text-align: center;
       background: linear-gradient(180deg, #18233c 0%, #131b2e 100%);
       border-bottom: 1px solid #1e293b;
     }
-    .brand-title {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      margin: 0;
-      background: linear-gradient(90deg, #F94A29, #FDBB00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .logo-img {
+      max-width: 220px;
+      height: auto;
       display: inline-block;
-    }
-    .brand-subtitle {
-      color: #94a3b8;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-top: 4px;
+      border: 0;
     }
     /* Conteúdo */
     .content {
       padding: 36px 32px;
       text-align: center;
     }
-    /* Box do Troféu */
-    .trophy-badge {
-      width: 88px;
-      height: 88px;
-      margin: 0 auto 20px auto;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(253, 187, 0, 0.25) 0%, rgba(249, 74, 41, 0.1) 70%, transparent 100%);
-      border: 2px solid #FDBB00;
-      box-shadow: 0 0 25px rgba(253, 187, 0, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
-      line-height: 88px;
-    }
     .tag-conquista {
       display: inline-block;
       background: rgba(253, 187, 0, 0.15);
       color: #FDBB00;
       border: 1px solid rgba(253, 187, 0, 0.4);
-      padding: 4px 14px;
+      padding: 5px 16px;
       border-radius: 9999px;
       font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
     h2 {
       color: #ffffff;
@@ -132,13 +116,13 @@ export function gerarHtmlEmailConquista({
       background-color: #0b0f19;
       border-radius: 14px;
       border: 1px solid #1e293b;
-      padding: 20px;
+      padding: 22px;
       margin: 24px 0;
       text-align: center;
     }
     .achievement-title {
       color: #ffffff;
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 800;
       margin: 0 0 6px 0;
     }
@@ -154,8 +138,9 @@ export function gerarHtmlEmailConquista({
       color: #ffffff;
       font-size: 13px;
       font-weight: 800;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(249, 74, 41, 0.3);
     }
     /* Botão CTA */
     .btn-container {
@@ -186,10 +171,6 @@ export function gerarHtmlEmailConquista({
       margin: 0 0 6px 0;
       line-height: 1.4;
     }
-    .footer a {
-      color: #94a3b8;
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -198,18 +179,22 @@ export function gerarHtmlEmailConquista({
       <!-- Tarja topo degradê BiraSoccer -->
       <div class="top-gradient"></div>
 
-      <!-- Header -->
+      <!-- Header com Imagem Oficial da Logo -->
       <div class="header">
-        <div class="brand-title">BIRASOCCER</div>
-        <div class="brand-subtitle">Campeonatos de EAFC & Amigos</div>
+        <img src="${logoUrl}" alt="BiraSoccer" class="logo-img" width="220" />
       </div>
 
       <!-- Conteúdo Principal -->
       <div class="content">
-        <!-- Ícone do Troféu com Brilho -->
-        <div class="trophy-badge">
-          ${iconeConquista || '🏆'}
-        </div>
+        
+        <!-- Ícone do Troféu Perfeitamente Centralizado via Tabela HTML de E-mail -->
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 20px auto; border-collapse: collapse;">
+          <tr>
+            <td align="center" valign="middle" style="width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle, rgba(253, 187, 0, 0.25) 0%, rgba(249, 74, 41, 0.1) 70%, transparent 100%); border: 2px solid #FDBB00; box-shadow: 0 0 25px rgba(253, 187, 0, 0.35); text-align: center; vertical-align: middle; font-size: 42px; line-height: 88px; mso-line-height-rule: exactly;">
+              ${iconeConquista || '🏆'}
+            </td>
+          </tr>
+        </table>
 
         <div>
           <span class="tag-conquista">🏆 Conquista Desbloqueada</span>
