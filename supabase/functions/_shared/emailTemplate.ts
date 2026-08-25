@@ -20,23 +20,13 @@ export function gerarHtmlEmailConquista({
 }: EmailConquistaProps): string {
   const urlBase = appUrl.replace(/\/$/, '');
   const urlMural = `${urlBase}/dashboard`;
-  const logoUrl = `${urlBase}/logo.png`;
 
   return `<!DOCTYPE html>
-<html lang="pt-BR" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🏆 Nova Conquista Desbloqueada - BiraSoccer</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
   <style>
     /* Reset & Base */
     body {
@@ -69,13 +59,13 @@ export function gerarHtmlEmailConquista({
     }
     /* Header com Logo */
     .header {
-      padding: 32px 24px;
+      padding: 30px 24px;
       text-align: center;
       background: linear-gradient(180deg, #18233c 0%, #131b2e 100%);
       border-bottom: 1px solid #1e293b;
     }
     .logo-img {
-      max-width: 220px;
+      max-width: 200px;
       height: auto;
       display: inline-block;
       border: 0;
@@ -179,22 +169,20 @@ export function gerarHtmlEmailConquista({
       <!-- Tarja topo degradê BiraSoccer -->
       <div class="top-gradient"></div>
 
-      <!-- Header com Imagem Oficial da Logo -->
+      <!-- Header com Imagem Oficial da Logo embutida (CID) -->
       <div class="header">
-        <img src="${logoUrl}" alt="BiraSoccer" class="logo-img" width="220" />
+        <img src="cid:birasoccer_logo" alt="BiraSoccer" class="logo-img" width="200" style="display: block; margin: 0 auto; max-width: 200px; height: auto;" />
       </div>
 
       <!-- Conteúdo Principal -->
       <div class="content">
         
-        <!-- Ícone do Troféu Perfeitamente Centralizado via Tabela HTML de E-mail -->
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 20px auto; border-collapse: collapse;">
-          <tr>
-            <td align="center" valign="middle" style="width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle, rgba(253, 187, 0, 0.25) 0%, rgba(249, 74, 41, 0.1) 70%, transparent 100%); border: 2px solid #FDBB00; box-shadow: 0 0 25px rgba(253, 187, 0, 0.35); text-align: center; vertical-align: middle; font-size: 42px; line-height: 88px; mso-line-height-rule: exactly;">
-              ${iconeConquista || '🏆'}
-            </td>
-          </tr>
-        </table>
+        <!-- Ícone do Troféu com Círculo Perfeito e Glow -->
+        <div align="center" style="margin: 0 auto 22px auto; text-align: center;">
+          <span style="display: inline-block; width: 84px; height: 84px; line-height: 84px; border-radius: 42px; background-color: #17223b; border: 2px solid #FDBB00; box-shadow: 0 0 25px rgba(253, 187, 0, 0.35); text-align: center; vertical-align: middle; font-size: 40px;">
+            ${iconeConquista || '🏆'}
+          </span>
+        </div>
 
         <div>
           <span class="tag-conquista">🏆 Conquista Desbloqueada</span>

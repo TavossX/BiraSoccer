@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import nodemailer from 'npm:nodemailer@6.9.13';
 import { corsHeaders } from '../_shared/cors.ts';
 import { gerarHtmlEmailConquista } from '../_shared/emailTemplate.ts';
+import { LOGO_BASE64 } from '../_shared/logoBase64.ts';
 
 interface WebhookPayload {
   type?: string;
@@ -176,6 +177,14 @@ serve(async (req: Request) => {
       subject: `🏆 Nova Conquista: ${conquista.titulo} (+${conquista.pontos_xp} XP)`,
       text: `Fala, ${nomeUsuario}!\n\nVocê acabou de desbloquear a conquista "${conquista.titulo}" (+${conquista.pontos_xp} XP) no BiraSoccer.\n\nDescrição: ${conquista.descricao}\n\nAcesse seu mural de troféus: ${appUrl}/dashboard\n\n© 2026 BiraSoccer`,
       html: htmlEmail,
+      attachments: [
+        {
+          filename: 'logo.png',
+          content: LOGO_BASE64,
+          encoding: 'base64',
+          cid: 'birasoccer_logo',
+        },
+      ],
       headers: {
         'X-Entity-Ref-ID': `${userId}-${conquistaId}-${Date.now()}`,
         'List-Unsubscribe': `<${appUrl}/dashboard>`,
