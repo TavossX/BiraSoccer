@@ -125,7 +125,7 @@ serve(async (req: Request) => {
     }
 
     // 6. Gerar Template HTML
-    const appUrl = Deno.env.get('APP_URL') || 'https://biranosoccer.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') || 'https://birasoccer.vercel.app';
     const htmlEmail = gerarHtmlEmailConquista({
       nomeUsuario,
       tituloConquista: conquista.titulo,

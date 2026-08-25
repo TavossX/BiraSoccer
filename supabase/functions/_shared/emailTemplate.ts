@@ -16,7 +16,7 @@ export function gerarHtmlEmailConquista({
   descricaoConquista,
   iconeConquista,
   pontosXp,
-  appUrl = 'https://biranosoccer.vercel.app',
+  appUrl = 'https://birasoccer.vercel.app',
 }: EmailConquistaProps): string {
   const urlBase = appUrl.replace(/\/$/, '');
   const urlMural = `${urlBase}/dashboard`;
