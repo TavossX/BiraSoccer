@@ -295,7 +295,8 @@ VALUES
     ('estreia_de_fogo', 'Estreia de Fogo', 'Disputou sua primeira partida oficial na plataforma.', '🔥', 'partidas', 30),
     ('rei_do_draft', 'Rei do Draft', 'Participou de um torneio com sistema de Pick & Ban.', '👑', 'draft', 50),
     ('goleador', 'Goleador Nato', 'Marcou 5 ou mais gols em uma única partida.', '🎯', 'partidas', 100),
-    ('paredao', 'Paredão / Clean Sheet', 'Venceu uma partida sem sofrer nenhum gol.', '🛡️', 'partidas', 100)
+    ('paredao', 'Paredão / Clean Sheet', 'Venceu uma partida sem sofrer nenhum gol.', '🛡️', 'partidas', 100),
+    ('cui_do_birasoccer', 'Cui do BiraSoccer', 'Primeiro cui a usar o BiraSoccer - conquista limitada.', '💎', 'especial', 100)
 ON CONFLICT (id) DO NOTHING;
 
 -- Habilitar Realtime para as tabelas de notificações e conquistas no Supabase

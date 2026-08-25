@@ -106,14 +106,30 @@ serve(async (req: Request) => {
       userEmail.split('@')[0] ||
       'Craque';
 
-    // 5. Buscar detalhes da Conquista
-    const { data: conquista, error: conquistaError } = await supabaseAdmin
+    // 5. Buscar detalhes da Conquista (ou auto-cadastrar se for nova)
+    let { data: conquista, error: conquistaError } = await supabaseAdmin
       .from('conquistas')
       .select('*')
       .eq('id', conquistaId)
       .maybeSingle();
 
-    if (conquistaError || !conquista) {
+    if (!conquista && conquistaId === 'cui_do_birasoccer') {
+      const { data: nova } = await supabaseAdmin
+        .from('conquistas')
+        .insert({
+          id: 'cui_do_birasoccer',
+          titulo: 'Cui do BiraSoccer',
+          descricao: 'Primeiro cui a usar o BiraSoccer - conquista limitada.',
+          icone: '💎',
+          categoria: 'especial',
+          pontos_xp: 100,
+        })
+        .select()
+        .single();
+      conquista = nova;
+    }
+
+    if (!conquista) {
       console.warn(`Conquista não encontrada no catálogo: ${conquistaId}`);
       return new Response(
         JSON.stringify({ error: `Conquista ${conquistaId} não encontrada.` }),
@@ -123,6 +139,22 @@ serve(async (req: Request) => {
         }
       );
     }
+
+    // Persistir o desbloqueio no banco e gerar notificação in-app
+    await supabaseAdmin
+      .from('usuario_conquistas')
+      .upsert({ user_id: userId, conquista_id: conquista.id }, { onConflict: 'user_id,conquista_id' });
+
+    await supabaseAdmin
+      .from('notificacoes')
+      .insert({
+        user_id: userId,
+        titulo: `🏆 Conquista Desbloqueada: ${conquista.titulo}!`,
+        mensagem: `${conquista.icone || '🏆'} ${conquista.descricao} (+${conquista.pontos_xp} XP)`,
+        tipo: 'conquista',
+        link: '/dashboard',
+        lida: false,
+      });
 
     // 6. Gerar Template HTML
     const appUrl = Deno.env.get('APP_URL') || 'https://birasoccer.vercel.app';
