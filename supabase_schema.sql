@@ -207,3 +207,144 @@ DROP POLICY IF EXISTS "Apenas criador deleta torneio" ON public.torneios_publico
 CREATE POLICY "Apenas criador deleta torneio"
     ON public.torneios_publicos FOR DELETE
     USING (auth.uid() = user_id);
+
+-- ==============================================================================
+-- PASSO 5: SISTEMA DE NOTIFICAÇÕES E GAMIFICAÇÃO (CONQUISTAS / TROFÉUS)
+-- ==============================================================================
+
+-- 5.1 Tabela: notificacoes
+CREATE TABLE IF NOT EXISTS public.notificacoes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    titulo TEXT NOT NULL,
+    mensagem TEXT NOT NULL,
+    tipo TEXT NOT NULL DEFAULT 'info', -- 'partida', 'torneio', 'conquista', 'sistema'
+    lida BOOLEAN NOT NULL DEFAULT FALSE,
+    link TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 5.2 Tabela: conquistas (Catálogo de Troféus)
+CREATE TABLE IF NOT EXISTS public.conquistas (
+    id TEXT PRIMARY KEY,
+    titulo TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    icone TEXT NOT NULL,
+    categoria TEXT DEFAULT 'geral',
+    pontos_xp INTEGER DEFAULT 50,
+    criado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5.3 Tabela: usuario_conquistas (Desbloqueios)
+CREATE TABLE IF NOT EXISTS public.usuario_conquistas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    conquista_id TEXT NOT NULL REFERENCES public.conquistas(id) ON DELETE CASCADE,
+    desbloqueado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT usuario_conquista_unica UNIQUE (user_id, conquista_id)
+);
+
+-- 5.4 Habilitar RLS
+ALTER TABLE public.notificacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conquistas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usuario_conquistas ENABLE ROW LEVEL SECURITY;
+
+-- 5.5 Políticas RLS: notificacoes
+DROP POLICY IF EXISTS "Usuários leem suas próprias notificações" ON public.notificacoes;
+CREATE POLICY "Usuários leem suas próprias notificações"
+    ON public.notificacoes FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuários autenticados podem criar notificações" ON public.notificacoes;
+CREATE POLICY "Usuários autenticados podem criar notificações"
+    ON public.notificacoes FOR INSERT
+    WITH CHECK (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Usuários atualizam suas notificações" ON public.notificacoes;
+CREATE POLICY "Usuários atualizam suas notificações"
+    ON public.notificacoes FOR UPDATE
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuários removem suas notificações" ON public.notificacoes;
+CREATE POLICY "Usuários removem suas notificações"
+    ON public.notificacoes FOR DELETE
+    USING (auth.uid() = user_id);
+
+-- 5.6 Políticas RLS: conquistas
+DROP POLICY IF EXISTS "Conquistas são publicamente visíveis" ON public.conquistas;
+CREATE POLICY "Conquistas são publicamente visíveis"
+    ON public.conquistas FOR SELECT
+    USING (true);
+
+-- 5.7 Políticas RLS: usuario_conquistas
+DROP POLICY IF EXISTS "Desbloqueios de conquistas são publicamente legíveis" ON public.usuario_conquistas;
+CREATE POLICY "Desbloqueios de conquistas são publicamente legíveis"
+    ON public.usuario_conquistas FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Usuários autenticados podem registrar conquistas" ON public.usuario_conquistas;
+CREATE POLICY "Usuários autenticados podem registrar conquistas"
+    ON public.usuario_conquistas FOR INSERT
+    WITH CHECK (auth.role() = 'authenticated');
+
+-- 5.8 Seed de Conquistas Padrão
+INSERT INTO public.conquistas (id, titulo, descricao, icone, categoria, pontos_xp)
+VALUES
+    ('primeiro_gol', 'Primeiro Gol', 'Marcou seu primeiro gol em uma partida oficial.', '⚽', 'partidas', 50),
+    ('levantou_taca', 'Levantou a Taça', 'Consagrou-se o grande campeão de um torneio.', '🏆', 'torneios', 150),
+    ('estreia_de_fogo', 'Estreia de Fogo', 'Disputou sua primeira partida oficial na plataforma.', '🔥', 'partidas', 30),
+    ('rei_do_draft', 'Rei do Draft', 'Participou de um torneio com sistema de Pick & Ban.', '👑', 'draft', 50),
+    ('goleador', 'Goleador Nato', 'Marcou 5 ou mais gols em uma única partida.', '🎯', 'partidas', 100),
+    ('paredao', 'Paredão / Clean Sheet', 'Venceu uma partida sem sofrer nenhum gol.', '🛡️', 'partidas', 100)
+ON CONFLICT (id) DO NOTHING;
+
+-- Habilitar Realtime para a tabela de notificações no Supabase
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'notificacoes'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.notificacoes;
+    END IF;
+END $$;
+
+-- ==============================================================================
+-- PASSO 6: GATILHO DE BANCO (DATABASE TRIGGER & WEBHOOK) PARA EDGE FUNCTION
+-- ==============================================================================
+
+-- 6.1 Habilitar extensão pg_net (para chamadas HTTP assíncronas no Postgres)
+CREATE EXTENSION IF NOT EXISTS "pg_net";
+
+-- 6.2 Função que invoca a Edge Function send-achievement-email
+CREATE OR REPLACE FUNCTION public.trigger_enviar_email_conquista()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_supabase_url TEXT;
+    v_anon_key TEXT;
+BEGIN
+    -- Substitua caso queira usar via pg_net direto no SQL:
+    -- v_supabase_url := 'https://SEU_PROJETO.supabase.co/functions/v1/send-achievement-email';
+    -- PERFORM net.http_post(
+    --     url := v_supabase_url,
+    --     headers := jsonb_build_object(
+    --         'Content-Type', 'application/json',
+    --         'Authorization', 'Bearer ' || v_anon_key
+    --     ),
+    --     body := jsonb_build_object(
+    --         'type', TG_OP,
+    --         'table', TG_TABLE_NAME,
+    --         'record', row_to_json(NEW)
+    --     )
+    -- );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6.3 Trigger na tabela usuario_conquistas
+DROP TRIGGER IF EXISTS on_usuario_conquista_desbloqueada ON public.usuario_conquistas;
+CREATE TRIGGER on_usuario_conquista_desbloqueada
+    AFTER INSERT ON public.usuario_conquistas
+    FOR EACH ROW EXECUTE FUNCTION public.trigger_enviar_email_conquista();
+
+
