@@ -295,12 +295,12 @@ export function PerfilJogador() {
           </Box>
         </SimpleGrid>
 
-        {/* Galeria de Troféus */}
+        {/* Títulos e Pódios */}
         <Heading fontSize="20px" color={textPrimary} mb={4}>
-          Galeria de Troféus
+          Títulos & Pódios
         </Heading>
 
-        <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4}>
+        <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4} mb={8}>
           <Box bg={cardBg} border="1px solid" borderColor={borderColor} borderRadius="xl" p={6} textAlign="center" boxShadow="sm">
             <Flex justify="center" mb={3}>
               <Box p={3} borderRadius="full" bg="rgba(253, 187, 0, 0.15)">
