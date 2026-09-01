@@ -12,11 +12,14 @@ import {
   FormatoTorneio,
   BracketSide,
   PodioTorneio,
+  EstatisticasAvancadasPartida,
 } from '../types/torneio';
+import type { EstatisticasH2H, PartidaH2H } from '../types/social';
 import {
   verificarGatilhosPartida,
   verificarGatilhosTorneioFinalizado,
 } from '../services/conquistasService';
+import { processarEloPartida } from '../services/eloService';
 
 // Fases que participam da progressao sequencial do bracket (terceiro_lugar e final sao paralelas ao fim)
 const ORDEM_FASES_BRACKET: FaseMataMata[] = ['oitavas', 'quartas', 'semifinal', 'final'];
@@ -723,6 +726,197 @@ export function obterPodioTorneio(
   return { campeao, vice, terceiro };
 }
 
+/**
+ * Helper síncrono para processar uma lista de torneios e computar o Head-to-Head (H2H)
+ * entre dois usuários (Vitórias A, Vitórias B, Empates, Gols Pró A/B, Saldo e Partidas).
+ */
+export function calcularH2HDeTorneios(
+  usuarioIdA: string,
+  usuarioIdB: string,
+  torneios: Array<{ id: string; nome: string; formato?: string; dados?: any; atualizado_em?: string }>
+): EstatisticasH2H {
+  if (!usuarioIdA || !usuarioIdB || usuarioIdA === usuarioIdB) {
+    return {
+      usuarioIdA,
+      usuarioIdB,
+      totalJogos: 0,
+      vitoriasA: 0,
+      vitoriasB: 0,
+      empates: 0,
+      golsA: 0,
+      golsB: 0,
+      saldoA: 0,
+      saldoB: 0,
+      aproveitamentoA: 0,
+      aproveitamentoB: 0,
+      partidas: [],
+    };
+  }
+
+  let vitoriasA = 0;
+  let vitoriasB = 0;
+  let empates = 0;
+  let golsA = 0;
+  let golsB = 0;
+  const partidasH2H: PartidaH2H[] = [];
+
+  for (const t of torneios) {
+    const dados = t.dados;
+    if (!dados || !dados.participantes || !dados.partidas) continue;
+
+    const partA = dados.participantes.find(
+      (p: any) => p.usuarioId === usuarioIdA || p.id === usuarioIdA
+    );
+    const partB = dados.participantes.find(
+      (p: any) => p.usuarioId === usuarioIdB || p.id === usuarioIdB
+    );
+
+    if (!partA || !partB) continue;
+
+    const partidasEntreEles = dados.partidas.filter(
+      (p: any) =>
+        p.finalizada &&
+        p.placarA !== null &&
+        p.placarA !== undefined &&
+        p.placarB !== null &&
+        p.placarB !== undefined &&
+        ((p.participanteAId === partA.id && p.participanteBId === partB.id) ||
+          (p.participanteAId === partB.id && p.participanteBId === partA.id))
+    );
+
+    for (const match of partidasEntreEles) {
+      const isA_TeamA = match.participanteAId === partA.id;
+
+      const gA = Number(isA_TeamA ? match.placarA : match.placarB);
+      const gB = Number(isA_TeamA ? match.placarB : match.placarA);
+      const penA = isA_TeamA ? match.penaltisA : match.penaltisB;
+      const penB = isA_TeamA ? match.penaltisB : match.penaltisA;
+
+      let vencedorUsuarioId: string | null = null;
+
+      if (gA > gB) {
+        vitoriasA++;
+        vencedorUsuarioId = usuarioIdA;
+      } else if (gB > gA) {
+        vitoriasB++;
+        vencedorUsuarioId = usuarioIdB;
+      } else {
+        // Empate no placar do jogo normal
+        if (penA !== null && penA !== undefined && penB !== null && penB !== undefined && penA !== penB) {
+          if (penA > penB) {
+            vitoriasA++;
+            vencedorUsuarioId = usuarioIdA;
+          } else {
+            vitoriasB++;
+            vencedorUsuarioId = usuarioIdB;
+          }
+        } else {
+          empates++;
+          vencedorUsuarioId = null;
+        }
+      }
+
+      golsA += gA;
+      golsB += gB;
+
+      partidasH2H.push({
+        partidaId: match.id,
+        torneioId: t.id,
+        torneioNome: t.nome || dados.torneio?.nome || 'Torneio',
+        formato: t.formato || dados.torneio?.formato || 'liga',
+        fase: match.fase || (match.rodada ? `Rodada ${match.rodada}` : null),
+        data: t.atualizado_em || dados.torneio?.criadoEm || new Date().toISOString(),
+        timeA: isA_TeamA ? (partA.timeSorteado || 'Time A') : (partB.timeSorteado || 'Time B'),
+        logoTimeA: isA_TeamA ? partA.logoTime : partB.logoTime,
+        placarA: gA,
+        penaltisA: penA,
+        timeB: isA_TeamA ? (partB.timeSorteado || 'Time B') : (partA.timeSorteado || 'Time A'),
+        logoTimeB: isA_TeamA ? partB.logoTime : partA.logoTime,
+        placarB: gB,
+        penaltisB: penB,
+        vencedorUsuarioId,
+      });
+    }
+  }
+
+  // Ordena partidas mais recentes primeiro
+  partidasH2H.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+
+  const totalJogos = vitoriasA + vitoriasB + empates;
+  const saldoA = golsA - golsB;
+  const saldoB = golsB - golsA;
+  const aproveitamentoA =
+    totalJogos > 0 ? Math.round(((vitoriasA * 3 + empates) / (totalJogos * 3)) * 100) : 0;
+  const aproveitamentoB =
+    totalJogos > 0 ? Math.round(((vitoriasB * 3 + empates) / (totalJogos * 3)) * 100) : 0;
+
+  return {
+    usuarioIdA,
+    usuarioIdB,
+    totalJogos,
+    vitoriasA,
+    vitoriasB,
+    empates,
+    golsA,
+    golsB,
+    saldoA,
+    saldoB,
+    aproveitamentoA,
+    aproveitamentoB,
+    partidas: partidasH2H,
+  };
+}
+
+/**
+ * Consulta o Supabase e computa o Histórico de Rivalidade (H2H) entre dois usuários.
+ * Se grupoId for fornecido, restringe aos torneios daquele grupo.
+ */
+export async function calcularHistoricoRivalidade(
+  usuarioIdA: string,
+  usuarioIdB: string,
+  grupoId?: string | null
+): Promise<EstatisticasH2H> {
+  if (!usuarioIdA || !usuarioIdB || usuarioIdA === usuarioIdB) {
+    return {
+      usuarioIdA,
+      usuarioIdB,
+      totalJogos: 0,
+      vitoriasA: 0,
+      vitoriasB: 0,
+      empates: 0,
+      golsA: 0,
+      golsB: 0,
+      saldoA: 0,
+      saldoB: 0,
+      aproveitamentoA: 0,
+      aproveitamentoB: 0,
+      partidas: [],
+    };
+  }
+
+  try {
+    let query = supabase
+      .from('torneios_publicos')
+      .select('id, nome, formato, status, user_id, co_admins, grupo_id, dados, atualizado_em');
+
+    if (grupoId) {
+      query = query.eq('grupo_id', grupoId);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) {
+      console.warn('Erro ao carregar torneios para rivalidade H2H:', error?.message);
+      return calcularH2HDeTorneios(usuarioIdA, usuarioIdB, []);
+    }
+
+    return calcularH2HDeTorneios(usuarioIdA, usuarioIdB, data);
+  } catch (err) {
+    console.error('Falha ao calcular rivalidade H2H:', err);
+    return calcularH2HDeTorneios(usuarioIdA, usuarioIdB, []);
+  }
+}
+
+
 // Tipos da store
 interface TorneioState {
   torneio: Torneio | null;
@@ -759,10 +953,19 @@ interface TorneioState {
     times: { nome: string; logo?: string }[];
   }) => void;
   gerarPlayoffs: () => void;
-  registrarPlacarLiga: (partidaId: string, placarA: number, placarB: number) => void;
+  registrarPlacarLiga: (
+    partidaId: string,
+    placarA: number,
+    placarB: number,
+    estatisticas?: EstatisticasAvancadasPartida
+  ) => void;
   registrarPlacarMataMata: (
-    partidaId: string, placarA: number, placarB: number,
-    penaltisA?: number, penaltisB?: number
+    partidaId: string,
+    placarA: number,
+    placarB: number,
+    penaltisA?: number,
+    penaltisB?: number,
+    estatisticas?: EstatisticasAvancadasPartida
   ) => void;
   publicarTorneio: () => Promise<string | null>;
   carregarTorneioPublico: (id: string) => Promise<{
@@ -787,6 +990,7 @@ export const useTorneioStore = create<TorneioState>()(
         const torneio: Torneio = {
           id: torneioId,
           nome: config.nome,
+          modalidade: config.modalidade || 'eafc',
           formato: config.formato,
           idaEVolta: config.idaEVolta,
           status: 'em_andamento',
@@ -996,18 +1200,40 @@ export const useTorneioStore = create<TorneioState>()(
       },
 
       // Registrar placar (Liga)
-      registrarPlacarLiga: (partidaId, placarA, placarB) => {
+      registrarPlacarLiga: (partidaId, placarA, placarB, estatisticas) => {
         const { partidas, participantes } = get();
         const partida = partidas.find((p) => p.id === partidaId);
         if (!partida || partida.finalizada) return;
 
         const novasPartidas = partidas.map((p) =>
           p.id === partidaId
-            ? { ...p, placarA, placarB, finalizada: true,
-                vencedorId: placarA > placarB ? p.participanteAId
-                           : placarB > placarA ? p.participanteBId : null,
-                perdedorId: placarA > placarB ? p.participanteBId
-                           : placarB > placarA ? p.participanteAId : null }
+            ? {
+                ...p,
+                placarA,
+                placarB,
+                finalizada: true,
+                posseBolaA: estatisticas?.posseBolaA ?? p.posseBolaA,
+                posseBolaB: estatisticas?.posseBolaB ?? p.posseBolaB,
+                chutesA: estatisticas?.chutesA ?? p.chutesA,
+                chutesB: estatisticas?.chutesB ?? p.chutesB,
+                amarelosA: estatisticas?.amarelosA ?? p.amarelosA,
+                amarelosB: estatisticas?.amarelosB ?? p.amarelosB,
+                vermelhosA: estatisticas?.vermelhosA ?? p.vermelhosA,
+                vermelhosB: estatisticas?.vermelhosB ?? p.vermelhosB,
+                placarCS2: estatisticas?.placarCS2 ?? p.placarCS2,
+                vencedorId:
+                  placarA > placarB
+                    ? p.participanteAId
+                    : placarB > placarA
+                    ? p.participanteBId
+                    : null,
+                perdedorId:
+                  placarA > placarB
+                    ? p.participanteBId
+                    : placarB > placarA
+                    ? p.participanteAId
+                    : null,
+              }
             : p
         );
 
@@ -1045,6 +1271,14 @@ export const useTorneioStore = create<TorneioState>()(
             usuarioIdB: partB.usuarioId,
             placarA,
             placarB,
+            posseBolaA: estatisticas?.posseBolaA,
+            posseBolaB: estatisticas?.posseBolaB,
+            chutesA: estatisticas?.chutesA,
+            chutesB: estatisticas?.chutesB,
+            amarelosA: estatisticas?.amarelosA,
+            amarelosB: estatisticas?.amarelosB,
+            vermelhosA: estatisticas?.vermelhosA,
+            vermelhosB: estatisticas?.vermelhosB,
             nomeAmigoA: partA.nomeAmigo,
             nomeAmigoB: partB.nomeAmigo,
             timeA: partA.timeSorteado,
@@ -1052,6 +1286,18 @@ export const useTorneioStore = create<TorneioState>()(
             torneioId: partida.torneioId,
             torneioNome: torneio?.nome || 'Torneio',
           });
+
+          // Processar ranking Elo para o grupo (se o torneio estiver vinculado a um grupo)
+          if (torneio?.grupoId && partA.usuarioId && partB.usuarioId) {
+            processarEloPartida({
+              grupoId: torneio.grupoId,
+              usuarioIdA: partA.usuarioId,
+              usuarioIdB: partB.usuarioId,
+              placarA,
+              placarB,
+              torneioNome: torneio.nome,
+            });
+          }
         }
 
         // Verificar se todas as partidas da liga foram concluídas
@@ -1068,15 +1314,37 @@ export const useTorneioStore = create<TorneioState>()(
       },
 
       // Registrar placar (Mata-mata / Playoffs)
-      registrarPlacarMataMata: (partidaId, placarA, placarB, penaltisA, penaltisB) => {
+      registrarPlacarMataMata: (
+        partidaId,
+        placarA,
+        placarB,
+        penaltisA,
+        penaltisB,
+        estatisticas
+      ) => {
         const { torneio, partidas, participantes } = get();
         const partida = partidas.find((p) => p.id === partidaId);
         if (!partida || partida.finalizada) return;
 
         let novasPartidas = partidas.map((p) =>
           p.id === partidaId
-            ? { ...p, placarA, placarB, finalizada: true,
-                penaltisA: penaltisA ?? null, penaltisB: penaltisB ?? null }
+            ? {
+                ...p,
+                placarA,
+                placarB,
+                finalizada: true,
+                penaltisA: penaltisA ?? null,
+                penaltisB: penaltisB ?? null,
+                posseBolaA: estatisticas?.posseBolaA ?? p.posseBolaA,
+                posseBolaB: estatisticas?.posseBolaB ?? p.posseBolaB,
+                chutesA: estatisticas?.chutesA ?? p.chutesA,
+                chutesB: estatisticas?.chutesB ?? p.chutesB,
+                amarelosA: estatisticas?.amarelosA ?? p.amarelosA,
+                amarelosB: estatisticas?.amarelosB ?? p.amarelosB,
+                vermelhosA: estatisticas?.vermelhosA ?? p.vermelhosA,
+                vermelhosB: estatisticas?.vermelhosB ?? p.vermelhosB,
+                placarCS2: estatisticas?.placarCS2 ?? p.placarCS2,
+              }
             : p
         );
 
@@ -1184,6 +1452,16 @@ export const useTorneioStore = create<TorneioState>()(
             usuarioIdB: partB.usuarioId,
             placarA,
             placarB,
+            penaltisA,
+            penaltisB,
+            posseBolaA: estatisticas?.posseBolaA,
+            posseBolaB: estatisticas?.posseBolaB,
+            chutesA: estatisticas?.chutesA,
+            chutesB: estatisticas?.chutesB,
+            amarelosA: estatisticas?.amarelosA,
+            amarelosB: estatisticas?.amarelosB,
+            vermelhosA: estatisticas?.vermelhosA,
+            vermelhosB: estatisticas?.vermelhosB,
             nomeAmigoA: partA.nomeAmigo,
             nomeAmigoB: partB.nomeAmigo,
             timeA: partA.timeSorteado,
@@ -1191,6 +1469,20 @@ export const useTorneioStore = create<TorneioState>()(
             torneioId: partida.torneioId,
             torneioNome: torneio?.nome || 'Torneio',
           });
+
+          // Processar ranking Elo para o grupo (se o torneio estiver vinculado a um grupo)
+          if (torneio?.grupoId && partA.usuarioId && partB.usuarioId) {
+            processarEloPartida({
+              grupoId: torneio.grupoId,
+              usuarioIdA: partA.usuarioId,
+              usuarioIdB: partB.usuarioId,
+              placarA,
+              placarB,
+              penaltisA,
+              penaltisB,
+              torneioNome: torneio.nome,
+            });
+          }
         }
 
         // Checar se o torneio de mata-mata ou playoffs foi finalizado

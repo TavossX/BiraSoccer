@@ -52,6 +52,30 @@ export const CONQUISTAS_FALLBACK: Conquista[] = [
     categoria: 'partidas',
     pontos_xp: 100,
   },
+  {
+    id: 'retranqueiro',
+    titulo: 'Retranqueiro',
+    descricao: 'Venceu uma partida oficial com menos de 40% de posse de bola.',
+    icone: '🚌',
+    categoria: 'partidas',
+    pontos_xp: 75,
+  },
+  {
+    id: 'acougueiro',
+    titulo: 'Açougueiro',
+    descricao: 'Recebeu 2 ou mais cartões vermelhos em uma partida e ainda assim venceu.',
+    icone: '🪓',
+    categoria: 'partidas',
+    pontos_xp: 100,
+  },
+  {
+    id: 'atirador_de_elite',
+    titulo: 'Atirador de Elite',
+    descricao: 'Venceu uma partida com 100% de aproveitamento (todos os chutes foram gols).',
+    icone: '🏹',
+    categoria: 'partidas',
+    pontos_xp: 80,
+  },
 ];
 
 /**
@@ -184,6 +208,16 @@ export async function verificarGatilhosPartida({
   usuarioIdB,
   placarA,
   placarB,
+  penaltisA,
+  penaltisB,
+  posseBolaA,
+  posseBolaB,
+  chutesA,
+  chutesB,
+  amarelosA,
+  amarelosB,
+  vermelhosA,
+  vermelhosB,
   nomeAmigoA,
   nomeAmigoB,
   timeA,
@@ -195,6 +229,16 @@ export async function verificarGatilhosPartida({
   usuarioIdB?: string | null;
   placarA: number;
   placarB: number;
+  penaltisA?: number | null;
+  penaltisB?: number | null;
+  posseBolaA?: number | null;
+  posseBolaB?: number | null;
+  chutesA?: number | null;
+  chutesB?: number | null;
+  amarelosA?: number | null;
+  amarelosB?: number | null;
+  vermelhosA?: number | null;
+  vermelhosB?: number | null;
   nomeAmigoA: string;
   nomeAmigoB: string;
   timeA: string;
@@ -203,6 +247,25 @@ export async function verificarGatilhosPartida({
   torneioNome: string;
 }): Promise<void> {
   const linkTorneio = `/convite/${torneioId}`;
+
+  // Determinar vencedor da partida
+  const venceuA =
+    placarA > placarB ||
+    (placarA === placarB &&
+      penaltisA !== null &&
+      penaltisA !== undefined &&
+      penaltisB !== null &&
+      penaltisB !== undefined &&
+      penaltisA > penaltisB);
+
+  const venceuB =
+    placarB > placarA ||
+    (placarA === placarB &&
+      penaltisA !== null &&
+      penaltisA !== undefined &&
+      penaltisB !== null &&
+      penaltisB !== undefined &&
+      penaltisB > penaltisA);
 
   // 1. Notificações de partida para os dois jogadores
   if (usuarioIdA) {
@@ -241,8 +304,39 @@ export async function verificarGatilhosPartida({
     }
 
     // Paredão / Clean Sheet (venceu sem levar gols)
-    if (placarA > placarB && placarB === 0) {
+    if (venceuA && placarB === 0) {
       await desbloquearConquista(usuarioIdA, 'paredao');
+    }
+
+    // Retranqueiro (Venceu com < 40% de posse de bola)
+    if (
+      venceuA &&
+      posseBolaA !== null &&
+      posseBolaA !== undefined &&
+      posseBolaA < 40
+    ) {
+      await desbloquearConquista(usuarioIdA, 'retranqueiro');
+    }
+
+    // Açougueiro (Recebeu 2 ou mais cartões vermelhos e venceu)
+    if (
+      venceuA &&
+      vermelhosA !== null &&
+      vermelhosA !== undefined &&
+      vermelhosA >= 2
+    ) {
+      await desbloquearConquista(usuarioIdA, 'acougueiro');
+    }
+
+    // Atirador de Elite (Venceu com 100% de eficiência de finalização)
+    if (
+      venceuA &&
+      chutesA !== null &&
+      chutesA !== undefined &&
+      chutesA > 0 &&
+      placarA === chutesA
+    ) {
+      await desbloquearConquista(usuarioIdA, 'atirador_de_elite');
     }
   }
 
@@ -262,8 +356,39 @@ export async function verificarGatilhosPartida({
     }
 
     // Paredão / Clean Sheet (venceu sem levar gols)
-    if (placarB > placarA && placarA === 0) {
+    if (venceuB && placarA === 0) {
       await desbloquearConquista(usuarioIdB, 'paredao');
+    }
+
+    // Retranqueiro (Venceu com < 40% de posse de bola)
+    if (
+      venceuB &&
+      posseBolaB !== null &&
+      posseBolaB !== undefined &&
+      posseBolaB < 40
+    ) {
+      await desbloquearConquista(usuarioIdB, 'retranqueiro');
+    }
+
+    // Açougueiro (Recebeu 2 ou mais cartões vermelhos e venceu)
+    if (
+      venceuB &&
+      vermelhosB !== null &&
+      vermelhosB !== undefined &&
+      vermelhosB >= 2
+    ) {
+      await desbloquearConquista(usuarioIdB, 'acougueiro');
+    }
+
+    // Atirador de Elite (Venceu com 100% de eficiência de finalização)
+    if (
+      venceuB &&
+      chutesB !== null &&
+      chutesB !== undefined &&
+      chutesB > 0 &&
+      placarB === chutesB
+    ) {
+      await desbloquearConquista(usuarioIdB, 'atirador_de_elite');
     }
   }
 }

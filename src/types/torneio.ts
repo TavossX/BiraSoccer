@@ -1,5 +1,6 @@
 // ─── Tipos compartilhados do domínio Copa de Amigos ──────────────────────────
 
+export type ModalidadeJogo = 'eafc' | 'cs2';
 export type FormatoTorneio = 'liga' | 'matamata' | 'liga_com_playoffs';
 export type StatusTorneio  = 'aguardando_draft' | 'em_andamento' | 'finalizado' | 'configurando';
 export type ModoSorteio    = 'pick_ban' | 'sorteio_interativo' | 'sorteio_automatico' | 'manual';
@@ -10,6 +11,7 @@ export type BracketSide    = 'UPPER' | 'LOWER';
 export interface Torneio {
   id: string;
   nome: string;
+  modalidade?: ModalidadeJogo; // 'eafc' (padrão) ou 'cs2'
   formato: FormatoTorneio;
   status: StatusTorneio;
   criadoEm: string;
@@ -46,6 +48,27 @@ export interface Participante {
   golsContra: number;
 }
 
+export interface PlacarFragmentadoCS2 {
+  half1A: number;
+  half1B: number;
+  half2A: number;
+  half2B: number;
+  otA?: number | null;
+  otB?: number | null;
+}
+
+export interface EstatisticasAvancadasPartida {
+  posseBolaA?: number | null;
+  posseBolaB?: number | null;
+  chutesA?: number | null;
+  chutesB?: number | null;
+  amarelosA?: number | null;
+  amarelosB?: number | null;
+  vermelhosA?: number | null;
+  vermelhosB?: number | null;
+  placarCS2?: PlacarFragmentadoCS2 | null;
+}
+
 export interface Partida {
   id: string;
   torneioId: string;
@@ -67,10 +90,21 @@ export interface Partida {
   bracket?: BracketSide;               // undefined = single elimination
   loserNextMatchId?: string | null;    // link para o slot na lower bracket
   isLuckyLoser?: boolean;              // marcação visual "Melhor Perdedor"
+  // Estatísticas Avançadas Opcionais
+  posseBolaA?: number | null;
+  posseBolaB?: number | null;
+  chutesA?: number | null;
+  chutesB?: number | null;
+  amarelosA?: number | null;
+  amarelosB?: number | null;
+  vermelhosA?: number | null;
+  vermelhosB?: number | null;
+  placarCS2?: PlacarFragmentadoCS2 | null;
 }
 
 export interface ConfiguracaoTorneio {
   nome: string;
+  modalidade?: ModalidadeJogo;
   formato: FormatoTorneio;
   idaEVolta: boolean;          // true = turno duplo / confronto dois jogos
   isDoubleElimination?: boolean;   // opcional, default false
