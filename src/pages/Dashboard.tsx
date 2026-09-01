@@ -49,6 +49,7 @@ import {
 import { Navbar } from '../components/Navbar';
 import { ModalEditarPerfil } from '../components/ModalEditarPerfil';
 import { MuralDeTrofeus } from '../components/MuralDeTrofeus';
+import { ModalSelecaoJogo } from '../components/ModalSelecaoJogo';
 
 interface TorneioItem {
   id: string;
@@ -69,6 +70,7 @@ export function Dashboard() {
   const [userId, setUserId] = useState<string | null>(null);
   const [perfilUsuario, setPerfilUsuario] = useState<Perfil | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isModalJogoOpen, setIsModalJogoOpen] = useState(false);
   const [totalMeusTimes, setTotalMeusTimes] = useState(0);
 
   const navigate = useNavigate();
@@ -396,16 +398,28 @@ export function Dashboard() {
               </VStack>
             </HStack>
 
-            <Button
-              size="sm"
-              variant="outline"
-              colorScheme="orange"
-              leftIcon={<FiEdit2 />}
-              onClick={() => setIsEditOpen(true)}
-              fontWeight={700}
-            >
-              Editar Perfil
-            </Button>
+            <HStack spacing={3}>
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="orange"
+                leftIcon={<FiEdit2 />}
+                onClick={() => setIsEditOpen(true)}
+                fontWeight={700}
+              >
+                Editar Perfil
+              </Button>
+              <Button
+                id="btn-dashboard-criar-torneio"
+                size="sm"
+                colorScheme="orange"
+                leftIcon={<FiPlus />}
+                onClick={() => setIsModalJogoOpen(true)}
+                fontWeight={800}
+              >
+                Novo Torneio
+              </Button>
+            </HStack>
           </HStack>
         </Box>
 
@@ -494,7 +508,7 @@ export function Dashboard() {
                   <Text fontSize="14px" color={textSecondary} mb={4}>
                     Você ainda não criou nenhum campeonato.
                   </Text>
-                  <Button onClick={() => navigate('/torneio/configurar')} colorScheme="orange" leftIcon={<FiPlus />}>
+                  <Button onClick={() => setIsModalJogoOpen(true)} colorScheme="orange" leftIcon={<FiPlus />}>
                     Criar Primeiro Torneio
                   </Button>
                 </Box>
@@ -532,6 +546,12 @@ export function Dashboard() {
           </TabPanels>
         </Tabs>
       </Box>
+
+      {/* Modal de Seleção de Jogo (EA FC vs CS2) */}
+      <ModalSelecaoJogo
+        isOpen={isModalJogoOpen}
+        onClose={() => setIsModalJogoOpen(false)}
+      />
 
       {/* Modal de Edição de Perfil */}
       {perfilUsuario && (

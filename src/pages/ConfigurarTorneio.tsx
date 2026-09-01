@@ -24,21 +24,22 @@ import {
   Avatar,
   Checkbox,
   Tooltip,
+  Icon,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTorneioStore } from '../store/torneioStore';
-import type { FormatoTorneio } from '../types/torneio';
+import type { FormatoTorneio, ModalidadeJogo } from '../types/torneio';
 import type { Grupo, ParticipanteTorneioSelecao } from '../types/social';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Navbar } from '../components/Navbar';
 import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
 import { searchTeams, TimeFutebol } from '../services/apiFutebol';
-import { IoShuffle } from 'react-icons/io5';
+import { IoShuffle, IoFootball, IoFlame } from 'react-icons/io5';
 import {
   FiPlus as PlusIcon,
   FiTrash2 as TrashIcon,
@@ -63,9 +64,13 @@ type FormData = z.infer<typeof schema>;
 
 export function ConfigurarTorneio() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const grupoParamId = searchParams.get('grupoId');
+  const modalidadeState = (location.state as any)?.modalidade as ModalidadeJogo | undefined;
+  const modalidadeParam = searchParams.get('modalidade') as ModalidadeJogo | undefined;
 
-  const [formato, setFormato] = useState<FormatoTorneio>('liga');
+  const [modalidade, setModalidade] = useState<ModalidadeJogo>(modalidadeState || modalidadeParam || 'eafc');
+  const [formato, setFormato] = useState<FormatoTorneio>(modalidadeState === 'cs2' ? 'matamata' : 'liga');
   const [idaEVolta, setIdaEVolta] = useState(false);
   const [isDoubleElimination, setIsDoubleElimination] = useState(false);
 
@@ -323,6 +328,7 @@ export function ConfigurarTorneio() {
 
     criarTorneio({
       nome: getValues('nomeTorneio'),
+      modalidade,
       formato,
       idaEVolta,
       isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
@@ -383,6 +389,7 @@ export function ConfigurarTorneio() {
   const onGerarCampeonato = () => {
     criarTorneio({
       nome: getValues('nomeTorneio'),
+      modalidade,
       formato,
       idaEVolta,
       isDoubleElimination: formato === 'matamata' ? isDoubleElimination : false,
@@ -470,9 +477,63 @@ export function ConfigurarTorneio() {
             <VStack spacing={8} align="stretch">
               <VStack spacing={4} align="stretch">
                 <Heading fontSize={{ base: '18px', md: '22px' }}>Informações básicas</Heading>
+
+                {/* Banner da Modalidade Selecionada */}
+                <Box
+                  p={3.5}
+                  borderRadius="xl"
+                  bg={
+                    modalidade === 'cs2'
+                      ? 'rgba(253, 187, 0, 0.12)'
+                      : 'rgba(249, 74, 41, 0.1)'
+                  }
+                  border="1px solid"
+                  borderColor={modalidade === 'cs2' ? '#FDBB00' : 'brand.500'}
+                >
+                  <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
+                    <HStack spacing={2.5}>
+                      <Flex
+                        w="32px"
+                        h="32px"
+                        borderRadius="lg"
+                        bg={modalidade === 'cs2' ? '#FDBB00' : 'brand.500'}
+                        color={modalidade === 'cs2' ? 'gray.900' : 'white'}
+                        align="center"
+                        justify="center"
+                      >
+                        <Icon as={modalidade === 'cs2' ? IoFlame : IoFootball} boxSize={5} />
+                      </Flex>
+                      <VStack align="flex-start" spacing={0}>
+                        <Text fontSize="13px" fontWeight={800} color={textColor}>
+                          MODALIDADE: {modalidade === 'cs2' ? 'COUNTER-STRIKE 2 (FPS TÁTICO)' : 'EA FC 26 (FUTEBOL VIRTUAL)'}
+                        </Text>
+                        <Text fontSize="11px" color={textSecondary}>
+                          {modalidade === 'cs2'
+                            ? 'Veto de Mapas da Rotação Ativa (BO1/BO3) & Placares MR12 / Overtime.'
+                            : 'Ligas de pontos corridos, mata-mata com agregados e draft de clubes.'}
+                        </Text>
+                      </VStack>
+                    </HStack>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      colorScheme={modalidade === 'cs2' ? 'yellow' : 'orange'}
+                      onClick={() => {
+                        const nova = modalidade === 'cs2' ? 'eafc' : 'cs2';
+                        setModalidade(nova);
+                        if (nova === 'cs2') setFormato('matamata');
+                      }}
+                      fontSize="11px"
+                      fontWeight={700}
+                    >
+                      Alterar Jogo
+                    </Button>
+                  </Flex>
+                </Box>
+
                 <FormControl isInvalid={!!errors.nomeTorneio}>
                   <FormLabel>Nome do torneio</FormLabel>
-                  <Input {...register('nomeTorneio')} placeholder="Copa de Inverno 2026" />
+                  <Input {...register('nomeTorneio')} placeholder={modalidade === 'cs2' ? 'Major de Amigos CS2' : 'Copa de Inverno 2026'} />
                   <FormErrorMessage fontSize="12px">{errors.nomeTorneio?.message}</FormErrorMessage>
                 </FormControl>
 
@@ -484,25 +545,30 @@ export function ConfigurarTorneio() {
                       setIsDoubleElimination(false);
                     }
                   }}>
-                    <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={3}>
-                      {[
-                        { val: 'liga', titulo: 'Todos contra Todos', desc: 'Pontos Corridos.' },
-                        { val: 'matamata', titulo: 'Mata-mata', desc: 'Chaveamento. Pênaltis no desempate.' },
-                        { val: 'liga_com_playoffs', titulo: 'Liga + Playoffs', desc: 'Pontos corridos + Top 4 se enfrentam.' },
-                      ].map(({ val, titulo, desc }) => (
+                    <SimpleGrid columns={{ base: 1, sm: modalidade === 'cs2' ? 1 : 3 }} spacing={3}>
+                      {(modalidade === 'cs2'
+                        ? [
+                            { val: 'matamata', titulo: 'Mata-mata Competitivo (CS2)', desc: 'Chaveamento com Veto de Mapas e Overtime.' },
+                          ]
+                        : [
+                            { val: 'liga', titulo: 'Todos contra Todos', desc: 'Pontos Corridos.' },
+                            { val: 'matamata', titulo: 'Mata-mata', desc: 'Chaveamento. Pênaltis no desempate.' },
+                            { val: 'liga_com_playoffs', titulo: 'Liga + Playoffs', desc: 'Pontos corridos + Top 4 se enfrentam.' },
+                          ]
+                      ).map(({ val, titulo, desc }) => (
                         <Box
                           key={val}
                           as="label"
                           cursor="pointer"
                           borderWidth="1px"
                           borderRadius="md"
-                          borderColor={formato === val ? 'brand.500' : 'gray.200'}
-                          _dark={{ borderColor: formato === val ? 'brand.500' : 'gray.700' }}
+                          borderColor={formato === val ? (modalidade === 'cs2' ? '#FDBB00' : 'brand.500') : 'gray.200'}
+                          _dark={{ borderColor: formato === val ? (modalidade === 'cs2' ? '#FDBB00' : 'brand.500') : 'gray.700' }}
                           bg={useColorModeValue('white', 'gray.800')}
                           boxShadow="sm"
                           p={4}
                           transition="all 0.15s"
-                          _hover={{ borderColor: 'brand.500' }}
+                          _hover={{ borderColor: modalidade === 'cs2' ? '#FDBB00' : 'brand.500' }}
                         >
                           <Radio value={val} display="none" />
                           <VStack align="flex-start" spacing={1}>

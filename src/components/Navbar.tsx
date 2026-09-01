@@ -32,6 +32,7 @@ import LogoCompleta from '../assets/logos/LogoCompleta.png';
 import { ThemeToggle } from './ThemeToggle';
 import { ModalEditarPerfil } from './ModalEditarPerfil';
 import { NotificationBell } from './NotificationBell';
+import { ModalSelecaoJogo } from './ModalSelecaoJogo';
 import {
   FiAward,
   FiEdit2,
@@ -69,6 +70,7 @@ export function Navbar({
 
   const [userId, setUserId] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [isModalJogoOpen, setIsModalJogoOpen] = useState<boolean>(false);
 
   const navBg = useColorModeValue('white', 'gray.900');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
@@ -121,6 +123,10 @@ export function Navbar({
 
   const handleNavigate = (path: string) => {
     onClose();
+    if (path === '/torneio/configurar') {
+      setIsModalJogoOpen(true);
+      return;
+    }
     navigate(path);
   };
 
@@ -190,7 +196,7 @@ export function Navbar({
               id="btn-nav-criar-torneio"
               size="sm"
               colorScheme="orange"
-              onClick={() => navigate('/torneio/configurar')}
+              onClick={() => setIsModalJogoOpen(true)}
               leftIcon={<FiPlus />}
               fontWeight={800}
             >
@@ -373,6 +379,12 @@ export function Navbar({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Modal de Seleção de Jogo (EA FC vs CS2) */}
+      <ModalSelecaoJogo
+        isOpen={isModalJogoOpen}
+        onClose={() => setIsModalJogoOpen(false)}
+      />
 
       {/* Modal de Edição de Perfil acionado via Drawer */}
       {perfil && (
