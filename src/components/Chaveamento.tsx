@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Badge,
   Box,
   Flex,
@@ -6,10 +7,10 @@ import {
   Image,
   Text,
   VStack,
-  useDisclosure,
   useColorModeValue,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { SVGViewer, SingleEliminationBracket, DoubleEliminationBracket } from '@g-loot/react-tournament-brackets';
+import { SVGViewer, SingleEliminationBracket } from '@g-loot/react-tournament-brackets';
 import { useMemo, useState } from 'react';
 import { FiAward } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -139,8 +140,12 @@ function CustomMatchComponent({ match }: any) {
           justify="space-between" align="center" px={3} py={2}
           bg={aVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
         >
-          <HStack spacing={2} overflow="hidden">
-            {pA?.logoTime && <Image src={pA.logoTime} boxSize="20px" objectFit="contain" />}
+          <HStack spacing={2} overflow="hidden" flex={1}>
+            {pA?.logoTime ? (
+              <Image src={pA.logoTime} boxSize="22px" objectFit="contain" borderRadius="sm" />
+            ) : (
+              <Avatar size="2xs" name={pA?.nomeAmigo} />
+            )}
             <VStack align="flex-start" spacing={0} overflow="hidden">
               <Text
                 fontSize="13px"
@@ -162,13 +167,21 @@ function CustomMatchComponent({ match }: any) {
               )}
             </VStack>
           </HStack>
-          <Text
-            fontSize="15px"
-            fontWeight={aVenceu ? "extrabold" : "bold"}
-            color={aVenceu ? "#F94A29" : textPrimary}
-          >
-            {partidaBase.placarA !== null ? golsA : '-'}
-          </Text>
+          <VStack align="flex-end" spacing={0}>
+            <Text
+              fontSize="15px"
+              fontWeight={aVenceu ? "extrabold" : "bold"}
+              color={aVenceu ? "#F94A29" : textPrimary}
+            >
+              {partidaBase.placarA !== null ? golsA : '-'}
+            </Text>
+            {partidaFinal.placarCS2 && (
+              <Text fontSize="9px" color={textSecondary} fontWeight={600}>
+                {partidaFinal.placarCS2.half1A}:{partidaFinal.placarCS2.half1B} | {partidaFinal.placarCS2.half2A}:{partidaFinal.placarCS2.half2B}
+                {partidaFinal.placarCS2.otA !== null && partidaFinal.placarCS2.otA !== undefined ? ` | ${partidaFinal.placarCS2.otA}:${partidaFinal.placarCS2.otB} OT` : ''}
+              </Text>
+            )}
+          </VStack>
         </Flex>
         
         <Box h="1px" bg={dividerColor} />
@@ -178,8 +191,12 @@ function CustomMatchComponent({ match }: any) {
           justify="space-between" align="center" px={3} py={2}
           bg={bVenceu ? useColorModeValue('orange.50', 'rgba(249,74,41,0.15)') : 'transparent'}
         >
-          <HStack spacing={2} overflow="hidden">
-            {pB?.logoTime && <Image src={pB.logoTime} boxSize="20px" objectFit="contain" />}
+          <HStack spacing={2} overflow="hidden" flex={1}>
+            {pB?.logoTime ? (
+              <Image src={pB.logoTime} boxSize="22px" objectFit="contain" borderRadius="sm" />
+            ) : !isBye ? (
+              <Avatar size="2xs" name={pB?.nomeAmigo} />
+            ) : null}
             <VStack align="flex-start" spacing={0} overflow="hidden">
               <Text
                 fontSize="13px"
@@ -201,13 +218,21 @@ function CustomMatchComponent({ match }: any) {
               )}
             </VStack>
           </HStack>
-          <Text
-            fontSize="15px"
-            fontWeight={bVenceu ? "extrabold" : "bold"}
-            color={bVenceu ? "#F94A29" : textPrimary}
-          >
-            {isBye ? '-' : (partidaBase.placarB !== null ? golsB : '-')}
-          </Text>
+          <VStack align="flex-end" spacing={0}>
+            <Text
+              fontSize="15px"
+              fontWeight={bVenceu ? "extrabold" : "bold"}
+              color={bVenceu ? "#F94A29" : textPrimary}
+            >
+              {isBye ? '-' : (partidaBase.placarB !== null ? golsB : '-')}
+            </Text>
+            {partidaFinal.placarCS2 && !isBye && (
+              <Text fontSize="9px" color={textSecondary} fontWeight={600}>
+                {partidaFinal.placarCS2.half1B}:{partidaFinal.placarCS2.half1A} | {partidaFinal.placarCS2.half2B}:{partidaFinal.placarCS2.half2A}
+                {partidaFinal.placarCS2.otB !== null && partidaFinal.placarCS2.otB !== undefined ? ` | ${partidaFinal.placarCS2.otB}:${partidaFinal.placarCS2.otA} OT` : ''}
+              </Text>
+            )}
+          </VStack>
         </Flex>
       </VStack>
       {partidaFinal.penaltisA !== null && partidaFinal.penaltisB !== null && (
