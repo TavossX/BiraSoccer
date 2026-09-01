@@ -38,9 +38,14 @@ import {
   FiPlus,
   FiClock,
   FiCheckCircle,
+  FiZap,
+  FiTrendingUp,
 } from 'react-icons/fi';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Navbar } from '../components/Navbar';
+import { RivalidadeH2H } from '../components/RivalidadeH2H';
+import { RankingGlobal } from '../components/RankingGlobal';
+import { ModalSelecaoJogo } from '../components/ModalSelecaoJogo';
 
 interface TorneioGrupoItem {
   id: string;
@@ -71,6 +76,7 @@ export function DetalhesGrupo() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [isModalJogoOpen, setIsModalJogoOpen] = useState(false);
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorder = useColorModeValue('gray.200', 'gray.700');
@@ -240,7 +246,7 @@ export function DetalhesGrupo() {
               colorScheme="orange"
               variant="outline"
               leftIcon={<FiPlus />}
-              onClick={() => navigate(`/torneio/configurar?grupoId=${grupo.id}`)}
+              onClick={() => setIsModalJogoOpen(true)}
               fontWeight={700}
             >
               Criar Torneio com este Grupo
@@ -255,6 +261,18 @@ export function DetalhesGrupo() {
               <HStack spacing={2}>
                 <FiUsers />
                 <Text>Membros ({membros.length})</Text>
+              </HStack>
+            </Tab>
+            <Tab fontSize="14px" fontWeight={700}>
+              <HStack spacing={2}>
+                <FiTrendingUp />
+                <Text>Ranking Elo</Text>
+              </HStack>
+            </Tab>
+            <Tab fontSize="14px" fontWeight={700}>
+              <HStack spacing={2}>
+                <FiZap />
+                <Text>Rivalidade (H2H)</Text>
               </HStack>
             </Tab>
             <Tab fontSize="14px" fontWeight={700}>
@@ -326,7 +344,24 @@ export function DetalhesGrupo() {
               </SimpleGrid>
             </TabPanel>
 
-            {/* ── Aba 2: Torneios Ativos ──────────────────────────── */}
+            {/* ── Aba 2: Ranking Elo (Season) ─────────────────────── */}
+            <TabPanel px={0} py={2}>
+              <RankingGlobal
+                grupoId={grupo.id}
+                membrosIniciais={membros}
+              />
+            </TabPanel>
+
+            {/* ── Aba 3: Rivalidade (H2H) ─────────────────────────── */}
+            <TabPanel px={0} py={2}>
+              <RivalidadeH2H
+                grupoId={grupo.id}
+                membros={membros}
+                torneiosPreCarregados={torneiosFinalizados}
+              />
+            </TabPanel>
+
+            {/* ── Aba 4: Torneios Ativos ──────────────────────────── */}
             <TabPanel px={0} py={2}>
               {torneiosAtivos.length === 0 ? (
                 <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={8} textAlign="center">
@@ -337,7 +372,7 @@ export function DetalhesGrupo() {
                     size="sm"
                     colorScheme="orange"
                     leftIcon={<FiPlus />}
-                    onClick={() => navigate(`/torneio/configurar?grupoId=${grupo.id}`)}
+                    onClick={() => setIsModalJogoOpen(true)}
                   >
                     Iniciar Torneio
                   </Button>
@@ -385,7 +420,7 @@ export function DetalhesGrupo() {
               )}
             </TabPanel>
 
-            {/* ── Aba 3: Histórico e Campeões ─────────────────────── */}
+            {/* ── Aba 5: Histórico e Campeões ─────────────────────── */}
             <TabPanel px={0} py={2}>
               {torneiosFinalizados.length === 0 ? (
                 <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={8} textAlign="center">
@@ -508,6 +543,15 @@ export function DetalhesGrupo() {
           </TabPanels>
         </Tabs>
       </Box>
+
+      {/* Modal de Seleção de Jogo */}
+      {grupo && (
+        <ModalSelecaoJogo
+          isOpen={isModalJogoOpen}
+          onClose={() => setIsModalJogoOpen(false)}
+          grupoId={grupo.id}
+        />
+      )}
     </Box>
   );
 }

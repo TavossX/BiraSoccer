@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.grupo_membros (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     grupo_id UUID NOT NULL REFERENCES public.grupos(id) ON DELETE CASCADE,
     usuario_id UUID NOT NULL REFERENCES public.perfis(id) ON DELETE CASCADE,
+    elo_rating INTEGER NOT NULL DEFAULT 1200,
     data_entrada TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT grupo_membros_unico UNIQUE (grupo_id, usuario_id)
 );
@@ -296,6 +297,9 @@ VALUES
     ('rei_do_draft', 'Rei do Draft', 'Participou de um torneio com sistema de Pick & Ban.', '👑', 'draft', 50),
     ('goleador', 'Goleador Nato', 'Marcou 5 ou mais gols em uma única partida.', '🎯', 'partidas', 100),
     ('paredao', 'Paredão / Clean Sheet', 'Venceu uma partida sem sofrer nenhum gol.', '🛡️', 'partidas', 100),
+    ('retranqueiro', 'Retranqueiro', 'Venceu uma partida com menos de 40% de posse de bola.', '🚌', 'partidas', 75),
+    ('acougueiro', 'Açougueiro', 'Recebeu 2 ou mais cartões vermelhos em uma partida e ainda assim venceu.', '🪓', 'partidas', 100),
+    ('atirador_de_elite', 'Atirador de Elite', 'Venceu uma partida com 100% de aproveitamento (todos os chutes foram gols).', '🏹', 'partidas', 80),
     ('cui_do_birasoccer', 'Cui do BiraSoccer', 'Primeiro cui a usar o BiraSoccer - conquista limitada.', '💎', 'especial', 100)
 ON CONFLICT (id) DO NOTHING;
 
