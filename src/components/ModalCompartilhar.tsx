@@ -7,6 +7,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  List, ListItem,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -18,11 +19,10 @@ import {
   useClipboard,
   useToast,
   VStack,
-  List, ListItem,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { FiCheck as CheckIcon, FiCopy as CopyIcon, FiGlobe as GlobeIcon } from 'react-icons/fi';
 import { useTorneioStore } from '../store/torneioStore';
-import { FiCopy as CopyIcon, FiCheck as CheckIcon, FiGlobe as GlobeIcon } from 'react-icons/fi';
 
 // ─── Ícones SVG ───────────────────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
       <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
       <ModalContent
         
@@ -122,7 +122,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
               >
                 <Spinner size="lg" color="brand.400" thickness="3px" speed="0.8s" />
                 <Text fontSize="sm" color="whiteAlpha.600">
-                  Publicando torneio no Supabase…
+                  Publicando torneio no banco de dados...
                 </Text>
               </Flex>
             )}
@@ -137,9 +137,6 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                   Erro ao publicar
                 </Text>
                 <Text fontSize="xs" color="red.400">{erro}</Text>
-                <Text fontSize="xs" color="red.600" mt={2}>
-                  Certifique-se de criar a tabela <code>torneios_publicos</code> no Supabase (ver SQL abaixo).
-                </Text>
               </Box>
             )}
 
@@ -156,10 +153,19 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                     Torneio publicado — atualiza automaticamente a cada placar.
                   </Text>
                 </HStack>
-
+                <HStack
+                  borderRadius="2px" p={3} spacing={2}
+                  borderWidth={1}  _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.100' }}
+                >
+                  <Box  flexShrink={0}><GlobeIcon /></Box>
+                  <Text fontSize="sm" opacity={0.6} lineHeight="1.5">
+                    O link permanece ativo. Sempre que você lançar um placar e recompartilhar,
+                    o torneio é re-publicado com os dados mais recentes.
+                  </Text>
+                </HStack>
                 {/* Campo do link */}
                 <Box>
-                  <Text fontSize="xs" opacity={0.6} mb={2} fontWeight={600}
+                  <Text fontSize="sm" opacity={0.6} mb={2} fontWeight={600}
                     textTransform="uppercase" letterSpacing="wide">
                     Link de convite
                   </Text>
@@ -191,7 +197,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
 
                 {/* O que o amigo vê */}
                 <Box>
-                  <Text fontSize="xs" opacity={0.6} mb={2} fontWeight={600}
+                  <Text fontSize="sm" opacity={0.6} mb={2} fontWeight={600}
                     textTransform="uppercase" letterSpacing="wide">
                     O que seus amigos verão
                   </Text>
@@ -209,7 +215,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                           <Box  flexShrink={0} mt="1px">
                             <CheckIcon />
                           </Box>
-                          <Text fontSize="xs" opacity={0.7}>{item}</Text>
+                          <Text fontSize="sm" opacity={0.7}>{item}</Text>
                         </HStack>
                       </ListItem>
                     ))}
@@ -228,9 +234,9 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                     bg="#25D366"
                     _hover={{ bg: '#1ebe5d' }}
                     color="white"
+                    borderRadius="full"
                     fontWeight={700}
                     fontSize="sm"
-                    borderRadius="4px"
                     leftIcon={
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -246,7 +252,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                     w="full"
                     onClick={handleCopiar}
                     variant="solid"
-                    borderRadius="4px"
+                    borderRadius="full"
                     fontWeight={600}
                     fontSize="sm"
                     leftIcon={hasCopied ? <CheckIcon /> as any : <CopyIcon /> as any}
@@ -255,17 +261,7 @@ export function ModalCompartilhar({ isOpen, onClose }: ModalCompartilharProps) {
                   </Button>
                 </VStack>
 
-                {/* Nota de atualização */}
-                <HStack
-                   borderRadius="2px" p={3} spacing={2}
-                  borderWidth={1}  _dark={{ bg: 'whiteAlpha.50', borderColor: 'whiteAlpha.100' }}
-                >
-                  <Box  flexShrink={0}><GlobeIcon /></Box>
-                  <Text fontSize="2xs" opacity={0.6} lineHeight="1.5">
-                    O link permanece ativo. Sempre que você lançar um placar e recompartilhar,
-                    o torneio é re-publicado com os dados mais recentes.
-                  </Text>
-                </HStack>
+
               </>
             )}
           </VStack>

@@ -507,12 +507,6 @@ export function ModalConfiguracoesTorneio({
             </TabPanels>
           </Tabs>
         </ModalBody>
-
-        <ModalFooter borderTop="1px solid" borderColor={borderColor} py={3}>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Fechar
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
